@@ -1,0 +1,276 @@
+\section{A Dual-Index Framework for Fully-Dynamic kNN Join}
+\label{sec:framework}
+
+In a fully-dynamic environment, we maintain a materialized kNN-join table $k\mathrm{NN}_{\bowtie}(U,I)$ composed of tuples $\langle u, k\mathrm{NN}(u,I)\rangle$ for every query $u\in U$. Clearly, insertions and deletions on either the query set $U$ or the reference set $I$ may change the table. For example, when a point $i$ is deleted from $I$, any query $u$ whose current answer contains $i$ must be repaired: removing $i$ leaves $|k\mathrm{NN}(u,I\setminus\{i\})|=k-1$, so we need to admit the next closest neighbor from $I\setminus\{i\}$ to restore the cardinality to $k$.
+
+A naïve baseline is to recompute $k\mathrm{NN}(u,I)$ for all $u\in U$ after each update. While straightforward in low dimensions, this approach is prohibitively expensive in high-dimensional spaces, where distance evaluation, the dominant cost, is very expensive because of the curse of dimensionality \cite{altman2018curse}. To minimize redundant work, we adopt a targeted maintenance strategy, that is, precisely locating the tuple of query points and their kNN search results that need to be modified because of the update in the kNN join table and applying only the necessary, low-cost repairs to them. Our \dualtree framework is constructed based on this rationale, and we will elaborate on its architecture after detailing the overall operational pipeline.
+
+\subsection{An optimized pipeline for \fdknnj}
+\label{subsec:pipeline}
+Based on the strategy above, we propose a pipeline to efficiently maintain the kNN join table in the high-dimensional and fully-dynamic scenarios including four kinds of update, without need of re-compute the whole kNN join table for each update. We now detail the maintenance procedures for each case of update.
+
+\begin{comment}
+\noindent\textbf{Notation.} Let $dist(\cdot,\cdot)$ be the metric in $\mathbb{R}^D$. For a query $u$ and a finite set $S$, $k\mathrm{NN}(u,S)$ denotes the $k$ nearest neighbors of $u$ in $S$ under the same fixed, deterministic tie-breaking rule as above. Let the $k$-NN radius be $r_k(u;S):=\max_{x\in k\mathrm{NN}(u,S)} dist(u,x)$, i.e., the $k$-th order statistic of $\{dist(u,x):x\in S\}$. For a reference point $i$, define the reverse-$k$NN set
+\[
+\mathrm{RkNN}(i;U,S):=\{\,u\in U : i\in k\mathrm{NN}(u,S\cup\{i\})\,\}.
+\]
+\end{comment}
+
+
+
+\noindent\textbf{Case 1: Insertion into the query set $U$ (forward kNN search).}
+Given a new query point $u$ being inserted into $U$, directly compute $kNN(u,I)$ and append $(u, k\mathrm{NN}(u,I))$ to the join table. No additional search is required beyond this single kNN call.
+
+\noindent\emph{Correctness.} Immediate from the definition of $kNN(u,I)$.
+
+\noindent \textbf{Case 2: Insertion into the reference set $I$ (RkNN search $\rightarrow$ point replacement).}
+Given a new reference point $i$ being inserted into $I$, first conduct RkNN search upon $U$, $I$, and $i$, and gain $RkNN(U,I,i)$, then, only for $u\in RkNN(U,I,i)$, update the row by replacing the previous $k$-th neighbor with $i$. The following lemma establishes the correctness of this method.
+
+\begin{lemma}(Insertion via RkNN-localized replacement.)
+\label{lm:insertquery}
+    Let $I' = I\cup\{i\}$, $u$ be a query point in $U$, $A=kNN(u,I)$, $x_k$ be the k-th nearest neighbor of a query point $u$ over $I$ (i.e., $dist(u,x_k)=dist_{kNN}(u,I)$), and $r=dist(u,x_k)$. Then:
+(i) If $dist(u,i)>r$, $kNN(u,I')=A$.
+(ii) If $dist(u,i)\le r$, then, the set
+\[
+S=\ \big(A\setminus\{x_k\}\big)\ \cup\ \{i\}
+\] is the result for kNN search for $u$ over $I'$, that is $S=\ \big(A\setminus\{x_k\}\big)\ \cup\ \{i\}=kNN(u,I')$
+\end{lemma}
+
+\begin{proof}
+For $u$, if $dist(u,i)>r$, let $i^{\star}$ be an arbitrary point in $(I\cup \{i\})\setminus A$. For an arbitrary point $i^{*} \in A$, if $i^{\star}=i$, then, according to the defined setting and the definition of kNN search, the following inequality holds that $dist(u,\,i^{*})\leq r<dist(u,i^{\star})$. And if $i^{\star}\neq i$, then, according to the definition of kNN search, the following inequality holds that $dist(u, \, i^{*})\leq dist(u, i^{\star})$, in conclusion, $A$ is still the kNN search result $kNN(u,I\cup\{i\})$ of $u$ over $I\cup\{i\}$. 
+
+For the other case where $dist(u,i)\leq r$, let $i^{\star}$ be an arbitrary point in $(I\cup \{i\})\setminus S$. Then, if $i^{\star}=x_k$, for an arbitrary point $i^{*}\in S$, if $i^{*}=i$, according to the defined setting, $dist(u, i^{*})\leq r=dist(u, i^{\star})$, and if $i^{*}\neq i$, then according to the defined setting, the following inequality holds that $dist(u,i^{*})\leq r=dist(u,i^{\star})$. And if $i^{\star}\neq x_k$, then, for an arbitrary point $i^{*}\in S$, according to the definition of kNN search and the defined setting, the following inequality holds that $dist(u,i^{*})\leq r\leq dist(u,i^{\star})$, therefore, $S$ is the new kNN search result of $u$ over $I\cup\{i\}$ according to the definition.
+\end{proof}
+
+
+\noindent\textbf{Case 3: Deletion from the reference set $I$ (reverse localization $\rightarrow$ re-kNN search repair).}
+Given a reference point $i\in I$ being deleted, we first conduct RkNN search for $i$ over $U$ and $I$ to locate the impacted query points in $U$ whose original kNN search results contain $i$, then, $i$ is deleted from such results. Unlike an insertion, which may permit a simple point replacement, a deletion \textbf{invalidates} these lists. Consequently, each impacted query must be repaired by \textbf{recomputing} its kNN result over the updated set $I \setminus \{i\}$. While this re-computation is more costly than a replacement, the workload is strictly confined to the small, localized subset of affected queries. The correctness analysis is analogous to the insertion case and is therefore omitted for brevity.
+
+\begin{comment}
+\emph{Deletion — necessity and repair.} Let $I' = I\setminus\{i\}$. For any $u\in U$,
+$i\in k\mathrm{NN}(u,I)$ iff $k\mathrm{NN}(u,I')\ne k\mathrm{NN}(u,I)$. Moreover, if $i\in k\mathrm{NN}(u,I)$ then
+\[
+k\mathrm{NN}(u,I')=\big(k\mathrm{NN}(u,I)\setminus\{i\}\big)\cup\{z^\star\},
+\]
+where $z^\star$ is the nearest point to $u$ among $I\setminus k\mathrm{NN}(u,I)$ (equivalently, $dist(u,z^\star)=r_{k+1}(u;I)$).
+\emph{Proof sketch.} If $i\notin k\mathrm{NN}(u,I)$, the first $k$ order statistics are unchanged. If $i\in k\mathrm{NN}(u,I)$, removing it makes the new top-$k$ equal to the previous top-$(k\!+\!1)$ without $i$.
+
+\emph{Deletion stability.} If $i\notin k\mathrm{NN}(u,I)$, then $k\mathrm{NN}(u,I')=k\mathrm{NN}(u,I)$.
+
+\emph{Radius monotonicity under deletion.} For any $u$, $r_k(u;I')\ge r_k(u;I)$, with strict inequality iff $i\in k\mathrm{NN}(u,I)$ and $dist(u,i)< r_{k+1}(u;I)$.
+\end{comment}
+\noindent \textbf{Case 4: Deletion from the query set $U$ (data removal only).}
+Remove $(u, k\mathrm{NN}(u,I))$ from the join table. No additional search is needed; this case is trivial and not discussed further.
+
+
+\noindent\textbf{ANALYSIS OF UPDATE STRATEGY.} The performance of our fully-dynamic framework is underpinned by a maintenance strategy that transforms a brute-force refresh into a series of surgical, low-cost repairs. When the reference set $I$ changes, a na\"{\i}ve refresh recomputes $kNN(u,I)$ for \emph{every} $u\in U$, incurring $|U|$ kNN calls---untenable when the sets involved are large and the distances calculation is very costly in high-dimensional context. In contrast, for any update involving a point $i \in I$ (either an insertion or a deletion), our maintenance is strictly localized to the affected queries in $A=RkNN(i, U)$. The workload is thus reduced to just $|A|$ targeted repairs: point replacements for insertions and forward kNN recomputations for deletions. In both cases, the complexity scales with $|A|$ rather than $|U|$.
+
+\noindent\textbf{DESIGN IMPLICATION.}
+It is obviously that the overhead of the maintenance strategy is dominated by two core primitives: forward kNN search and reverse kNN (RkNN) search. Consequently, to make this pipeline truly effective in high dimensions, the underlying infrastructure must provide what we term bidirectional acceleration—simultaneously optimizing both query modalities. Furthermore, this infrastructure must also be incrementally updatable at a low cost to handle the fully-dynamic workload. 
+
+\subsection{\dualtree}
+\label{subsec:dualtree}
+As is discussed, a supporting infrastructure for the maintenance framework must provide what we term \textbf{bidirectional acceleration}---simultaneously optimizing both query modalities in high dimensions---while also being incrementally updatable. To our knowledge, no existing single-index system can satisfy this dual requirement, as they inevitably create an \textbf{asymmetric performance bottleneck}.
+
+Specifically, indexes like the \deltatree\ \cite{cui2003contorting}, CR-Tree \cite{kim2001optimizing}, and iDistance \cite{jagadish2005idistance} excel at accelerating forward kNN search by indexing the reference set $I$. However, they offer no mechanism to efficiently perform the RkNN search required to localize the impact of an update in $I$. This forces a costly full scan of the query set $U$ to find the affected queries, nullifying the benefits of a targeted repair. Symmetrically, RkNN-focused indexes such as the \hdrtree\ \cite{yang2014continuous, ukey2024cluster, ukey2023efficient} and the Sphere Tree \cite{yu2010high, yang2014continuous} are built on the query set $U$ to rapidly identify this impact zone. Yet, they provide no acceleration for the forward kNN search needed to repair an invalidated kNN list, thus necessitating a linear scan of the reference set $I$. In either case, a one-sided index is crippled when faced with the query modality it was not designed for.
+
+Based on this observation, it is clear that any single-sided index---built on only one set and optimized for only one search modality---cannot alone support our fully-dynamic pipeline. This necessitates a creative architectural shift toward a \textbf{dual-sided, symmetric framework}. Therefore, we propose such a structure, composed of two specialized, co-operating indexes: an RkNN-optimized index built on the query set, and a kNN-optimized index built on the reference set. 
+\begin{comment}
+Our framework's components are selected to meet the rigorous demands of our pipeline for high-performance, updatable kNN and RkNN search engines.
+\end{comment}
+For the forward kNN engine on the reference set $I$, we select the \textbf{\deltatree}~\cite{cui2003contorting}. Its combination of PCA-based dimensionality reduction and a progressive cluster-to-point pruning strategy makes it one of the strongest known indexes for high-dimensional kNN search, and it natively supports efficient updates.
+
+Symmetrically, for the reverse kNN engine on the query set $U$, we select the \textbf{\hdrtree}~\cite{yang2014continuous}. It is, to our knowledge, one of the most performant updatable indexes for high-dimensional RkNN search. While its original design did not include routines for updating the query set, its structural architecture is highly analogous to that of the \deltatree. Consequently, an efficient update algorithm can be straightforwardly adapted. As this is a direct engineering extension, we omit a detailed description for brevity.
+
+Thus, we propose \dualtree: a dual-index framework composed of a \deltatree on $I$ and an \hdrtree on $U$. We now detail the specific algorithms used to maintain the kNN join table on this powerful, fully-dynamic structure.
+
+
+\begin{comment}
+It is precisely to meet this dual requirement of high-performance, bidirectional, and updatable indexing that we developed the \dualtree framework, which we detail in the following content.
+\end{comment}
+
+\begin{comment}
+Given a query set $U$, a reference set $I$, and an integer $k\!\le\!|I|$, we first materialize the initial kNN join $kNN_{\bowtie}(U,I)$. Afterwards, we handle each update type as follows.
+\end{comment}
+\begin{comment}
+As for the \hdrtree part of the \dualtree, three methods are needed to respectively support data point insertion into the \hdrtree, data point deletion from the \hdrtree and adjustment of the $dist_{MkNN}$ values. \hdrtree has always been applied for a static $U$ and a dynamic $I$ since it was invented, as a result, no method for data point insertion and deletion but only the technique for adjustment of $dist_{MkNN}$ has been proposed for \hdrtree before our work.
+
+With the invention of \hdrtree, the algorithm to adjust the $dist_{MkNN}$ values for update in $I$ was proposed in \cite{yang2014continuous}, it recursively visits the \hdrtree and locates the clusters containing the data points affected by the update in $I$. And for each located cluster, the algorithm modifies its $dist_{MkNN}$ value if the value is influenced by the change of the $dist_{KNN}$ values of its members. In this paper, we name such algorithm for adjustment of the $dist_{MkNN}$ values as \kw{Adjust\_dist_{MkNN}}. 
+
+In response of the challenge of lack of method for data point insertion and deletion in the \hdrtree part of the \dualtree, we in this paper creatively invent the method for update the \hdrtree part according to the insertion and deletion in $U$. Below we introduce such update algorithm.
+\end{comment}
+\begin{comment}
+
+When a data point $u$ is inserted into $U$, the method  to update the \hdrtree part of the \dualtree is explicated in Algorithm \ref{alg:insertHDR}.
+
+
+
+\begin{algorithm}[t]
+\caption{HDR\_Insert ($u$, $node$)}\label{alg:insertHDR}
+\KwData{An inserted data point $u$ in $U$, a node $node$ on the \hdrtree part of the \dualtree}
+\KwResult{The updated the \hdrtree part of the \dualtree for the insertion of $u$}
+\eIf{$node$ is a leafnode}{
+    insert $u$ into $node$\;
+}
+{
+    $C_{in}=$argmin$\{(radius_{PC}(C_{j})+dist_\text{MkNN}(C_{j}))-(radius_{PC}(C'_{j})+dist_\text{MkNN}(C'_{j}))$, $C_{j}\in node$\}\;
+    \If{$u.dist_{kNN}>dist_\text{MkNN}(C_{in})$}{$dist_\text{MkNN}(C_{in})=u.dist_{kNN}$;}
+    \If{$dist_{PC}(center(C_{in}),u)>radius_{PC}(C_{in})$}{$radius_{PC}(C_{in})=dist_{PC}(center(C_{in}),u)$;}
+    insert $u$ in $C_{in}$\;
+    HDR\_Insert ($u$, $node$.children[$C_{in}$])\;
+}
+\end{algorithm}
+
+Algorithm \ref{alg:insertHDR} is for inserting a new $u$ into the \hdrtree part of \dualtree that can be used in Case 3 where a new data point $u$ is inserted into $U$. Algorithm \ref{alg:insertHDR} uses a recursive strategy to insert $u$ in the suitable clusters and nodes from the root node to a leaf node on the \hdrtree part. 
+
+For an input variable $node$ which is a non-leafnode, we choose a cluster $C_{in} \in node$ to store the newly inserted $u$. For the chosen cluster $C_{in}$, in order to simplify the calculation, we keep its center unchanged, and we update its $dist_\text{MkNN}$ and $radius_{PC}$ value. And Algorithm \ref{alg:insertHDR} will be recursively called on the child node of $node$ corresponding to $C_{in}$, the above process is shown in the $5-$th to $8-$th lines of Algorithm \ref{alg:insertHDR}. To choose a suitable cluster to store $u$, we propose a new index value $I_{M}$ for each cluster $C_i$ to measure its matching degree with $u$. We set $I_{M}(C_i)=(radius_{PC}(C_{i})+dist_\text{MkNN}(C_{i}))-(radius_{PC}(C'_{i})+dist_\text{MkNN}(C'_{i}))$, where $C'_i$ is a cluster made by insertion of $u$ in $C_i$. The cluster that gives the minimal $I_{M}$ will be selected as $C_{in}$ to store $u$, as is shown in the $4-$th line in Algorithm \ref{alg:insertHDR}. According to the pruning condition for a cluster $C$ in the RKNN Search algorithm on \dualtree (Algorithm \ref{alg:RKNNSearch}) that when $dist_{PC}(center(C), q) - radius_{PC}(C)> dist_\text{MkNN}(C)$, $C$ can be pruned, a deduction can be made. That is, for a cluster $C_{na}$ whose data points are not affected by an updated point in $I$, smaller the value  $radius_{PC}(C_{na})+dist_\text{MkNN}(C_{na})$ is, the possibility for $C_{na}$ to be pruned is higher. As a result, $I_{M}$ which is the improvement of the value $radius_{PC}+dist_\text{MkNN}$ can indicate the degradation degree of the pruning power of a cluster because of the insertion of $u$. Therefore, the cluster giving the minimal $I_{M}$ most matches $u$, because its pruning power is influenced lightest by the insertion of $u$ among all the clusters in $node$. When more than one clusters share the same minimal $I_{M}$ value, the cluster that has the shortest distance to $u$ in the corresponding PC space will be chosen to store $u$. 
+
+And when the variable $node$ input is a leafnode, we just directly assign $u$ to it, as is shown in the $1$-st and $2-$nd lines in Algorithm \ref{alg:insertHDR}. 
+\end{comment}
+
+
+\noindent\textbf{UPDATE \boldmath$KNN_{\bowtie}(U,I)$ WHEN $\oplus_{U}(u)$.} The update algorithm based on \dualtree for $KNN_{\bowtie}(U,I)$ when insertion of a new data point $u$ in $U$ can be explicated in the Algorithm \ref{alg:UpdateKNN_insertion_U}. 
+
+\begin{algorithm}[t]
+\caption{KNN$_{\bowtie}$\_Insertion\_U($u$)}\label{alg:UpdateKNN_insertion_U}
+\KwData{An inserted $u$ in $U$}
+\KwResult{The updated $KNN_{\bowtie}(U,I)$ for the insertion of $u$}
+
+KNN\_\dualtree($u$)\;
+HDR\_Insert($u$, $root_{HDR}$)\;
+$KNN_{\bowtie}(\oplus_{U}(u),I)=KNN_{\bowtie}(U,I)\cup \{KNN(u,I)\}$\;
+
+\end{algorithm}
+
+Following the solution framework introduced in Case 3, Algorithm \ref{alg:UpdateKNN_insertion_U} firstly calculate $KNN(u,I)$ with the KNN search technique based on the \deltatree part of the \dualtree, then it insert $u$ in the \hdrtree part. Finally, the algorithm add $KNN(u,I)$ into $KNN_{\bowtie}(U,I)$ to make up $KNN_{\bowtie}(\oplus_{U}(u),I)$. 
+
+\noindent\textbf{UPDATE \boldmath$KNN_{\bowtie}(U,I)$ WHEN $\ominus_{I}(i)$.} The update algorithm based on \dualtree for $KNN_{\bowtie}(U,I)$ when deletion of an existing data point $q$ in $I$ can be explicated in the Algorithm \ref{alg:UpdateKNN_deletion_I} below.
+
+\begin{algorithm}[t]
+\caption{KNN$_{\bowtie}$\_Deletion\_I($q$)}\label{alg:UpdateKNN_deletion_I}
+\KwData{A data point $q$ being deleted from $I$, and a \dualtree built on $U$ and $I$}
+\KwResult{$KNN_{\bowtie}(U,\ominus_{I}(q))$}
+\kw{\Delta\_Delete(q)};;\\
+RKNN\_\dualtree($root_{HDR}$, $q$)\\
+{
+  \For{$u_a$ in $RKNN(U,I,q)$}{
+    KNN\_\dualtree($u_a$);\\
+  }
+}   
+\kw{Adjust\_dist_{MkNN}};\\
+
+\end{algorithm}
+
+Algorithm \ref{alg:UpdateKNN_deletion_I} firstly delete $q$ from the \deltatree part of the \dualtree, so that the \deltatree part can ensure correct KNN search over $\ominus_{I}(q)$ for the affected points in $U$ by the deletion of $q$. Then, following the solution framework for Case 2 presented in the \textit{overview} part, Algorithm \ref{alg:UpdateKNN_deletion_I} locates the affected data points by calling the RKNN search function on the \hdrtree part of the \dualtree. After that, the algorithm calculates $KNN(u_a, \ominus_{I}(q))$ for each affected data point $u_a$ with the KNN search algorithm on the \deltatree part of the \dualtree. Finally, the $dist_{\text{MkNN}}$ values of the clusters on the \hdrtree part will be adjusted.
+
+
+
+\noindent \textbf{UPDATE \boldmath$KNN_{\bowtie}(U,I)$ when $\oplus_{I}(i)$.} The update algorithm based on \dualtree for $KNN_{\bowtie}(U,I)$ when insertion of a new data point $q$ in $I$ can be explicated in the Algorithm \ref{alg:UpdateKNN_insert_I} below. 
+
+\begin{algorithm}[t]
+\caption{KNN$_{\bowtie}$\_Insertion\_I($q$)} 
+\label{alg:UpdateKNN_insert_I}
+\KwData{An data point $q$ being inserted in $I$, and a \dualtree built on $U$ and $I$}
+\KwResult{$KNN_{\bowtie}(U,\oplus_{I}(q))$}
+RKNN\_\dualtree($root_{HDR}$, $q$)\\
+{
+  \For{$u_a$ in $RKNN(U,\oplus_{I}(q),q)$}{
+    $KNN(u_a, \oplus_{I}(q))$=$(KNN(u_a,I)-\{NN_{k}(u_a,I)\})\cup\{q\}$;\\ 
+  }
+}   
+\kw{Adjust\_dist_{MkNN}};\\
+\kw{\Delta\_Insert(q)};\\
+
+\end{algorithm}
+
+\begin{comment}
+delete $NN_{k}(u_a,I)$ from $KNN(u_a,I)$;\\
+\end{comment}
+
+Following the solution framework for case 1 presented in the \textit{overview} part, Algorithm \ref{alg:UpdateKNN_insert_I} firstly calls the RKNN search function for $q$ on the \hdrtree part of the \dualtree to locate the affected data points in $U$ by the insertion of $q$. After that, the algorithm calculates $KNN(u_a, \oplus_{I}(i))$ for each affected point $u_a$ by replacing $NN_{k}(u_a,I)$ with $q$. By this step, update of $KNN_{\bowtie}(U,I)$ is completed, however, because the KNN search results of the affected points change and $q$ is inserted in $I$, two more steps are needed to adjust the $dist_{\text{MkNN}}$ values of the clusters on the \hdrtree part of the \dualtree and update the \deltatree part of the \dualtree by inserting $q$ in it. The concrete methods for adjustment of the $dist_{\text{MkNN}}$ values and for updating \deltatree can be respectively referred to in \cite{yang2014continuous} and in \cite{cui2003contorting}.
+
+As is explained before, the update of $KNN_{\bowtie}(U,I)$ when deletion in $U$ (Case 4) is a trivial process, as a result, we omit it in this paper.
+
+\begin{comment}
+\stitle{Case 2 — Deletion from $\mathbf{I}$.}
+When a point $q$ is deleted from $I$ (i.e., $I'=\ominus_I(q)$), we first remove $q$ from the $\Delta$-Tree. We then run $RKNN(q,U,I)$ on the HDR-Tree to enumerate all $u_i$ with $q\!\in\!kNN(u_i,I)$, and recompute $kNN(u_i,I')$ using the $\Delta$-Tree. Finally, we update HDR-Tree cluster statistics ($dist_{\text{MkNN}}$).
+
+\stitle{Case 3 — Insertion into $\mathbf{U}$.}
+For a newly inserted query $u$, we compute $kNN(u,I)$ on the $\Delta$-Tree and write back $(u,kNN(u,I))$ to the join table. We also insert $u$ into the HDR-Tree.
+
+\stitle{Case 4 — Deletion from $\mathbf{U}$.}
+For a deleted query $u$, we simply remove $(u,kNN(u,I))$ from the join table and delete $u$ from the HDR-Tree. As this is straightforward, we omit further discussion.
+
+\begin{remark}
+A naive alternative is to recompute $kNN(u,I)$ for \emph{all} $u\!\in\!U$ after each change in $I$ or $U$, which is prohibitively expensive in high dimensions~\cite{yang2014continuous,ukey2022efficient,yu2010high,ukey2023efficient}. Identifying the truly affected queries via RKNN and repairing only those rows avoids redundant work and yields significantly faster updates.
+\end{remark}
+
+\subsection{Why Dual Indices Instead of One}
+\label{subsec:why-dual}
+
+Existing partially-dynamic methods typically build a \emph{single} index. For example, the HDR-Tree on $U$~\cite{yang2014continuous} excels at RKNN to find the affected queries when $I$ changes, but it does not support fast kNN over $I$; thus, deletions in $I$ (Case~2) and insertions into $U$ (Case~3) become costly because each repair requires kNN probes into $I$. Symmetrically, building only an index on $I$ accelerates kNN but provides no efficient RKNN to localize the affected queries when $I$ updates. 
+
+\emph{DualTree} addresses this asymmetry by \emph{placing each workload where it is strongest}: HDR-Tree on $U$ for fast RKNN localization, and $\Delta$-Tree on $I$ for fast (re)kNN computation. In practice, this division of labor turns global recomputations into small, localized repairs.
+
+\subsection{The Dual-Index Schema}
+\label{subsec:dual-schema}
+
+\stitle{Components.}
+\dualtree\ maintains (i) an HDR-Tree on $U$ and (ii) a $\Delta$-Tree on $I$. Both use PCA-driven dimensionality reduction and hierarchical clustering to obtain effective pruning in high dimensions~\cite{yang2014continuous,cui2003contorting}. We leverage the HDR-Tree to run RKNN for Cases~1–2 and the $\Delta$-Tree to run kNN for Cases~2–3; Case~4 is trivial.
+
+\stitle{What changes under dynamics.}
+Since both $U$ and $I$ evolve, the two trees are maintained in tandem:
+(i) the $\Delta$-Tree natively supports inserts/deletes on $I$~\cite{cui2003contorting};
+(ii) the HDR-Tree stores, for each cluster, a summary $dist_{\text{MkNN}}$ (the maximum $k$NN distance among its members) used by RKNN pruning. When $I$ changes, impacted queries may change their $k$NN distances, so the corresponding clusters’ $dist_{\text{MkNN}}$ are adjusted (the routine was described in~\cite{yang2014continuous}). 
+In addition, since $U$ is dynamic in our fully-dynamic setting, we include lightweight routines to insert and delete query points into/from the HDR-Tree with minimal bookkeeping (cluster membership, $radius_{PC}$, and $dist_{\text{MkNN}}$ updates), keeping the overall interface small and the maintenance cost low.
+
+\stitle{Maintenance Summary.}
+\begin{itemize}[leftmargin=*]
+\item \textbf{Case 1 ($\oplus_I$):} run RKNN on HDR-Tree to get affected $U$; for each, replace $NN_k$ by $q$; adjust $dist_{\text{MkNN}}$; $\Delta$-insert $q$.
+\item \textbf{Case 2 ($\ominus_I$):} $\Delta$-delete $q$; run RKNN on HDR-Tree; for each affected $u$, recompute $kNN(u,I')$ on $\Delta$-Tree; adjust $dist_{\text{MkNN}}$.
+\item \textbf{Case 3 ($\oplus_U$):} compute $kNN(u,I)$ on $\Delta$-Tree; write back; insert $u$ into HDR-Tree.
+\item \textbf{Case 4 ($\ominus_U$):} delete $(u,kNN(u,I))$; delete $u$ from HDR-Tree.
+\end{itemize}
+
+\subsection{Implementation Notes}
+\label{subsec:impl-notes}
+
+\stitle{Small integration surface.}
+DualTree only exposes a few APIs: \textsc{KNN\_DualTree} (on $I$), \textsc{RKNN\_DualTree} (on $U$), and three lightweight HDR-Tree maintenance routines (\textsc{HDR\_Insert}, \textsc{HDR\_Delete}, \textsc{Adjust\_$dist_{\text{MkNN}}$}). This keeps the engineering cost modest and makes the framework index-agnostic: either side can be swapped for alternative exact/approximate indices without changing the update pipeline.
+
+\stitle{Stable latency via locality.}
+By always localizing the impact via RKNN and repairing only the touched rows, DualTree avoids whole-table recomputation and stabilizes tail latency under bursty updates. This locality also dovetails with our cost-aware pruning model (Sec.~\ref{sec:cost-aware}) and our cluster-based batch optimization (Sec.~\ref{sec:cluster-batch}), where we will schedule repairs more coarsely and share work across nearby clusters.
+
+\subsection{Pseudocode at a Glance}
+\label{subsec:pseudo}
+
+We summarize the insertion/deletion procedures on $I$ and $U$ using \dualtree. The routines follow the two-step template (\emph{locate} $\rightarrow$ \emph{repair $\&$ write-back}) and invoke the minimal HDR/$\Delta$ updates described above.
+
+\vspace{2pt}
+\noindent\textbf{Insertion into $I$.}
+\textsc{KNN$_{\bowtie}$\_Insertion\_I}$(q)$:
+\begin{enumerate}[leftmargin=*, itemsep=1pt, topsep=1pt]
+\item Run \textsc{RKNN\_DualTree}$(root_{HDR},q)$ to get impacted $u_a\!\in\!U$.
+\item For each $u_a$, replace $NN_k(u_a,I)$ by $q$ in its answer.
+\item \textsc{Adjust\_$dist_{\text{MkNN}}$} on impacted HDR clusters; \textsc{$\Delta$\_Insert}$(q)$.
+\end{enumerate}
+
+\noindent\textbf{Deletion from $I$.}
+\textsc{KNN$_{\bowtie}$\_Deletion\_I}$(q)$:
+\begin{enumerate}[leftmargin=*, itemsep=1pt, topsep=1pt]
+\item \textsc{$\Delta$\_Delete}$(q)$.
+\item Run \textsc{RKNN\_DualTree}$(root_{HDR},q)$ to enumerate impacted $u_a$.
+\item For each $u_a$, recompute $kNN(u_a,I\!\setminus\!\{q\})$ on the $\Delta$-Tree.
+\item \textsc{Adjust\_$dist_{\text{MkNN}}$}.
+\end{enumerate}
+
+\noindent\textbf{Insertion into $U$.}
+\textsc{KNN$_{\bowtie}$\_Insertion\_U}$(u)$:
+\begin{enumerate}[leftmargin=*, itemsep=1pt, topsep=1pt]
+\item Compute $kNN(u,I)$ on the $\Delta$-Tree and write back $(u,kNN(u,I))$.
+\item \textsc{HDR\_Insert}$(u,root_{HDR})$.
+\end{enumerate}
+
+\noindent\textbf{Deletion from $U$.}
+\textsc{KNN$_{\bowtie}$\_Deletion\_U}$(u)$: remove $(u,kNN(u,I))$ and \textsc{HDR\_Delete}$(u)$.
+\end{comment}

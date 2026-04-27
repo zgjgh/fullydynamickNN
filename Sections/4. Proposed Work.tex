@@ -1,0 +1,94 @@
+\section{A Dual-Index Framework for Fully Dynamic kNN Join}
+\label{sec:framework}
+
+We maintain a materialized kNN join table $\knnjoin(U,I)$, where each row stores a query point $u\in U$ and its current answer $\knn(u,I)$. A fully dynamic workload contains four update types: insertion into $U$, deletion from $U$, insertion into $I$, and deletion from $I$. The key observation is that these updates require two different search primitives. Updates to $U$ require forward kNN search over $I$, while updates to $I$ require RkNN search to locate the rows in $U$ whose answers may change.
+
+A brute-force maintenance strategy recomputes $\knn(u,I)$ for every $u\in U$ after each update. This is unnecessary: most updates affect only a small subset of rows. Our framework therefore follows a locate-and-repair principle. It first identifies the rows that can change, and then updates only those rows.
+
+This locate-and-repair view also determines what kind of index structures are needed. In a high-dimensional exact setting, the framework needs indexes that still support effective pruning, preserve exact verification, and remain usable under repeated maintenance. More specifically, it needs one structure specialized for forward kNN repair over the reference side and another specialized for reverse localization over the query side. This is why \deltatree and \hdrtree are used as the foundations of \dualtree: they combine reduced-space hierarchical pruning with exact leaf-level verification, and they naturally align with the two repair primitives required by fully dynamic maintenance.
+
+\subsection{Maintenance Pipeline}
+\label{subsec:pipeline}
+
+\noindent\textbf{Case 1: insertion into $U$.}
+When a new query point $u$ is inserted into $U$, the join table gains one row. We compute $\knn(u,I)$ and insert $(u,\knn(u,I))$ into the table. No existing row is affected because the reference set $I$ is unchanged.
+
+\noindent\textbf{Case 2: deletion from $U$.}
+When a query point $u$ is deleted from $U$, we remove the corresponding row from $\knnjoin(U,I)$. Again, no existing row is affected because $I$ is unchanged.
+
+\noindent\textbf{Case 3: insertion into $I$.}
+When a new reference point $i$ is inserted into $I$, only queries for which $i$ becomes one of the $k$ nearest references need to be changed. These queries are exactly the RkNN result of $i$. For each such query, the previous $k$-th neighbor is replaced by $i$.
+
+\begin{lemma}[Insertion via localized replacement]
+\label{lm:insertquery}
+Let $I'=I\cup\{i\}$, let $A=\knn(u,I)$, and let $x_k$ be the $k$-th nearest neighbor of $u$ in $I$, with $r=dist(u,x_k)$. If $dist(u,i)>r$, then $\knn(u,I')=A$. If $dist(u,i)\le r$, then
+\[
+\knn(u,I')=(A\setminus\{x_k\})\cup\{i\},
+\]
+subject to the fixed tie-breaking rule.
+\end{lemma}
+
+\begin{proof}
+If $dist(u,i)>r$, then $i$ is farther than every point in $A$ and cannot enter the top-$k$ set. If $dist(u,i)\le r$, then $i$ is no farther than the current $k$-th neighbor. Replacing $x_k$ by $i$ yields $k$ points whose distances are no larger than any point outside the set, under the same tie-breaking order. Hence the resulting set is $\knn(u,I')$.
+\end{proof}
+
+\noindent\textbf{Case 4: deletion from $I$.}
+When a reference point $i$ is deleted from $I$, every query whose current answer contains $i$ must be repaired. We locate these queries using RkNN search, remove $i$ from their answer lists, and recompute their kNN results over $I\setminus\{i\}$. The repair is more expensive than insertion into $I$, but it is still localized to affected rows rather than the entire join table.
+
+\subsection{\dualtree}
+\label{subsec:dualtree}
+
+The pipeline above requires both fast forward kNN search and fast RkNN search. A single-sided index cannot provide both. An index over $I$, such as \deltatree, accelerates forward kNN search but still needs a scan over $U$ to locate affected queries when $I$ changes. Conversely, an index over $U$, such as \hdrtree, accelerates RkNN search but still needs a scan over $I$ to repair invalidated kNN lists.
+
+\dualtree resolves this asymmetry by maintaining two cooperating indexes:
+
+\noindent(1) a \deltatree on the reference set $I$, used for forward kNN search and kNN repair; and
+
+\noindent(2) an \hdrtree on the query set $U$, used for RkNN search when $I$ changes.
+
+The two indexes are maintained together with the materialized join table. Insertions and deletions in $I$ update the \deltatree and may change stored $\dknn$ values for affected queries; these changes are propagated to the corresponding \hdrtree summaries. Insertions and deletions in $U$ update the \hdrtree and the join table.
+
+\begin{algorithm}[t]
+\caption{$\knnjoin$\_Insertion\_U($u$)}
+\label{alg:UpdateKNN_insertion_U}
+\KwData{New query point $u$}
+\KwResult{Updated $\knnjoin(U,I)$ and \hdrtree}
+$A\leftarrow$ kNN\_\dualtree($u$)\;
+insert $(u,A)$ into $\knnjoin(U,I)$\;
+HDR\_Insert($u$, $root_{HDR}$)\;
+\end{algorithm}
+
+Algorithm~\ref{alg:UpdateKNN_insertion_U} handles insertion into $U$. It computes the new row using the \deltatree side of \dualtree, appends the row to the join table, and inserts the new query into the \hdrtree.
+
+\begin{algorithm}[t]
+\caption{$\knnjoin$\_Insertion\_I($q$)}
+\label{alg:UpdateKNN_insert_I}
+\KwData{New reference point $q$}
+\KwResult{Updated $\knnjoin(U, I\cup\{q\})$, \hdrtree, and \deltatree}
+$R\leftarrow$ RkNN\_\dualtree($root_{HDR}$, $q$)\;
+\ForEach{$u_a\in R$}{
+  replace $NN_k(u_a,I)$ by $q$ in the row of $u_a$\;
+}
+Adjust $\dmknn$ for affected \hdrtree clusters\;
+$\Delta$\_Insert($q$)\;
+\end{algorithm}
+
+Algorithm~\ref{alg:UpdateKNN_insert_I} handles insertion into $I$. The \hdrtree first locates the affected rows. Lemma~\ref{lm:insertquery} then justifies a local replacement for each affected query. Finally, the summary values in \hdrtree and the reference-side \deltatree are updated.
+
+\begin{algorithm}[t]
+\caption{$\knnjoin$\_Deletion\_I($q$)}
+\label{alg:UpdateKNN_deletion_I}
+\KwData{Reference point $q$ deleted from $I$}
+\KwResult{Updated $\knnjoin(U, I\setminus\{q\})$, \hdrtree, and \deltatree}
+$\Delta$\_Delete($q$)\;
+$R\leftarrow$ RkNN\_\dualtree($root_{HDR}$, $q$)\;
+\ForEach{$u_a\in R$}{
+  recompute $\knn(u_a, I\setminus\{q\})$ with kNN\_\dualtree($u_a$)\;
+  update the row of $u_a$\;
+}
+Adjust $\dmknn$ for affected \hdrtree clusters\;
+\end{algorithm}
+
+Algorithm~\ref{alg:UpdateKNN_deletion_I} handles deletion from $I$. After the point is removed from \deltatree, RkNN search identifies queries whose answer lists contained or could be affected by the deleted point. Each affected row is repaired by a forward kNN search over the updated reference set.
+
+Deletion from $U$ is direct: remove the corresponding row from the join table and delete the point from \hdrtree. It does not require kNN or RkNN search.

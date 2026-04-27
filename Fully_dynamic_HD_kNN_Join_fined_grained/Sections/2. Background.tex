@@ -1,0 +1,284 @@
+\section{Background}\label{background}
+\begin{comment}
+This section first introduces several important definitions. We then present our problem statement and highlight the key characteristics of PCA, \deltatree, and \hdrtree, the fundamental index structures of our dual-indexing framework for fully-dynamic kNN join on high-dimensional data.
+
+
+\begin{definition}[kNN search]\label{def::knns}
+    In a $D$-dimensional space $\mathcal{D}$ and a distance space $\mathcal{L}$ with a distance metric $dist:\mathbb{R}^D\times\mathbb{R}^D\rightarrow \mathcal{L}$, given a query point $u\in \mathcal{D}$, a reference set $I\subseteq \mathcal{D}$ and a positive integer $k\leq|I|$, a kNN search(kNN) returns a set of $k$ closest neighbors with metric $dist$ in $I$ for $u$, that is, $kNN(u,I)=\{i|\forall i'\in I-kNN(u,I), dist(u,i')\geq dist(u,i)\}$, $|kNN(u,I)|=k$.
+\end{definition}
+
+\begin{definition}[RkNN search]\label{def:rknnj}
+  Given a query set $U$, a reference set $I$, a query point $q\in I$, and an integer $k\leq|I|$, a reverse kNN search (RkNN) returns a set such that $RkNN(q,U,I)=\{p|p\in U, q\in kNN(p, I)|\}$
+\end{definition}
+
+\begin{definition}[kNN join]
+Given a dataset $\mathcal{D}$ with distance metric $dist$,
+a query set $U\subseteq\mathcal{D}$, a reference set $I\subseteq\mathcal{D}$,
+and a positive integer $k\le |I|$, kNN join(kNNj)
+returns a join table that is a set including every query point in $U$ attached with its kNN Search result in $I$:
+\begin{equation}
+  kNN_{\bowtie}(U,I)=
+  \bigl\{\,\bigl(u,\;kNN(u,I)\bigr)\ \bigm|\ u\in U\bigr\}.
+\end{equation}
+\end{definition}
+
+
+
+We study kNN join over dynamic data, where the involved datasets can be updated. These updates involve the insertion and deletion of data points within the sets. 
+%
+We use $\oplus_{I}(q) = I \cup \{q\}$ to denote the insertion of the data point $q$ into the set $I$ and $\ominus_{I}(q) = I - \{q\}$ to denote the deletion of the data point $q$ from the set. For simplicity, we use $\odot$ to represent an update operation, which can be either an insertion or a deletion.
+
+\begin{definition}[Partially-dynamic kNN join]\label{def:dynamic-knnj}
+  Given a query set $U$, a reference set $I$ and an integer $k\leq|I|$, the (partial) dynamic kNN join is to continuously maintain the result of $kNN_{\bowtie}(U,I)$ when one of $U$ and $I$ is dynamically updated and the other is fixed, that is, to continuously update $kNN_{\bowtie}(U,I')$ or $kNN_{\bowtie}(U', I)$ with each update $I'=\odot_I(q)$ or each update $U'=\odot_U(p)$.
+\end{definition}
+
+\begin{definition}[Fully-dynamic kNN join]\label{def:fully-dynamic-knnj}
+ Given a query set $U$, an answer set $I$ and an integer $k\leq|I|$, the fully dynamic kNN join is to continuously maintain the result of $kNN_{\bowtie}(U,I)$ when both $U$ and $I$ are dynamically-updated, that is, to update $kNN_{\bowtie}(U',I)$ and $kNN_{\bowtie}(U,I')$ with each update $U'=\odot_U(q)$ and with each update $I'=\odot_I(q)$.
+\end{definition}
+
+\noindent \textbf{PROBLEM STATEMENT.}
+In this paper, our aim is to efficiently solve the fully-dynamic kNN join problem (\fdknnj) over dynamic high-dimensional data, where $D$ is typically a large integer number.
+\end{comment}
+
+
+
+% \begin{definition}[Batch Update]\label{def:batch}
+% Batch update is defined as the insertion or deletion of a set $S$ of data points into or from $I$.
+% % within an extremely short time interval. Such case is like the data points are updated almost at the same time in batch, so we call it batch update. 
+% \end{definition}
+
+
+\begin{comment}
+In real-world applications, the query set $U$ can be updated dynamically, where updates involve inserting and deleting data points. Maintenance of the kNN Join table for data insertion into $U$ constitutes the bottleneck of the workload of DkNNJ, because it requires to search for the kNNs of the new query points and fill them into the join table, while what is needed is only deletion of the corresponding tuples of the disappearing queries and their kNN Search results from the kNN Join table. Therefore, this work will only focus on the scenarios where new query data points are inserted into the query set $U$.  
+\end{comment}
+\begin{comment}
+In dynamic kNN Join, the query set $U$ is subject to both insertions and deletions of query points. However, maintaining $kNN_{\bowtie}(U,I)$ for insertions constitutes the primary performance bottleneck of dynamic kNN Join, as it requires costly kNN searches for the newly inserted queries. In contrast, deletions are computationally trivial, requiring only the removal of existing tuples from $kNN_{\bowtie}(U,I)$. Therefore, this work focuses exclusively on the challenge of data insertion.
+\end{comment}
+
+\begin{comment}
+In dynamic kNN Join, insertions constitute the dominant performance bottleneck, as new queries necessitate costly kNN search against the reference set. In contrast, deletions are relatively trivial, requiring only the removal of existing tuples from $kNN_{\bowtie}(U,I)$. We therefore restrict our attention to the insertion case in this work.
+\end{comment}
+
+\begin{comment}
+We refer to a \textit{batch update} as a set of updates $\odot_I(S) = \{\odot_I(s_1), \odot_I(s_2), \dots,\allowbreak \odot_I(s_n)\}$ into or from $I$, where $n=|S|$ and $s_1,s_2,\dots,s_n\in S$. Given that, we define \textit{batch-dynamic kNN join} as follows.
+\end{comment}
+
+\begin{comment}
+\begin{definition}[Batch-dynamic kNN Join]\label{def:dynamic_batch}
+Batch-dynamic kNN join refers to maintaining the result of $kNN_{\bowtie}(U,I)$ when the item set $I$ is dynamically updated in batches.
+
+%
+% The update of $I$ includes the insertion of data points into it and the deletion of data points from it. We use $\odot_I(S)$ to represent the set made by insertion or deletion of a set $S$ of item data points into or from the set $I$.  
+    % It is the process of identifying the $k$ nearest neighbors from $I$ for all query points in $U$. When data points are inserted or deleted, this method identifies all the affected users and updates the relevant data points simultaneously in batches. This ensures that all changes from the same operation type (insertion or deletion) are processed together, maintaining the accuracy and efficiency of the kNN results.
+\end{definition}
+\end{comment}
+\begin{comment}
+In some real-world scenarios, a series of same kind updates (insertion or deletion) of the data in the item set $I$ can occur in a very fast stream, like an update of the data in batch at almost the same time. When implementing dynamic KNN Join for such batch update, we only care about the final KNN Join result but pay no attention to the intermediate states. For example, when a set $S$ of item data points $i_1, i_2,\ldots,i_{|S|}$ are inserted into or deleted from $I$ in batch, what we only pay attention to is $KNN_{\bowtie}(U,\odot_{I}(S))$, without caring the results of $KNN_{\bowtie}(U,\odot_{I}(\{i_1\})$,...$KNN_{\bowtie}(U,\odot_{I}(\{i_1, i_2,...i_{|S|-1}\}))$. For example, in a recommendation system, a batch of items can be inserted into the item set at almost the same time, in this scenario, we only require the final kNN join result for the entire batch of updates to recommend the new items to the users.
+\end{comment}
+
+\begin{comment}
+\ssstitle{Problem Statement.}
+Given a query set $U$, a fixed reference set $I$, a collection $W$ of newly inserted query points, and the current join table $kNN_{\bowtie}(U,I)$, we aim to compute the updated join table $kNN_{\bowtie}(U+W, I)$.
+\end{comment}
+
+
+\begin{comment}
+The efficient processing of high-dimensional data updates is crucial in environments with large user bases, such as social media platforms and recommendation systems. Traditional sequential update methods, which handle each update individually, are resource-intensive and time-consuming. This inefficiency is particularly problematic when a large number of similar kinds of updates(insertion or deletion) need to be performed. Therefore, we proposed a novel cluster-based batch update approach to optimise the $k$ nearest neighbors join computation for such scenarios. Our method aims to reduce computational costs by leveraging spatial features and clustering updated data points while maintaining the accuracy of recommendation results to improve the overall efficiency and responsiveness of the system. We can utilise the batch update method, where the order of the answer set is not important. The main focus is on determining whether the answer set of the sequential order approach and the batch approach are the same. The order is not a strict component in this context.
+\end{comment}
+
+\begin{comment}
+In this paper, we focus on developing an efficient kNN Join on high-dimensional and dynamic data, where new data points are inserted into the query set $U$. 
+
+Specifically, our goal is to propose an efficient batch-based strategy to update the kNN Join table $kNN_{\bowtie}(U,I)$ against the insertion of a collection of new data points $W$ into $U$. In this paper, the operation of updating $kNN_{\bowtie}(U,I)$ for insertion of a collection of new queries $W$ into $U$ is denoted as $\oplus^{U}_{kNN_{\bowtie}(U,I)}(W)$.
+\end{comment}
+
+\begin{comment}
+\textit{Principle Component Analysis} (PCA) \cite{wold1987principal, chakrabarti2000local, abdi2010principal, vidal2016principal} is a classic method for dimension reduction. It firstly computes the co-variance matrix of the original data. Then, an eigen decomposition would be conducted on the matrix. Because the co-variance matrix is a real and symmetrical matrix, all of its eigen values and vectors are within the range of real number. After that, Gram-Schmidt orthogonalization would be applied on each set of eigen vectors corresponding to the same eigen values, followed by organizing the eigen vectors processed by Gram-Schmidt orthogonalization, which is also known as \textit{Principle Components} (PC), by rows into a principle component matrix $M$ in decreasing sequence of their corresponding eigen values. Because the eigen vectors are ranked in decreasing sequence of their eigen values, which are equal to the variances of the data along them, a small section of dimensions in $M$ can contain most of the distance information of the data in the full-dimensional space. In this paper, We use $PC(i)$ to denote $i$-th principle component, and use $\cup^{N}_{i=0}PC(i)$ to represent the space dominated by the first $N$ principle components ($N$-dimensional PC space). For example, $u_{\cup^{N}_{k=1}PC(i)}$ represents the projection of a data point $u$ in the space dominated by the first $N$ principle components. Besides, we use $\sigma(PC(i))$ and $e(PC(i))$ to respectively represent the variance of the data used for PCA and the eigen value of the co-variance matrix of the used data corresponding to the $i$-th principle component, as is discussed before, $\sigma(PC(i))=e(PC(i))$, according to the process of PCA  
+\end{comment}
+
+
+This section introduces basic definitions and our problem statement. We also summarize key characteristics of PCA, \deltatree, and \hdrtree, which underlie our dual-indexing framework for fully dynamic kNN joins on high-dimensional data.
+
+\paragraph{Setting.}
+{\parindent=0pt
+Let $\mathcal{X}\subseteq\mathbb{R}^D$ be the ambient space with dimension $D$, and let $dist:\mathcal{X}\times\mathcal{X}\to\mathbb{R}_{\ge 0}$ be a distance metric.
+}
+
+
+\begin{definition}[kNN search]\label{def:knns}
+Given a query point $u\in\mathcal{X}$, a reference set $I\subseteq\mathcal{X}$, and an integer $k\in\{1,\dots,|I|\}$,
+the $k$-nearest neighbors of $u$ in $I$ is the (multi)set of $k$ points minimizing $dist(u,\cdot)$.
+We denote it by $kNN(u,I)$.
+When distances tie, we break ties by a fixed total order on $I$ (e.g., by a unique identifier).
+\end{definition}
+
+\begin{definition}[k-th NN distance]\label{def:dknn}
+Given a query point $u\in\mathcal{X}$, a reference set $I\subseteq\mathcal{X}$, and an integer $k\in\{1,\dots,|I|\}$,
+the $k$-th nearest neighbor distance of $u$ over $I$ is the longest distance from $u$ to $kNN(u,I)$, which can be denoted as $dist_{kNN}(u,I)=\max_{x\in kNN(u,i)}dist(u,x)$.
+\end{definition}
+
+
+
+
+\begin{definition}[Reverse kNN (RkNN) search]\label{def:rknn}
+Given a query set $U\subseteq\mathcal{X}$, a reference set $I\subseteq\mathcal{X}$, an integer $k$, and a reference point $i\in I$,
+the result of reverse kNN search for $i$ with respect to $U$ and $I$ is
+\[
+RkNN(i,U,I) \;=\; \{\; u\;|\;u\in U \;,\; dist(u,\,i)\leq dist_{kNN}(u,I) \;\}.
+\]
+\end{definition}
+
+\begin{definition}[kNN join]\label{def:knnj}
+Given $U\subseteq\mathcal{X}$, $I\subseteq\mathcal{X}$, and $k$,
+kNN join(kNNj)
+returns a join table that is a set including every query point in $U$ attached with its kNN Search result in $I$:
+\begin{equation}
+  kNN_{\bowtie}(U,I)=
+  \bigl\{\;\bigl(u,\;kNN(u,I)\bigr)\ \bigm|\ u\in U\;\bigr\}.
+\end{equation}
+\end{definition}
+
+\paragraph{Updates.}{\parindent=0pt
+For a set $S\in\{U,I\}$ and a point $x\in\mathcal{X}$, we write
+$\oplus_{S} x := S\cup\{x\}$ (insertion) and $\ominus_{S} x := S\setminus\{x\}$ (deletion).
+We use $\odot \in\{\oplus ,\ominus \}$ to denote an update to $S$.}
+
+\begin{definition}[Partially-dynamic kNN join]\label{def:partial-dynamic-knnj}
+Given $U$, $I$, and $k$, the partially dynamic kNN join continuously maintains $kNN_{\bowtie}(U,I)$
+under a sequence of updates that affect \emph{only one} of the two sets $U$ and $I$.
+That is, for each update $\odot_{I}$ to $I$ (resp.\ $\odot_{U}$ to $U$), it maintains $kNN_{\bowtie}(U,\odot_{I})$ (resp.\ $kNN_{\bowtie}(\odot_{U},I)$).
+\end{definition}
+
+\begin{definition}[Fully-dynamic kNN join]\label{def:fully-dynamic-knnj}
+Given $U$, $I$, and $k$, the fully dynamic kNN join continuously maintains $kNN_{\bowtie}(U,I)$
+under updates to \emph{both} sets.
+For each update $\odot_U$ to $U$ and each update $\odot_I$ to $I$, it maintains $kNN_{\bowtie}(\odot_{U},\, I)$ and $kNN_{\bowtie}(U,\, \odot_{I})$ accordingly.
+\end{definition}
+
+\noindent\textbf{Problem statement.}
+We study high-dimensional fully-dynamic kNN join,(\fdknnj) i.e., $D$ is large, aiming to maintain $kNN_{\bowtie}(U,I)$ efficiently under interleaved insertions and deletions on both $U$ and $I$.
+
+In this work, we use the classic \textit{Euclidean Distance} as our distance metric, which is the L2-Norm \cite{kumar2022l2} of the difference of the two involved vectors.
+
+
+
+ 
+
+\subsection{Principle component analysis}  Principle component analysis\cite{wold1987principal, chakrabarti2000local, abdi2010principal, vidal2016principal}(PCA) is a classic method for dimension reduction. It yields a transformation matrix $M$ that projects vectors from their original coordinate system onto a new orthonormal basis, where the dimensions are organized in descending order of the variance they capture from the projected vectors. The rows of this matrix are known as the principal components. Because the aimed dimensions of PCA are ranked in decreasing sequence of the projected vector's variance on them, a front small section of dimensions in $M$ can contain a large proportion of the distance information of the data in the full-dimensional space. In this paper, We use $PC(i)$ to denote the $i$-th principle component, and use $\cup^{N}_{i=0}PC(i)$ to represent the space dominated by the first $N$ principle components ($N$-dimensional PC space). For example, $u_{\cup^{N}_{k=1}PC(i)}$ represents the projection of a data point $u$ in the space dominated by the first $N$ principle components. Besides, we use $\sigma(PC(i))$ to represent the variance of the data corresponding to the $i$-th principle component. PCA exhibits a property beneficial to simplifying the distance comparison operation that:
+\begin{lemma}(The contractive distance property of PCA.)
+\label{lm:pca_decrease_dist}
+    Decreasing in the dimensions of principle component spaces brings a no-increasing effect on the distance between two data points ($a$ and $b$), which can be written as:    
+        \[\text{If}\hspace{0.5em} d_1\leq d_2,\hspace{0.5em} \text{then,} \hspace{0.5em} dist_{\cup^{d_1}_{i=1}PC(i)}(a,b)\leq dist_{\cup^{d_2}_{i=1}PC(i)}(a,b)\]    
+\end{lemma}
+
+\noindent The proof for lemma \ref{lm:pca_decrease_dist} can be found in \cite{ukey2023efficient}.
+
+\begin{comment}
+%The tree partitions data at each level using a clustering method, usually k-means. At the root level, data is transformed into a LD space (e.g., $d_1$) and divided into a fixed number of clusters. Each cluster is further subdivided at the next level in a progressively LD space (e.g., $d_2$), and this process continues throughout the hierarchy\cite{yang2014continuous}. The hierarchical clustering structure reduces the search space at each level, which improves query efficiency.
+The high-dimensional context results in heavier workload for data access and distance computation relative to the low-dimensional scenarios. $\Delta$-Tree \cite{cui2003contorting} is designed to mitigate these challenges for high-dimensional kNN Join. It is an index structure built by the strategy of hierarchical cluster, thereby realizing cluster-wise pruning in a coarse-to-fine manner. The cluster-wise pruning with progressive refinement enable exclusion of a cluster with multiple reference data points by one time of data point reading and distance computation, effectively bring a reduction in the time cost of I/O and computation. Moreover, $\Delta$-Tree exploits the classic dimension reduction approach \textit{Principle Component Analysis} (Known as PCA) on its non-leaf levels to catch the majority of the spatial characters of the high-dimensional data by a small section of dimensions, which further alleviates the I/O and computation cost of the pruning process. To the best of our knowledge, $\Delta$ is the fastest indexing structure to date among the high-dimensional-efficient approaches for kNN Join that adapt to dynamic data. Because of its effectiveness, this work chooses $\Delta$-Tree as a fundamental index structure to develop the batch framework for high-dimensional and dynamic kNN Join. In the remained part of this subsection, the mechanism of PCA will be introduced firstly. Secondly, a general explanation of the structure of $\Delta$-Tree will be presented. Finally, the kNN Search algorithm on $\Delta$-Tree will be provided.    
+.
+The $\Delta$-Tree is an index structure built on the reference set $I$ similar to an R-tree but with adaptations to High-dimensional data by applying PCA to its non-leaf nodes (NLN) levels. $\Delta$-Tree has two basic parameters $f$ and $threshold$, which are the number of child nodes for an non-leaf node on the $\Delta$-Tree and the threshold number of reference number to control the branch whether a non-leaf node or a leaf node should be generated. The general height $H$ of a $\Delta$-Tree is estimated by 
+\begin{flalign}
+H=1+log_{f}\frac{S}{threshold} 
+\end{flalign}
+, where S is the size reference set %It follows a top-down approach, starting with the entire user set and partitioning it progressively using the $k$-means clustering approach.
+\end{comment}
+
+\begin{comment}
+\subsection{$\Delta$-Tree}
+We adopt the $\Delta$-Tree \cite{cui2003contorting} as the foundational indexing model for our batch processing strategy. To the best of our knowledge, the $\Delta$-Tree remains the state-of-the-art solution for the exact dynamic kNN Join problem on high-dimensional data. Although a subsequent method named kNNJoin$^{+}$ \cite{yu2010high} was proposed, it relies on the idistance \cite{yu2001indexing} search kernel. However, idistance has been shown to be significantly less efficient than the $\Delta$-Tree \cite{cui2003contorting} as dimensionality increases, primarily due to its lack of an effective dimensionality reduction mechanism. Given its proven effectiveness for dynamic high-dimensional kNN Join through hierarchical clustering–based pruning and dimensionality-reduction strategies, we adopt the $\Delta$-Tree in our batch framework  to make use of these advantages. The properties of the non-leaf nodes and leaf nodes of the $\Delta$-Tree will be described below. 
+
+\ssstitle{Non-leaf node on $\Delta$-Tree}
+A non-leaf node on the $l$-th level of $\Delta$-Tree accommodate its assigned reference points in the $d(l)$-dimensional PC space, where $d(l)$ is given by
+\begin{flalign}
+d(l)=min\{d|\frac{\sum^{d}_{i=1}\sigma(PC(i))}{\sum^{D}_{i=1}\sigma(PC(i))}\geq \frac{l}{\Lambda}\}
+\end{flalign}
+, where $D$ is the full dimensionality and $\Lambda$ is the height of the $\Delta$-Tree.
+For a non-leaf node on the $l$-th level, its reference points are divided into $f$ clusters by \textit{k-means} in the PC space of $\cup^{d(l)}_{i=1}PC(i)$, and the pointer pointing to the child node and the center and radius in the corresponding PC space of each of the clusters are stored. For a cluster in a non-leaf node, if the number of its reference points is larger than $thres$, then it will evolve into a non-leaf node on the next level, otherwise its corresponding child node would be a leaf node.
+
+\ssstitle{Leaf node on $\Delta$-Tree}
+A leaf-node of a $\Delta$-Tree directly reserves the assigned reference points in the full-dimensional space.
+\end{comment}
+
+\subsection{\hdrtree and \deltatree}
+\deltatree \cite{cui2003contorting} and \hdrtree \cite{yang2014continuous} are complementary tree indexes for high-dimensional nearest-neighbor searches:
+\deltatree is built on the \emph{reference} set $I$ for kNN search, whereas \hdrtree is built on the \emph{query} set $U$ for \emph{reverse} kNN (RkNN) search.
+Both of them are designed to confine expensive full-dimensional distance calculation into lighter low-dimensional workload. To our knowledge, they stand among the strongest high-dimensional indexes for kNN and RkNN search that support updates on their respective datasets.
+
+\noindent \textbf{Structural Summary.}
+Both the \deltatree and \hdrtree
+ share the same hierarchical clustering backbone; unless otherwise stated, the following description applies to \emph{both} indexes.
+Let the the full dimensionality be $D$, and let $d(1) < \cdots < d(l)< \cdots d(\Lambda) = d$ denote the projection dimensionalities at level $l \in \{1,\dots,\Lambda\}$, where $\Lambda$ is the theoretical height of the tree structure equal to the logarithm of the cardinality of the corresponding set $S$ to the global constant fanout number $f$ decided by the users for separation of the non-leaf nodes of the tree structure, i.e.,$\Lambda=log_{f}(|S|), \, S\in\{U,\,I\}$.
+At a non-leaf node on level $l$, data points are projected to $\mathbb{R}^{d(l)}$ by principle component analysis (PCA) and subsequently partitioned by $k$-means into $f$ clusters. 
+If a cluster $C$ satisfies $|C|>\varpi$, where $\varpi$ is also a global constant threshold number decided by the users, it is \emph{lifted} to level $l+1$ (dimensionality $d(l+1)$) for further partitioning; otherwise it becomes a leaf that stores points at full dimensionality $D$. 
+Hence the representation dimensionality increases with depth on the tree structures.
+
+\noindent \textbf{Search Strategies. }
+Both of the kNN and RkNN search algorithms on \deltatree and \hdrtree employ a \textbf{progressive narrowing} strategy, transitioning from cluster-wise, low-dimensional pruning to a point-wise, full-dimensional verification. Initially, at non-leaf nodes, entire clusters of distant candidates are discarded based on low-cost distance computations in the projected space $\mathbb{R}^{d(l)}$.  This low-dimensional pruning is highly effective, as PCA concentrates a large fraction of the inter-point distance information into its leading principal components. Subsequently, the search culminates at the leaf nodes, where precise, point-wise distance calculations in the full-dimensional space eliminate any remaining false positives to \textbf{guarantee the correctness} of the final kNN or RkNN results.
+
+
+
+\begin{comment}
+\paragraph{Why they are effective.}
+In practice, both indexes excel by front-loading pruning in reduced spaces and postponing full-dimensional distances to a concentrated tail:
+low-dimensional \emph{cluster-level} filtering eliminates large swaths of points early, while final \emph{point-wise} confirmation at leaves guarantees correctness.
+This combination is particularly potent in high dimensions, where reducing the number of full-space evaluations dominates end-to-end performance, making $\Delta$-Tree and HDR-Tree strong baselines for kNN and RkNN search.
+\end{comment}
+
+
+
+
+
+
+
+\begin{comment}
+\paragraph{Instantiation on each side.}
+On $I$, the $\Delta$-Tree answers forward kNN by descending clusters that pass low-dimensional bounds and verifying candidates at leaves.
+On $U$, the HDR-Tree answers RkNN by symmetrically pruning in reduced space and confirming at leaves which $u\in U$ admit a given reference point among their $k$ nearest neighbors in $I$.
+\end{comment}
+
+\noindent \textbf{Maintenance strategies.}
+On the reference side, the \deltatree includes a lightweight maintenance routine for insertions and deletions in $I$ \cite{cui2003contorting}, carried out largely in reduced spaces or via index pointers, keeping overhead low.
+\hdrtree does not originally ship with such a routine; however, because its hierarchical layout and traversal invariants closely mirror those of the \deltatree, the same maintenance template applies on the query side with a minor side-specific adjustment—yielding symmetric, low-cost updates without altering the core design.
+
+By coupling targeted dimensional reduction methed (PCA) with a progressive pruning strategy, 
+As a result, to our knowledge, they stand among the strongest high-dimensional indexes for kNN and RkNN search with update support.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\begin{comment}
+The tree is structured in such a way that each level corresponds to a different dimensionality based on the cumulative variance explained by the selected principal components. HDR-Tree NLN contains cluster information with reduced dimensionality. The NLN helps to efficiently prune the search space by distance calculations in the transformed LD space.
+%
+In a hierarchical clustering structure, a NLN contains multiple clusters whose number $f$ is user-determined. Every cluster in a NLN is described by a tuple $(l,center,radius,maxdknn)$. Here, $l$ represents the cluster level within the hierarchy, while $center$ denotes the geometric center of the user data points of the cluster in the LD space corresponding to the $l$ level. And $radius$ indicates the distance from the cluster center to its farthest point in LD space. The $maxdknn$ refers to the maximal $dknn$ value of the user data points in the cluster. The $dknn$ value of a user data point is the distance from it to its $k$-th nearest neighbor. The leaf nodes (LN), directly store user data points $U_j$ without dimensionality reduction. The number of user data points held by a LN should be smaller than a threshold value $\theta$, which is a user-determined number.
+\end{comment}
+\begin{comment}  
+\stitle{Tree Structure and Construction.}
+The HDR-Tree is similar to an R-Tree~\cite{guttman1984r} but with adaptations to handle low-dimensional data in its non-leaf nodes (NLN). It follows a top-down approach, starting with the entire user set and partitioning it progressively using the $k$-means clustering approach. The tree is structured in such a way that each level corresponds to a different dimensionality based on the cumulative variance explained by the selected principal components. HDR-Tree NLN contains cluster information with reduced dimensionality. The NLN helps to efficiently prune the search space by distance calculations in the transformed lower-dimensional space. On the other hand, the leaf nodes (LN) store the actual user data without dimensionality reduction.
+\end{comment}
+
+
+
+\begin{comment}
+The HDR-Tree search algorithm improves query performance by pruning unnecessary NLN. For each query, the item is transformed into the corresponding LD space, and comparisons are made against clusters at various tree levels. If a cluster's maximum kNN distance ($maxdknn$) is exceeded, the cluster and its child nodes are pruned from the search, narrowing down the search to potential matches.
+\end{comment}
+\begin{comment}
+The kNN Search algorithm on $\Delta$-Tree is a combination of updating a list of the candidate kNN members of the query point and an iterative process of popping and pushing non-leaf nodes of the $\Delta$-Tree out from and into a priority queue. Priority of popping is given to the node with its parent cluster having the smallest value of $|dist_{\cup^{d(l(C))}_{i=1}(PC(i))}(ctr(C),u)-r_{\cup^{d(l(C))}_{i=1}(PC(i))}(C)|$, where $u$ means the query point, $C$ means the parent cluster of the non-leaf node, $l(X)$ means the sequence number of the layer where a cluster or a node $X$ is, $ctr$ means the center of $C$ defined by $ctr=\frac{\sum_{i\in C}i}{|C|}$, and $r$ represents the radius of $C$ calculated by $max\{d|d=dist(ctr(C),i), i\in C|\}$. For a popped non-leaf node, each of its cluster $C$ would be pruned if the condition  
+\begin{flalign}
+|dist_{\cup^{d(l(C))}_{i=1}(PC(i))}(ctr(C),u)-r_{\cup^{d(l(C))}_{i=1}(PC(i))}(C)|\geq B
+\end{flalign}
+is satisfied, where $B$ is the pruning bound, meaning the furthest distance between the reference points in the candidate list of the query point $u$ and $u$ in the full-dimensional space. The exactness of the pruning condition above is supported by the \textit{Triangle Principle} \cite{chen2023triangle} of Euclidean distance and the theorem that:
+\end{comment}
+\begin{comment}
+The proof of theorem \ref{thm:pca_decrease_dist} can be referred to in . If a cluster passes the pruning condition, then its child node would be pushed into the queue when this child node is a non-leaf node, otherwise the distance of full-dimensional between the query point $u$ and each reference point in this leaf node should be computed to judged whether the reference point should be added into the candidate list or not. The search algorithm would converge when no non-leaf node can be popped out from the priority queue.
+\end{comment}

@@ -1,0 +1,33 @@
+\section{Related Works}\label{sec:related-works}
+
+\stitle{kNN Search.}
+%
+While the kNN search problem has been extensively studied in the literature in both the exact \cite{yu2001indexing, cui2003contorting, cui2005indexing, garcia2010k, wang2013pl, xiao2016parallel, pan2020new, muhr2022hybrid} and approximate \cite{bawa2005lsh, jegou2010product, muja2014scalable, wang2019new, li2019approximate, song2020brepartition} settings
+%
+While we focus on exact dynamic kNN search over high-dimensional space, 
+the most related work to this paper is \cite{cui2005indexing}.
+%
+In particular, \cite{cui2005indexing} introduces an index structure known as the \deltatree to address the challenge of processing high-dimensional queries.
+%
+The \deltatree is structured as a multilevel hierarchy, where each level represents increasing dimensionalities of the data in the PCA space.
+%
+This multilevel approach efficiently prunes the search space by leveraging lower dimensions to reduce the need for full-dimensional distance computations.
+
+\stitle{kNN Join.}
+%
+kNN join was first proposed in \cite{bohm2003supporting, bohm2004k}. While most of the existing work are focused on static data \cite{bohm2004k, xia2004gorder, yu2007efficient}, our aim is over dynamic data in this paper \cite{yu2010high, yang2014continuous, ukey2022efficient, ukey2023efficient,ukey2023knn}.
+%
+The Multi-page Index (MuX) \cite{bohm2001cost, bohm2004k} is an R-tree~\cite{guttman1984r} based method that balances CPU and I/O costs using large pages for I/O optimization and smaller buckets for CPU efficiency.
+%
+G-order \cite{xia2004gorder} utilises block nested join and grid-based sorting for efficient grouping of similar objects.
+%
+iJoin \cite{yu2007efficient} is an index nested loop join with data partitioning, reducing disk I/O and CPU costs through dimensionality reduction and approximation cubes.
+%
+All these approaches~\cite{bohm2004k, xia2004gorder, yu2007efficient} were proposed for static datasets and therefore lack support for incremental updates. To address this, kNNJoin$^+$ \cite{yu2010high} uses a Sphere-Tree index but falls short in real-time performance due to I/O and computational overhead.
+%
+\cite{yang2014continuous} introduced \hdrtree for continuous kNN join processing, focusing on real-time recommendations and reducing in-memory searching costs, while \cite{ukey2022efficient, ukey2023efficient, ukey2023knn} also adopt the \hdrtree as an index structure.
+% , while \cite{ukey2023knn} developed a parallel approach based on HDR-Tree.
+%
+A recent survey~\cite{ukey2023survey} reveals that only a handful of methods have proposed dynamic kNN join approaches, and to our knowledge, none have addressed the challenges of \fdknnj. Therefore, in this work, we introduce a fully dynamic solution to address this gap in the research.
+
+

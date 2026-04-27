@@ -1,0 +1,1595 @@
+Contorting High Dimensional Data for Efficient Main
+Memory KNN Processing
+Bin Cui1
+Beng Chin Ooi1
+1 Department of Computer Science
+National University of Singapore
+3 Science Drive 2, Singapore
+{cuibin, ooibc, tankl}@comp.nus.edu.sg
+Jianwen Su2
+Kian-Lee Tan1
+2 Department of Computer Science
+University of California
+Santa Barbara, CA 93106-5110
+su@cs.ucsb.edu
+ABSTRACT
+In this paper, we present a novel index structure, called ∆-
+tree, to speed up processing of high-dimensional K-nearest
+neighbor (KNN) queries in main memory environment. The
+∆-tree is a multi-level structure where each level represents
+the data space at diﬀerent dimensionalities: the number of
+dimensions increases towards the leaf level which contains
+the data at their full dimensions. The remaining dimensions
+are obtained using Principal Component Analysis, which has
+the desirable property that the ﬁrst few dimensions capture
+most of the information in the dataset. Each level of the tree
+serves to prune the search space more eﬃciently as the re-
+duced dimensions can better exploit the small cache line size.
+Moreover, the distance computation on lower dimensionality
+is less expensive. We also propose an extension, called ∆+-
+tree, that globally clusters the data space and then further
+partitions clusters into small regions to reduce the search
+space. We conducted extensive experiments to evaluate the
+proposed structures against existing techniques on diﬀerent
+kinds of datasets. Our results show that the ∆+-tree is su-
+perior in most cases.
+1.
+INTRODUCTION
+Many emerging database applications such as image, time
+series and scientiﬁc databases, manipulate high-dimensional
+data.
+In these applications, one of the most frequently
+used and yet expensive operations is to ﬁnd objects in the
+database that are similar to a given query object. Nearest
+neighbor search is a central requirement in such cases.
+There is a long stream of research on solving the near-
+est neighbor search problem, and many multidimensional
+indexes have been proposed [3, 4, 7, 8, 14, 16, 17, 18]. How-
+ever, these index structures have largely been studied in the
+context of disk-based systems where it is assumed that the
+databases are too large to ﬁt into the main memory. This
+assumption is increasingly being challenged as RAM gets
+Permission to make digital or hard copies of all or part of this work for
+personal or classroom use is granted without fee provided that copies are
+not made or distributed for proﬁt or commercial advantage and that copies
+bear this notice and the full citation on the ﬁrst page. To copy otherwise, to
+republish, to post on servers or to redistribute to lists, requires prior speciﬁc
+permission and/or a fee.
+SIGMOD 2003, June 9-12, 2003, San Diego, CA.
+Copyright 2003 ACM 1-58113-634-X/03/06 ...$5.00.
+cheaper and larger. This has prompted renewed interest in
+research in main memory databases [2, 6, 13, 15].
+In main memory systems, distance computations and L2
+cache misses contribute signiﬁcantly to the overall cost. Sev-
+eral main memory indexing schemes have been designed to
+be cache conscious [13, 15].
+However, these schemes are
+targeted at single or low dimensional data. Moreover, for
+high-dimensional data, distance calculations are computa-
+tionally expensive [4]. Therefore an eﬃcient main memory
+index should exploit the L2 cache eﬀectively and minimize
+the distance computation to improve the performance.
+In this paper, we propose a novel multi-tier index struc-
+ture, called ∆-tree1, that can facilitate eﬃcient KNN search
+in main memory environment. Each tier in the ∆-tree rep-
+resents the data space as clusters in diﬀerent number of
+dimensions and tiers closer to the root partition the data
+space using fewer number of dimensions. The numbers of
+tiers and dimensions are obtained using the Principal Com-
+ponent Analysis (PCA) technique [12]. After PCA trans-
+formation, the ﬁrst few dimensions of the new data space
+generally capture most of the information, and in partic-
+ular two points that are distance di apart in i dimensions
+have the property that di ≤dj if i ≤j. More importantly,
+by hierarchical clustering and reducing the number of di-
+mensions, we can decrease the distance computation and
+better utilize the L2 cache. We present the KNN search al-
+gorithm as well as the update algorithm for the ∆-tree. An
+extension of the ∆-tree, called ∆+-tree, is also proposed to
+further reduce the search space. The ∆+-tree globally clus-
+ters the data space and then partitions clusters into small
+regions before building the tree. We compare the proposed
+schemes against other known schemes including the M-tree
+[8], TV-tree [14], CR-tree [13], VA-ﬁle [16], iDistance [18]
+and Sequential Scan. Our study shows that the ∆+-tree is
+superior in most cases.
+An indirect contribution of this paper is the comparative
+study of the various indexing structures.
+To our knowl-
+edge, this is the ﬁrst comprehensive performance study that
+involves so many high-dimensional structures. The results
+provide insight into the strengths and limitations of these
+schemes that will help researchers/practitioners to pick an
+appropriate scheme to adopt.
+The remainder of this paper is organized as follows. In the
+1∆reﬂects the structure of the tree where nodes closer to the
+root index keys with lower dimensions, while those towards
+the leaf index keys with higher dimensions.
+479
+479
+
+
+next section, we review some related work. Section 3 pro-
+vides some background on the Principal Component Anal-
+ysis. In Section 4, we introduce our newly proposed ∆-tree
+and ∆+-tree. We also present the search and update oper-
+ations on the structures. Section 5 reports the ﬁndings of
+an extensive experimental study conducted to evaluate the
+proposed schemes, and ﬁnally, we conclude in Section 6.
+2.
+RELATED WORK
+Many multi-dimensional structures have been proposed in
+the literature [3]. Here, we shall just review ﬁve of them that
+are used for comparison in our experimental study.
+CR-tree.
+In [13], the authors proposed a cache-conscious
+version of the R-tree called the CR-tree.
+To pack more
+entries in a node, the CR-tree compresses MBR keys.
+It
+ﬁrst represents the coordinates of an MBR key relatively to
+the lower left corner of its parent MBR. Then, it quantizes
+the relative coordinates to further cut oﬀthe less signiﬁ-
+cant trailing bits. Consequently, the CR-tree becomes sig-
+niﬁcantly wider and smaller than the ordinary R-tree. The
+experimental and analytical studies on the CR-tree showed
+that it performs faster than the R-tree. Since the CR-tree
+is based on the R-tree, it inherits its problem of not be-
+ing scalable (in terms of number of dimensions). Moreover,
+quantization of MBRs incurs additional computational cost
+compared to the R-tree.
+TV-tree.
+In [14], the authors proposed a tree-structure
+that avoids the dimensionality problem. The idea is to use
+a variable number of dimensions for indexing, adapting to
+the number of objects to be indexed, and to the current
+level of the tree. The TV-tree deﬁnes two kinds of dimen-
+sions, inactive dimensions and active dimensions. Since the
+TV-tree indexes the active dimensions and the number of
+active dimensions is usually small, the method saves space
+and leads to a larger fan-out. As a result, the tree is more
+compact and performs better than the R∗-tree. Although
+our proposed approaches also employ fewer dimensions in
+the internal node, they diﬀer from the TV-tree in several
+ways. First, the TV-tree uses the same number of active
+dimensions at every level of the tree, while our schemes use
+diﬀerent number of dimensions at diﬀerent levels of the tree.
+Second, even though the TV-tree’s internal nodes have fewer
+dimensions, the algorithm is the same as the R-tree based
+algorithm. On the other hand, our proposed schemes exploit
+clustering to construct the tree and take advantage of PCA
+to prune the search space more eﬀectively. Third, the num-
+ber of active dimensions of the TV-tree can be large, which
+means that it still suﬀers from the dimensional scalability
+problem, while our structures always employ few dimensions
+in the upper levels.
+M-tree.
+In [8], the authors proposed the height-balanced
+M-tree to organize and search large datasets from a generic
+metric space, where object proximity is deﬁned by a dis-
+tance function. In an M-tree, leaf nodes store all indexed
+objects, whereas internal nodes store the routing objects.
+For each routing object Or, there is an associated pointer,
+denoted ptr(T(Or)), that references the root of a sub-tree,
+T(Or), called the covering tree of Or. All objects in T(Or)
+are within the distance r(Or) from Or, r(Or) > 0. Finally,
+a routing object Or is associated with a distance to P(Or),
+its parent object, that is the routing object which references
+the node where the Or entry is stored. This distance is not
+deﬁned for entries in the root of the M-tree. An entry for a
+database object Oj in a leaf node is quite similar to that of a
+routing object. The strength of the M-tree lies in maintain-
+ing the pre-computed distance in the index structure. Thus,
+the number of distance computation can be low, making it
+a good candidate for main memory environment.
+iDistance.
+In [18], the authors presented an eﬃcient
+method for KNN search in a multi-dimensional space, called
+iDistance. iDistance partitions the data and selects a refer-
+ence point for each partition. The data points in each clus-
+ter are transformed into a single dimensional space based
+on their similarity with respect to a reference point. It then
+index the distance of each data point to the reference point
+of its partition. Since this distance is a simple scalar, with a
+small mapping eﬀort to keep partitions distinct, it is possi-
+ble to used a standard B+-tree structure to index the data
+and KNN search be performed using one-dimensional range
+search. Since cache conscious B+-tree has been studied [15],
+and distance is a single dimensional attribute (that ﬁts into
+the cache line), iDistance is expected to be a promising can-
+didate for main memory systems.
+VA-ﬁle.
+In [16], the authors described a simple vector
+approximation scheme, call VA-ﬁle. The VA-ﬁle divides the
+data space into a 2b rectangular cells. The scheme allocates a
+unique bit-string of length b for each cell, and approximates
+data points that fall into a cell by that bit-string. The VA-
+ﬁle itself is simply an array of these approximations. KNN
+searches are performed by scanning the entire approxima-
+tion ﬁle, and by excluding the vast majority of vectors from
+the search (ﬁltering step) based on these approximations.
+After the ﬁltering step, a small set of candidates are then
+visited and the actual distances to the query point Q are
+determined. The VA-ﬁle has been shown to perform well
+for disk-based systems as it reduces the number of random
+I/Os. However, it incurs higher computational cost making
+it less attractive for main memory databases: besides com-
+puting the actual distances of candidate points, it has to
+decode the bit-string and compute all the lower and some
+upper bounds on the distance to the query point.
+3.
+PRINCIPAL COMPONENT ANALYSIS
+The Principal Component Analysis (PCA) [12] is a widely
+used method for transforming points in the original (high-
+dimensional) space into another (usually lower dimensional)
+space [5, 11].
+It examines the variance structure in the
+dataset and determines the directions along which the data
+exhibits high variance. The ﬁrst principal component (or di-
+mension) accounts for as much of the variability in the data
+as possible, and each succeeding component accounts for as
+much of the remaining variability as possible. Using PCA,
+most of the information in the original space is condensed
+into a few dimensions along which the variances in the data
+distribution are the largest.
+We shall brieﬂy review how the principal components are
+computed. Let the dataset contains N D-dimensional points.
+Let A be the N ×D data matrix where each row corresponds
+to a point in the dataset. We ﬁrst compute the mean and
+covariance matrix of the dataset to get the eigenmatrix, V ,
+which is a D × D matrix. The ﬁrst principal component
+is the eigenvector corresponding to the largest eigenvalue
+of the variance-covariance matrix of A, the second compo-
+nent corresponds to the eigenmatrix with the second largest
+eigenvalue and so on.
+The second step is to transform the data points into the
+480
+480
+
+
+new space.
+This is achieved by multiplying the vectors
+of each data point with the eigenmatrix.
+More formally,
+a point P(x1, x2, . . . , xD) is transformed into V × P =
+(y1, y2, . . . , yD). To reduce the dimensionality of a dataset
+to k, 0 < k < D, we only need to project out the ﬁrst
+k dimensions of the transformed points. The mapping (to
+reduced dimensionality) corresponds to the well known Sin-
+gular Value Decomposition (SVD) of data matrix A and can
+be done in O(N · D2) time [10].
+Suppose we have two points, P and Q, in the dataset in
+the original D-dimensional space. Let Pk1 and Pk2 denote
+the transformed points of P projected on k1 and k2 dimen-
+sions respectively (after applying PCA), 0 < k1 < k2 ≤D.
+Qk1 and Qk2 are similarly deﬁned. The PCA method has
+several nice properties:
+1. dist(Pk1, Qk1) ≤dist(Pk2, Qk2)
+0 < k1 < k2 ≤
+D, where dist(p, q) denotes the distance between two
+points p and q (See [5] for a proof).
+2. Because the ﬁrst few dimensions of the projection are
+the most important, dist(Pk, Qk) can be very near to
+the actual distance between P and Q for k ≪D [5].
+3. The above properties also hold for new points that are
+added into the dataset (despite the fact that they do
+not contribute to the derivation of the eigenmatrix)
+[5]. Thus, when a new point is added to the dataset,
+we can simply apply the eigenmatrix and map the new
+data from the original space into the new PCA space.
+In [5], PCA is employed to organise the data into clusters
+and ﬁnd the optimal number of dimensions for each cluster.
+Our work applies PCA diﬀerently. We use it to facilitate the
+design of an index structure that allows pruning at diﬀerent
+levels with diﬀerent number of dimensions. This can reduce
+the computational overhead and L2 cache misses.
+4.
+THE ∆-TREE
+Handling high-dimensional data has always been a chal-
+lenge to the database research community because of the
+dimensionality curse. In main memory databases, the curse
+has taken a new twist: a high-dimensional point may not ﬁt
+into the L2 cache line. As such, existing indexing schemes
+are not adequate in handling high-dimensional data. In this
+section, we present a new index structure, called ∆-tree, to
+facilitate fast KNN search in main memory databases. For
+the rest of this paper, we assume that the dataset consists
+of D-dimensional points and use the Euclidean distance as
+the metric distance function.
+4.1
+The index structure
+The proposed structure is based on three key observations.
+First, dimensionality reduction is an important technique to
+deal with the dimensionality curse. In particular, by reduc-
+ing the dimensionality of a high-dimensional point, it is pos-
+sible to “squeeze” it into the cache line. Second, ascertaining
+the number of dimensions to reduce to is a non-trivial task.
+In addition, even if we can decide on the number of dimen-
+sions, it is almost impossible to identify the dimensions to
+be retained for optimal performance. Third, PCA oﬀers a
+very good solution: the ﬁrst component captures the most
+dominant information of points, the second the next most
+dominant, and so on. Moreover, as discussed in Section 3,
+it has several very nice properties.
+4.1.1
+The structure of ∆-tree
+Consider a dataset of D-dimensional points. Suppose we
+apply PCA on the dataset to transform the points into a
+new space that is also D-dimensional. We shall refer to the
+transformed space as PCA-Space. Consider a data point P
+in the PCA-Space, say (x1, . . . , xD). We deﬁne
+(P, m) to
+be an operator that projects point P on its ﬁrst m dimensions
+(2 ≤m ≤D):
+
+((x1, . . . , xD), m) = (x1, . . . , xm).
+Figure 1 shows a ∆-tree, which is essentially a multi-tier
+tree. The data space is split into clusters and the tree di-
+rects the search to the relevant clusters. However, the in-
+dexing keys at each level of the tree is diﬀerent — nodes
+closer to the root have keys with fewer dimensions, and the
+keys at the leaves are in the full dimensions of the data.
+We shall discuss how the number of levels of the tree and
+the number of dimensions to be used at each level can be
+determined shortly. For the moment, we shall assume that
+the tree has L levels and the number of dimensions at level
+k is mk, 1 ≤k ≤L, mi < mj for i < j. Moreover, we
+note that the mi dimensions selected for level i are given by
+((x1, . . . , xD), mi).
+Internal node
+Leaf
+Root
+l=1 :
+l=2:
+l=3:
+Figure 1: The ∆-tree
+In the ∆-tree, the data is recursively split into smaller
+clusters at each level. This is done as follows. At level 1
+(root), the data is partitioned into n clusters C1, C2, . . . Cn.
+We employ a clustering algorithm for this purpose, and in
+our implementation we use the K-means scheme. The clus-
+tering is, however, performed using the m1 dimensions in
+the PCA-Space of the transformed data. In other words,
+C1 contains points that are clustered together in m1 dimen-
+sions in the PCA-Space. At level 2, Ci is partitioned into
+Ci1, Ci2, . . . , Cin sub-clusters using the m2 dimensions of the
+points in Ci in the PCA-Space. This process is repeated for
+each sub-cluster at each subsequent level l where each sub-
+sequent clustering process operates on the ml dimensions of
+the points in the sub-cluster in the PCA-Space. At the leaf
+level (level L), the full dimensions in the original space are
+used as the indexing key, i.e., the leaf nodes correspond to
+clusters of the actual data points.
+Figure 2 shows an example of an internal node of ∆-tree
+with three sub-clusters.
+An internal node at level l con-
+tains information of the cluster it covers at ml dimensions,
+and each entry corresponds to information of a sub-cluster.
+Each entry is a 4-tuple (cl, r, num, ptr), where cl is the
+center of the sub-cluster obtained at level l, r is the radius
+of the sub-cluster, num is the number of points in the sub-
+cluster, and ptr is a pointer to the next level node.
+The
+root node has the same structure as an internal node ex-
+481
+481
+
+
+Radius R1
+Radius R2
+Radius R3
+Center1[m ]l
+Center2[m ] Center3[m ]
+l
+l
+Number1
+Number2
+Number3
+Pointer1
+Pointer2
+Pointer3
+Radius of cluster
+Number of points in cluster
+pointer to next level
+Cluster center (m   dimensions)
+l
+Figure 2: The structure of internal node
+cept that it has to maintain additional information on the
+dataset. This is captured as a triple (L, m, eigenmatrix)
+header, where L represents the number of projection levels,
+m = (m1, m2, . . . , mL−1) is a vector of size L −1 repre-
+senting the number of dimensions in each projection level
+(excluding the last level which stores the full dimensions of
+points), and eigenmatrix is the eigenmatrix of dataset after
+PCA processing.
+We note that the ∆-tree can be used to prune the search
+space eﬀectively. Recall (in property 1) that the distance
+between two points in a low dimensionality in the PCA-
+Space is always smaller than the distance between the two
+points in a higher dimensionality.
+Thus, we can use the
+distance at low dimensionality to prune away points that
+are far away (i.e., if the distance between a database point
+and the query point at low dimensionality is larger than the
+real distance of the current K-th NN, then it can be pruned
+away). More importantly, the lower dimensionality at upper
+levels of the tree decreases the distance computational cost,
+and also allows us to exploit the L2 cache more eﬀectively
+to minimize cache misses.
+For the ∆-tree to be eﬀective, we need to be able to de-
+termine the optimal number of levels and the number of
+dimensions to be used at each level. In our presentation,
+we ﬁx the fan-out of the tree. For the number of levels, we
+adopt a simple strategy: we estimate the number of levels
+based on the fan-out of a node, e.g., given a set of N points,
+and a fan-out of f, the number of levels is L = ⌈logfN⌉.
+To determine the number of dimensions ml to be used at
+level l, our criterion is to select a cumulative percentage of
+the total variation that these dimensions should contribute
+[12]. Let the variance of the j-th dimension be vj. Then,
+the percentage of variation accounted for by the ﬁrst k di-
+mensions is given by
+Vk =
+k
+j=1 vj
+D
+j=1 vj
+With this deﬁnition, we can choose a cut-oﬀV ∗
+l
+for each
+level. Suppose there are L projection levels, we have
+V ∗
+l = l
+L, 1 ≤l ≤L
+Hence we can retain ml dimensions in level l, where ml is the
+smallest k, for which Vk ≥V ∗
+l . In practice, we always retain
+the ﬁrst ml dimensions which preserve as much information
+as possible.
+Figure 3 shows the eﬀect of cumulative variation of a
+dataset after applying PCA. Two 64-dimensional datasets
+are used:
+a real dataset containing color histograms ex-
+tracted from the Corel Database [1] and a synthetic dataset
+that is uniformly distributed. It is clear that for the real
+dataset (where the data is skewed), the ﬁrst few dimensions
+in the PCA-Space is suﬃcient to capture the variation , e.g.,
+0
+0.2
+0.4
+0.6
+0.8
+1
+0
+8
+16
+24
+32
+40
+48
+56
+64
+Cumulative Variation
+Number of dimensions
+real data
+uniform data
+Figure 3: The proportion of cumulative variation
+the ﬁrst 8 dimensions already capture the 60% of variation
+in the data. On the other hand, for uniformly distributed
+data, all the dimensions have similar variance. Suppose we
+have 5 projection levels, the resultant ml for each level is
+shown in Table 1.
+Dataset
+l = 1
+l = 2
+l = 3
+l = 4
+l = 5
+Real data
+2
+4
+8
+17
+64
+Uniform data
+12
+24
+37
+50
+64
+Table 1: ml for diﬀerent level
+We note that for eﬃciency reason, we do not require the
+∆-tree to be height-balanced. Since the data may be skewed,
+it is possible that some clusters may be large, while others
+contain fewer points. If the points in a sub-cluster at a level
+l (< L) ﬁt into a leaf node, we will not partition it further.
+In this case, the height of this branch may be shorter than L.
+On the other hand, for a large cluster, if the number of points
+at level L is too large to ﬁt into a leaf node, we further split
+it into sub-clusters using the full dimensions of the data. We
+have ml = D for l > L. However, in practice, we ﬁnd that
+the diﬀerence in height between diﬀerent subtrees is very
+small. Moreover, if we should bound the size of a cluster,
+we can control the height diﬀerences.
+4.1.2
+The ∆-tree construction
+Figure 4 shows the algorithm for constructing a ∆-tree for
+a given dataset. We have adopted a top down approach. At
+ﬁrst, routine PCA() transforms the dataset into the PCA
+space (line 1). We treat the whole dataset as a cluster and
+refer to these new points as pC. In line 2, the function Init()
+initiates parameters of root node according to the informa-
+tion of PCA, such as the eigenmatrix, the value of L and
+the vector m. The default value of ml = D for l > L, and
+we do not save this value in the root node explicitly. In line
+3, we call the recursive routine R insert(node, pC, lev)
+that essentially determines the content of the entries of the
+node at level lev - one entry per subcluster. Note that we
+are dealing with points in the transformed space (i.e., pC),
+and that lev determines the number of dimensions that this
+node is handling.
+In line 1 of R insert(node, pC, lev), we partition the
+data of the cluster pC into K sub-clusters (by K-means).
+482
+482
+
+
+Algorithm Buildtree(dataset, tree)
+Input:
+the high-dimensional dataset
+Output:
+∆-tree
+1. pC = PCA(dataset);
+2. Init(root);
+3. R insert(root, pC, 1);
+R insert(node, pC, lev)
+1. pClusters = LevCluster(pC, K, mlev);
+2. for each pCj ∈pClusters
+3.
+node.center[j] = pCenterj;
+4.
+node.radius[j] = pRadiusj;
+5.
+if (sizeof(pCj) < leafsize)
+6.
+New (leaf);
+7.
+Insert leaf(pCj);
+8.
+node.children[j]=leaf;
+9.
+else
+10.
+New (inter node);
+11.
+node.children[j]=inter node;
+12.
+R insert(inter node, pCj, lev+1);
+Figure 4: The algorithm of building a ∆-tree
+However, this partitioning is performed only on the mlev
+dimensions of the cluster. For each sub-cluster, in lines 3-
+4, we ﬁll the information on the center and radius into the
+corresponding entry in node. If the number of points in a
+sub-cluster ﬁt into the leaf node (lines 5-8), we insert the
+points into the leaf node directly. Otherwise (lines 9-12),
+we recursively invoke routine R insert() to build the next
+level of the tree.
+4.1.3
+KNN search algorithm
+To facilitate KNN search, we employ two separate data
+structures. The ﬁrst is a priority queue that maintains en-
+tries in non-descending order of distance. Each item in the
+queue is an internal node of the ∆-tree. The second is the
+list of KNN candidates. The distance between the K-th NN
+and the query point is used to prune away points that are
+further away.
+We summarize the algorithm in Figure 5.
+In the ﬁrst
+stage, we initialize the priority queue, KNN list and the
+pruning distance (lines 1-3). After that we transform the
+query point from the original space to the PCA-based space
+using the eigenmatrix in the root (line 4). In line 5, we in-
+sert the root node into the priority queue as a start. After
+that, we repeat the operations in lines 7-16 until the queue
+is empty. We get the ﬁrst item of the queue which must
+be an internal node (line 7).
+For each child of the node,
+we calculate the distance from Q’ to the sub-cluster in PCA
+space (distance is computed with mchild.lev dimensions us-
+ing P dist()). If the distance is shorter than the pruning
+distance, we do as follows.
+If the child node is an inter-
+nal node, it means that there is a further partitioning of
+the space into sub-clusters, and we insert the node into the
+queue(lines 10-11). Otherwise, the child must be a leaf node,
+we access the real data points in the node and compute their
+distances to the query point; points that are nearer to the
+query point are then used to update the current KNN list
+(lines 12-15). The function Adjust() in line 16 updates the
+value of pruning distance when necessary, which is always
+Algorithm KNNSearch(QueryPoint, tree, K)
+Input: ∆-tree, query point Q, K
+Output: K nearest neighbors
+1. Queue = NewPriorityQueue();
+2. KNN = NewKNN();
+3. prune dist = ∞;
+4. Q’ = GetPCA(eigenmatrix, Q);
+5. Enqueue(Queue, root);
+6. while (Queue is not empty)
+7.
+node = RemoveFirst(Queue);
+8.
+for( each child of node)
+9.
+if ( P dist(child, Q’, mchild.lev)<prune dist )
+10.
+if ( child is an internal node )
+11.
+Enqueue(Queue, child);
+12.
+else
+13.
+for ( each point in leaf )
+14.
+if(dist(point, Q)<prune dist)
+15.
+Insert (point, KNN);
+16.
+Adjust(prune dist);
+Figure 5: KNN search algorithm for ∆-tree
+equal to the distance between the query point and the K-th
+nearest neighbor candidate.
+Q
+Q’
+R’
+R
+Dist(C’,Q’)
+C/C’
+Search Radius
+P’
+.
+P
+.
+Dist(C,Q)
+Figure 6: Prune with projection distance
+We illustrate the eﬀect of pruning a cluster in Figure 6.
+In the ﬁgure, Q represents the query point, and the solid
+circle represents the search space bounded by its distance to
+the current K-th NN. Q′ represents the transformed point in
+a lower dimensional space. Note that the search radius re-
+mains the same, and the search region is denoted by the dot-
+ted circle. Consider a cluster centered on C (region bounded
+by solid circle). Since we only consider distance here, sup-
+pose the cluster on the transformed low-dimensional space
+is also centered at C (denoted C′) but the region is smaller
+(bounded by dotted line). Suppose a point P in the for-
+mer is transformed to a point P ′ in the latter. We have the
+following equation:
+dist(P, Q) ≥dist(P ′, Q′) ≥dist(C′, Q′) −R′.
+If dist(C′, Q′) −R′ is larger than the search radius, then all
+the points in this cluster cannot be nearer than the current
+K-th NN (since dist(P, Q) must be larger than search ra-
+dius also). Thus, we can prune away the cluster. As the
+483
+483
+
+
+values of C′ and R′ are already maintained in the ∆-tree,
+the computational cost is low, making the proposed scheme
+eﬃcient.
+4.1.4
+Updating the ∆-tree
+So far, we have seen the ∆-tree as a structure for static
+databases.
+However, the ∆-tree can also be used for dy-
+namic databases. This is based on the properties of PCA.
+When a new point is inserted, we simply apply eigenmatrix
+on the new point to transform it into PCA space and insert
+it into the appropriate sub-cluster. To reduce the complex-
+ity of the algorithm, we only update the radius and keep
+the original center of the aﬀected cluster.
+This may re-
+sult in a larger cluster space and degrade the precision of
+eigenmatrix gradually, but as our study shows, the ∆-tree
+is still eﬀective.
+Algorithm Update(newpoint, tree)
+Input: the ∆-tree, newpoint P
+1. P’ = GetPCA(eigenmatrix, P);
+2. node = root;
+3. while ( node is not leaf )
+4.
+NearSubCluster = FindBestCluster(node, P);
+5.
+Adjust( node radius[NearSubCluster]);
+6.
+if (node child[NearSubCluster] is internal node)
+7.
+node = node child[NearSubCluster];
+8.
+else
+9.
+leaf = node child[NearSubCluster];
+10. if (leaf is not full)
+11.
+Insert(leaf, P);
+12. else
+13.
+Split(leaf, newleaf)
+14.
+if (leaf.parent is not full )
+15.
+InsertLeaf(leaf.parent, leaf, newleaf)
+16.
+else
+17.
+New(inter node)
+18.
+InsertNode(leaf.parent, inter node)
+19.
+InsertLeaf(inter node, leaf, newleaf)
+Figure 7: Update algorithm for ∆-tree
+The algorithmic description of the update operation is
+shown in Figure 7. We ﬁrst transform the newly inserted
+point into the PCA space using the eigenmatrix in the root
+node (line 1). We then traverse down the tree (beginning
+from the root node (line 2)) for the leaf node to insert the
+point by always selecting the nearest sub-cluster along the
+path (lines 3-10). If the leaf node has free space, we insert
+the new point into the leaf (line 12). Otherwise, we must
+split the leaf node before insertion.
+To split the leaf, we
+generate two clusters.
+If the parent node is not full, the
+routine InsertLeaf() (line 15) inserts two new clusters into
+the parent.
+Otherwise, we generate a new internal node
+and insert the leaf nodes (lines 17-19). In this case, a new
+internal node level is introduced.
+We note that our algorithm does not change the cluster
+eigenmatrix as new points are added. As such, it may not
+reﬂect the real feature of a cluster as more points are added,
+since the optimal eigenmatrix is derived from all known
+points. On the other hand, once we change the eigenmatrix,
+we have to update the keys of the original data points as
+well. As a result, insertion may make it necessary to rebuild
+the tree. Two mechanisms to decide when to rebuild the
+tree are as follows:
+1. Insertion threshold: In this naive method, once the
+newly inserted points exceed a pre-determined thresh-
+old, say 50% of the original data size, we rebuild the
+tree regardless of the precision of original eigenmatrix.
+2. Distance variance threshold: Given a set of N points,
+we form a cluster with center c.
+After PCA trans-
+formation, we have another center c′ in the projected
+lower dimensional space. Originally we have the aver-
+age distance variance Va:
+Va =
+N
+i=1 |dist(Pi, C) −dist(P ′
+i, c′)|
+N
+.
+Once we insert a point P, we get a new average dis-
+tance variance, called V ′
+a:
+V ′
+a = Va ∗N + |dist(P, C) −dist(P ′, c′)|
+N + 1
+.
+V ′
+a may change after every insertion. Once
+V ′
+a−Va
+Va
+is
+larger than a pre-deﬁned threshold, we rebuild the
+tree. The decision factor of this method is related to
+the distribution of newly inserted points.
+4.2
+The ∆+-tree: A partition-based enhance-
+ment of the ∆-tree
+While the proposed ∆-tree can eﬃciently prune the search
+space, it has several limitations. First, its eﬀectiveness de-
+pends on how well a dataset is globally correlated, i.e., most
+of the variations can be captured by a few principle compo-
+nents in the transformed space. For real datasets that are
+typically not globally correlated, more clusters may have to
+be searched. Second, the complete dataspace has to be ex-
+amined for each query. Third, there is a need to periodically
+rebuild the whole tree for optimal performance.
+In this section, we propose an extension called ∆+-tree
+that addresses the above three limitations. To deal with the
+ﬁrst limitation, we globally partition the dataspace into mul-
+tiple clusters, and manage the points in each cluster with a
+∆-tree. For simplicity, we also employ the K-means cluster-
+ing scheme to generate the global clusters and apply PCA
+for clusters individually. We use a directory to save the in-
+formation of global clusters.
+Each entry of the directory
+represents a global cluster, and has its own eigenmatrix, L,
+m, cluster center, radius and a pointer to the corresponding
+∆-tree that manages its points.
+Even with the proposed enhancement, the second limi-
+tation remains: each global cluster space has to be exam-
+ined completely. Our solution is to partition the cluster into
+smaller regions so that only certain regions need to be ex-
+amined. We made the following observations of a cluster:
+1. Points close to each other have similar distance to a
+given reference point. The distance value is single di-
+mensional and it can be easily divided into diﬀerent
+intervals.
+2. A cluster can be split into regions (“concentric circle”)
+as follows. First, each point is mapped into a single-
+dimensional space based on the distance to the cluster
+center. Second, the cluster is partitioned. Let Distmin
+and Distmax be the minimum and maximum distance
+484
+484
+
+
+of points within the cluster to the center. Let there
+be k regions (k is a predetermined parameter). The
+points in region i must satisfy the following equations:
+
+Distmin + i ∗f ≤Disti ≤Distmin + (i + 1) ∗f
+i = 0
+Distmin + i ∗f < Disti ≤Distmin + (i + 1) ∗f
+1 ≤i < k
+where f = (Distmax −Distmin)/k. Figure 8 shows an
+example of a cluster with six regions.
+C
+max
+min
+Q
+0
+1
+2
+3
+4
+5
+Dist
+Dist
+.
+Figure 8: Cluster partitioning and searching
+3. Given a query point, we can order the regions in non-
+descending order of their minimum distance to the
+query point. The regions are then searched in this or-
+der. This step can be eﬃciently performed by checking
+against the partitioning vectors (i.e., Distmin, Distmin+
+f, . . ., Distmin + (k −1)f) of the region. For exam-
+ple, consider the query point Q in Figure 8. Q falls
+in region 4. As such, region 4 will be examined ﬁrst,
+followed by regions 5, 3, 2, 1 and 0.
+4. We note that this partitioning scheme can potentially
+minimize the search space by pruning away some re-
+gions. Using the same example as before, if the current
+KNN points after searching say region 5 are already
+nearer than the minimum distance between the query
+point and region 3, then regions 3, 2, 1 and 0 need not
+be examined.
+Based on these observations, we can introduce a new level
+immediately after the directory.
+In other words, instead
+of building a ∆-tree for each global cluster, we partition
+it as described above. For each region, we build a ∆-tree.
+We shall refer to this new structure as the ∆+-tree. Fig-
+ure 9(b) shows a ∆+-tree structure. The whole dataset has
+two global clusters and we partition the cluster into 3 re-
+gions.
+For comparison purpose, we also show the ∆-tree
+(Figure 9(a)).
+As described above, the operations on the ∆+-tree are
+quite similar to those on the ∆-tree. For all the operations,
+we start from the nearest global cluster and region, and
+then traverse the subtree. This process continues with other
+clusters, while cluster or regions containing points further
+than the K-th NN are not traversed.
+Region 0 Region 1 Region 2
+Region 2
+Global
+Global
+Region 1
+Region 0
+Cluster 0
+Cluster 1
+∆+−
+(b) 
+tree
+∆−
+(a) 
+tree
+Figure 9: The structure of ∆-tree variants
+The proposed ∆+-tree is also more update eﬃcient - while
+it cannot avoid a complete rebuild, it can defer a complete
+rebuild to a longer period (compared to ∆-tree).
+Recall
+that the structure partitions the data space into global clus-
+ters before PCA transformation. As such, it localizes the
+rebuilding to only clusters whose eigenmatrix is no longer
+optimal as a result of insertions, while other clusters are
+not aﬀected at all.
+A complete rebuild would eventually
+be needed if the global clusters are no longer optimal. As
+we shall see in our experimental study, the index remains
+eﬀective for a high percentage of newly added points.
+5.
+A PERFORMANCE STUDY
+In this section, we present an experimental study to eval-
+uate the ∆-tree and ∆+-tree. The performance is measured
+by the average execution time, cache misses 2 and distance
+computation for KNN search over 100 diﬀerent queries. All
+the experiments are conducted on SUN E450 machine with
+450 MHz CPU, 4 GB RAM and 2 MB L2 cache. The ma-
+chine is running SUN OS 5.7. The whole trees are loaded
+into the main memory before each experiment begins.
+For the ∆+-tree, it has two extra parameters: the number
+of global clusters and regions. When both these parameters
+are set to 1, the ∆+-tree becomes the ∆-tree. The optimal
+values of the parameters may vary with diﬀerent datasets.
+We observed that the performance of ∆+-tree improves with
+a larger number of clusters. This is expected as the search
+space can be eﬃciently reduced as we have explained in the
+previous section. For simplicity, we set the default number of
+clusters and regions to be 10 and 5 respectively throughout
+the performance study.
+5.1
+Comparing ∆-tree and ∆+-tree
+We conducted an extensive performance study to tune
+the two proposed schemes for optimality. Due to space con-
+straint, we shall only present one representative set that
+studies the eﬀect of node size. We used a real-life dataset
+consisting of 64 dimensional color histograms extracted from
+70,000 color images obtained from the Corel Database [1].
+We note that we do not know the number of clusters in the
+dataset, i.e., the number of clusters may not exactly match
+the apriori number of clusters used in the ∆+-tree (which is
+10).
+In this experiment, we vary the node size from 1 KB to
+8 KB. Although the optimal node size for single-dimensional
+2We use the Perfmon tool [9] to count L2 cache misses.
+485
+485
+
+
+0
+0.02
+0.04
+0.06
+0.08
+0.1
+1
+2
+3
+4
+5
+6
+7
+8
+Elapsed time(s)
+Size of Node (K)
+∆-tree
+∆+-tree
+(a) Elapsed time
+0
+10000
+20000
+30000
+40000
+50000
+1
+2
+3
+4
+5
+6
+7
+8
+Cache misses
+Size of Node (K)
+∆-tree
+∆+-tree
+(b) cache misses
+Figure 10: NN search for diﬀerent node size
+datasets has been shown to be the cache line size [15], this
+choice of node size is not optimal in high-dimensional cases –
+the L2 cache line size on a typical modern machine is usually
+64 bytes, which is not suﬃcient to store a high-dimensional
+data point (256 bytes for 64 dimensions) in a single cache
+block. [13] shows that even for 2-dimensional data, the op-
+timal node size can be up to 256-512 bytes, and increases as
+the dimensionality increases. The minimum cache misses is
+a compromise of node size and tree height. High-dimensional
+indexes require more space per entry, and therefore the op-
+timal node size is larger than cache line size.
+Figure 10 shows the NN search performance of our new
+structures for diﬀerent node sizes. The node size here rep-
+resents the size of leaf node.
+Since we ﬁx the fan-out of
+tree in our implementation, we have varied internal node
+size depending on the remaining dimensions in each level.
+As shown in the ﬁgure, there is an optimal node size that
+should be used. When the node size is small (< 2K), the
+fan-out of the tree is also small. As a result, more nodes will
+have to be accessed. At the same time, more TLB misses3
+will be incurred when we traverse the tree. There is the case
+that even if the node size is smaller than that of a memory
+page, each node access incurs one TLB miss if the address
+mapping is not in TLB. We observe that as the node size
+increases, the number of accessed nodes decreases. The per-
+formance becomes optimal when node size is around 2-3K.
+However, as the node size reaches beyond a certain point
+(> 3K), the performance starts to degenerate again. This
+is because too large a node size results in more cache misses
+per node. Therefore, the total cache misses increase. The
+optimal node size (2-3K) is a compromise of these factors.
+The results, shown in Figure 10, clearly demonstrate the
+superiority of the ∆+-tree over the ∆-tree: it is about 15%
+better than ∆-tree. This is because the ∆+-tree only need
+to search less data space compared to the ∆-tree. First, the
+∆+-tree globally partitions the dataset into clusters before
+PCA transformation, thus the eigenmatrix is more eﬃcient
+3The translation lookahead buﬀer (TLB) is an essential part
+of modern processors, which keeps the mapping from logical
+memory address to a physical memory address. The cost of
+TLB miss is about 100 cycles.
+than that of the ∆-tree. Second, the ∆+-tree may only need
+to search a few clusters and exclude the other clusters that
+are far to the query point. Third, partitioning the cluster
+into regions can further reduce the search space compared
+to the ∆-tree that examines the whole data space. Hence,
+the total cost of cache misses and computation is reduced
+by the ∆+-tree.
+We found that the actual cache miss cost is only around
+10% of the overall time cost. This is the case in our studies
+as we did not perform any cache ﬂushing between queries.
+Since we have run many queries on a single index structure,
+the cache hits are high, because some highly accessed cache
+lines can always reside in the L2 cache. Our investigation
+shows that the number of cache misses for an independent
+query can be twice as much, i.e., 20%.
+Since ∆+-tree performs better than ∆-tree, in the fol-
+lowing experiments, we shall restrict our discussion to the
+∆+-tree, and use the optimal node size determined above.
+5.2
+Comparison with other structures
+In this section, we compare the ∆+-tree with some exist-
+ing methods on diﬀerent datasets, such as the CR-tree, TV-
+tree, M-tree, VA-ﬁle, iDistance and Sequential Scan. To en-
+sure a fair comparison, we optimize these methods for main
+memory indexing purposes such as tuning the node size4.
+We shall only present the optimal result of each structure.
+5.2.1
+On uniformly distributed dataset
+In this experiment, we ﬁrst generate a uniformly distributed
+dataset with up to 64 dimensions. The data size is 1,000,000
+points. We shall present the results for NN queries only, as
+KNN queries show similar performance for uniformly dis-
+tributed datasets. The results are summarized in Figure 11.
+From the ﬁgure, we can see that Sequential Scan is the
+best scheme for high-dimensional data space (D > 30). This
+is expected for uniformly distributed dataset as the distance
+to the NN is too large, and we must scan all the data even if
+we have an index. Since we need to access all the data when
+4One parameter of TV-tree is the number of active dimen-
+sions α, e.g. optimal α is around 20 for real dataset.
+486
+486
+
+
+0.1
+1
+10
+100
+8
+16
+24
+32
+40
+48
+56
+64
+Elapsed time(s)
+Number of dimensions
+∆+-tree
+iDistance
+M-tree
+TV-tree
+CR-tree
+Scan
+VA-file
+Figure 11: The comparisons of NN search time
+the number of dimensions is high, the tree structures cause
+more TLB misses and cache misses – accessing the internal
+nodes is the overhead. Not surprisingly, the VA-ﬁle is worse
+than Sequential Scan. As mentioned, the VA-ﬁle needs three
+cost overhead: decoding cost, computational cost and ac-
+tual data access. In disk-based environments, disk I/O cost
+is dominant, so the cost overhead does not aﬀect the per-
+formance of the VA-ﬁle much. But, in main memory sys-
+tems, the search cost is bounded by CPU cost. Although
+the VA-ﬁle can reduce the cache misses compared to Se-
+quential Scan, the cost overhead overwhelms the gain. The
+performances of the ∆+-tree, M-tree and iDistance are quite
+similar, because they are all distance-based trees. When the
+data are uniformly distributed, PCA has no value, because
+all the dimensions have the same weight. When the dimen-
+sion is low (2 or 4), the CR-tree is eﬃcient and performs
+as well as the ∆+-tree.
+However, since the R-tree is not
+scalable to high-dimensionality, the CR-tree’s performance
+starts to degrade as the number of dimensions increases;
+additionally it incurs higher computational cost (to uncom-
+press the MBRs). The performance of the TV-tree is only
+better than the CR-tree when the dimensionality is high,
+because although the TV-tree uses reduced dimensions, its
+structure is similar to the R-tree and dimensionality reduc-
+tion is not eﬃcient for uniformly distributed dataset.
+For the rest of this paper, we shall only focus on the TV-
+tree, M-tree, iDistance, Sequential Scan and the ∆+-tree.
+The VA-ﬁle is worse than Sequential Scan, and is expected
+to perform worse when the dataset is skew because of bit
+conﬂict. The CR-tree performs poorly for high-dimensional
+datasets, so we also excluded it.
+5.2.2
+On clustered dataset
+In many applications, data points are often correlated in
+some ways. In this set of experiments, we evaluate the M-
+tree, TV-tree, iDistance, Sequential Scan and ∆+-tree on
+clustered datasets. We generate the data for diﬀerent dimen-
+sional spaces ranging from 8 to 64 dimensions, each having
+10 clusters. We use a method similar to that of [5] to gen-
+erate the clusters in subspaces of diﬀerent orientations and
+dimensionalities. All datasets have 1,000,000 points.
+Figure 12 shows the results of KNN search as we vary the
+number of dimensions from 8 to 64; and the details of per-
+formance of Nearest Neighbor search, such as distance com-
+putation and cache misses are shown in Figure 13. Because
+Sequential Scan performs poorly and all these tree struc-
+tures achieve a speedup by a factor of around 15 over the
+Sequential Scan, we remove Sequential Scan from the ﬁgures
+to clearly show the diﬀerences between the other schemes.
+The reason is clear: for Sequential Scan, we must scan the
+whole dataset to get the nearest neighbors, and the cost is
+proportional to the size and dimension of the dataset. When
+the dataset is clustered, the nearest neighbors are (almost)
+always located in the same cluster with the query point.
+Thus, the tree structures can prune most of the data when
+traversing the trees.
+Our ∆+-tree can be 60% faster than the other three meth-
+ods, especially when the dimensionality is high. The ∆+-
+tree has two advantages over the M-tree. First, the ∆+-tree
+reduces the cache misses compared to the M-tree. Because
+we index diﬀerent levels of projections of the dataset, the
+number of projected dimensions in the upper levels is much
+smaller than that of real data. When the original space is
+64 dimensions, the dimensions in the ﬁrst three upper levels
+are fewer than 15. The node size of the ∆+-tree in the upper
+levels can be much smaller than that of the M-tree; conse-
+quently the index size of the ∆+-tree is also smaller. In the
+tree operations, upper levels of the tree will probably remain
+in the L2 cache as they are accessed with high frequency, so
+the ∆+-tree can beneﬁt more from this property. Further-
+more, the internal nodes of the ∆+-tree are full and fewer
+node accesses are needed because of hierarchical clustering.
+The eﬀect is that the ∆+-tree can reduce more cache misses
+compared to the M-tree. Second, the computational cost of
+∆+-tree is also smaller than the M-tree. The reason is in
+the projection level the distance computation is much faster
+because of reduced dimensionality. For example, when the
+dimension of the projection is 8, it already captures more
+than 60% of the information of the point. This means we
+can prune the data eﬃciently in this projection level as the
+computational cost is only 12.5% of the actual data distance
+computation. Additionally, we build the tree from top down
+exploiting the global clustering compared with local parti-
+tion of M-tree, so the beneﬁt of the ∆+-tree is also from
+the improved data clustering which reduce the search space,
+and hence the fewer operations for a query.
+Comparing with the iDistance, although the B+-tree struc-
+ture of iDistance is more cache conscious, the iDistance in-
+curs more distance computation and cache misses than the
+∆+-tree, because the search space of iDistance is larger.
+Mapping high-dimensional data point to 1-dimensional point
+is less eﬃcient in ﬁltering data compared to the ∆+-tree.
+Not surprisingly, the TV-tree performs worst among these
+index methods, especially when dimensionality is high. There
+are several reasons for this behavior. First, the TV-tree is
+essentially similar to the R-tree and its eﬀectiveness depends
+on α, the number of active dimensions. It turns out that for
+the datasets used, the data are not globally correlated. As
+a result, the optimal α value for the TV-tree remains rela-
+tively large. For example, for 64 dimensions, we found that
+α ≈20. The reduced number of dimensions is still too large
+for an R-tree-based scheme (like the TV-tree) to perform
+well. Moreover, searching the reduced dimensions leads to
+false admissions which result in more nodes being accessed.
+In the next experiment, we test the scalability of perfor-
+mance with respect to the data size. We ﬁx the number of
+dimensions at 64, and vary the dataset size from 1,000,000
+487
+487
+
+
+0
+0.1
+0.2
+0.3
+8
+16
+24
+32
+40
+48
+56
+64
+Elapsed time(s)
+Number of dimensions
+∆+-tree
+iDistance
+M-tree
+TV-tree
+(a) Elapsed time (NN)
+0
+0.
+0.2
+0.3
+0.4
+8
+16
+24
+32
+40
+48
+56
+64
+Elapsed time(s)
+Number of dimensions
+∆+-tree
+iDistance
+M-tree
+TV-tree
+(b) Elapsed time (10-NN)
+Figure 12: KNN search for clustered datasets
+0
+25000
+50000
+75000
+100000
+125000
+8
+16
+24
+32
+40
+48
+56
+64
+Cache Misses
+Number of dimensions
+∆+-tree
+iDistance
+M-tree
+TV-tree
+(a) Cache misses
+0
+5000
+10000
+15000
+20000
+25000
+8
+16
+24
+32
+40
+48
+56
+64
+Distance computation
+Number of dimensions
+∆+-tree
+iDistance
+M-tree
+TV-tree
+(b) Distance computation
+Figure 13: Details of NN search performance
+0
+0.1
+0.2
+0.3
+0.4
+0.5
+0.6
+1
+2
+3
+4
+5
+Elapsed time(s)
+Size of dataset (x 1,000,000)
+∆+-tree
+iDistance
+M-tree
+TV-tree
+Figure 14: Scalability of index structures
+to 5,000,000 points. The result of NN search is shown in Fig-
+ure 14. Because the cost of Sequential Scan increases almost
+linearly and is more expensive than other tree structures,
+we exclude it from the ﬁgure. The M-tree, TV-tree, ∆+-
+tree and iDistance remain very eﬀective for large datasets,
+demonstrating their scalability.
+In fact, the gap between
+these schemes and Sequential Scan widens as the dataset
+size increases. The relative performance between the three
+schemes remain largely the same as earlier experiments: the
+∆+-tree is the best scheme, followed by the iDistance, M-
+tree and ﬁnally TV-tree.
+5.2.3
+On real dataset
+In this experiment, we evaluate the various schemes on
+the same real-life dataset used in section 5.1. First, we test
+the performance of KNN search. The performance is quite
+similar to the clustered datasets. The tree-based methods
+are at least 10 times faster than Sequential Scan because the
+real dataset is generally skew. As such, we will not present
+the results for Sequential Scan.
+488
+488
+
+
+0
+0.02
+0.04
+0.06
+0.08
+0.1
+0.12
+2
+3
+4
+5
+6
+7
+Elapsed time(s)
+Size of dataset (x 10,000)
+∆+-tree
+iDistance
+M-tree
+TV-tree
+(a) Elapsed time (NN)
+0
+0.02
+0.04
+0.06
+0.08
+0.1
+0.12
+0.14
+2
+3
+4
+5
+6
+7
+Elapsed time(s)
+Size of dataset (x 10,000)
+∆+-tree
+iDistance
+M-tree
+TV-tree
+(b) Elapsed time (10-NN)
+Figure 15: KNN search for real dataset
+0
+10000
+20000
+30000
+40000
+2
+3
+4
+5
+6
+7
+Cache Misses
+Size of dataset (x 10,000)
+∆+-tree
+iDistance
+M-tree
+TV-tree
+(a) Cache misses
+0
+2000
+4000
+6000
+8000
+2
+3
+4
+5
+6
+7
+Distance computation
+Size of dataset (x 10,000)
+∆+-tree
+iDistance
+M-tree
+TV-tree
+(b) Distance computation
+Figure 16: Details of NN search performance
+The comparisons among the ∆+-tree, M-tree, TV-tree
+and iDistance are shown in Figure 15. The ∆+-tree is about
+50% faster than other methods for NN search, and the per-
+formance of 10-NN search is quite similar to the NN search.
+In Figure 16, the comparisons of distance computation and
+cache misses also show that the ∆+-tree performs best. These
+results clearly show the eﬀectiveness of the ∆+-tree even if
+the number of clusters employed may not match that of the
+dataset. The M-tree is poor because it incurs more compu-
+tation and it uses all the dimensions in the internal nodes
+resulting in more cache misses. The iDistance is worse than
+the ∆+-tree due to its larger search space and hence more
+computation and cache misses. The number of active di-
+mensions for the TV-tree remains large, so its performance
+is aﬀected by the scalability problem of the R-tree. In the
+context of main memory indexing, this translates into higher
+computational cost and number of cache misses.
+5.3
+On effect of updates
+In the last experiment, we study the eﬀect of updates on
+the ∆+-tree. For the ∆+ tree, we evaluated four versions:
+∆+-tree represents the version that is based on the proposed
+update algorithm (without rebuilding); ∆+-rebuild repre-
+sents the version that always rebuild the tree upon inser-
+tion5; ∆+-size represents the version that rebuilds the tree
+after a certain size threshold is reached; and ∆+-variance
+represents the version that rebuilds the tree after a certain
+variance threshold is reached. In our experiment, we set the
+threshold as 20% for the latter two schemes.
+We used the real dataset for this experiment.
+We ran-
+domly select the data from the image dataset regardless of
+the data distribution in advance.
+We ﬁrst build the tree
+structure with 35,000 data. Subsequently, we insert up to
+100% more new data points.
+We recorded the execution
+times of NN search on the new datasets after 20% of newly
+5This is ideal and represents the optimal ∆+-tree. In our
+experiments, we only rebuild the tree at the point of where
+we run the experiments, e.g., after every additional 20% of
+newly inserted points.
+489
+489
+
+
+0
+0.04
+0.08
+0.12
+0.16
+0
+20
+40
+60
+80
+100
+Elapsed time(s)
+Insertion rate (%)
+∆+-tree
+iDistance
+M-tree
+TV-tree
+∆+
+-rebuild
+∆+
+-size
+∆+
+-variance
+Figure 17: Eﬀect of update operation
+inserted data. The results are shown in Figure 17.
+First, we observe that all the ∆+-tree versions outperform
+the other tree structures. This clearly demonstrate the ef-
+fectiveness of the proposed schemes. Second, as expected, as
+more points are inserted, the performance of ∆+-tree degen-
+erates as the newly inserted data aﬀect the precision of clus-
+ter eigenmatrix. However, the degradation of performance
+is marginal. More importantly, the accuracy is not aﬀected
+- the ∆+-tree may examine more nodes because of the rel-
+atively larger radius. Third, it is clear that the rebuilding
+algorithms can reduce the performance degradation.
+For
+∆+-size and ∆+-variance, the degradation is only around
+15% even for 100% new insertions. So the ∆+-tree remains
+very eﬀective after new data points are inserted. We also ob-
+serve that ∆+-size is slightly better than ∆+-variance. This
+is because it incurs more rebuilding. Once the new points of
+a global cluster is more than the threshold, it rebuilds the
+sub-tree regardless of the data distribution.
+The results show ∆+-tree’s robustness with respect to up-
+dates in the sense that it can take suﬃciently large number
+of updates. Additionally, we can do the rebuilding oﬄine
+while not interfering with the other queries. This makes the
+∆+-tree a promising candidate even for dynamic datasets.
+6.
+CONCLUSION
+In this paper, we have addressed the problem of access-
+ing high-dimensional data in main memory databases. We
+presented an eﬃcient novel index method, called ∆-tree, for
+KNN search. The ∆-tree employs hierarchical clustering and
+multiple level of projections of points to allow nodes to bet-
+ter ﬁt into the L2 cache. Thus, the search process can be ac-
+celerated by reducing computational cost and cache misses.
+We also proposed an extension, called ∆+-tree, that fur-
+ther partitions a cluster into regions. We conducted exten-
+sive experiments to evaluate the ∆-tree and ∆+-tree against
+several known techniques, and the results showed that our
+technique is superior in most cases. To our knowledge, this
+is the ﬁrst work on conducting extensive experimental study
+on high-dimensional indexes using both real and synthetic
+data in the context of main memory databases.
+7.
+REFERENCES
+[1] Corel Image Features. available from
+http://kdd.ics.uci.edu.
+[2] P. Bohannon, P. Mcllroy, and R. Rastogi.
+Main-memory index structures with ﬁxed-size partial
+keys. In Proc. of the ACM SIGMOD Conference,
+pages 163–174, 2001.
+[3] C. Bohm, S. Berchtold, and D. Keim. Searching in
+high-dimensional spaces: Index structures for
+improving the performance of multimedia databases.
+In ACM Computing Surveys, pages 322–373, 2001.
+[4] T. Bozkaya and M. Ozsoyoglu. Distance-based
+indexing for high-dimensional metric spaces. In Proc.
+of the ACM SIGMOD Conference, pages 357–368,
+1997.
+[5] K. Chakrabarti and S. Mehrotra. Local dimensionality
+reduction: A new approach to indexing high
+dimensional spaces. In Proc. 26th VLDB Conference,
+pages 89–100, 2000.
+[6] S. Chen, P. B. Gibbons, and T. C. Mowry. Improving
+index performance through prefetching. In Proc. of the
+ACM SIGMOD Conference, pages 139–150, 2001.
+[7] Y. S. Chen, Y. P. Hung, and C. S. Fuh. Fast algorithm
+for nearest neighbor search based on a lower bound
+tree. In Proc. 8th ICCV Conference, pages 446–453,
+2001.
+[8] P. Ciaccia, M. Patella, and P. Zezula. M-tree: An
+eﬃcient access method for similarity search in metric
+spaces. In Proc. 24th VLDB Conference, pages
+194–205, 1997.
+[9] R. Enbody. Perfmon: Performance Monitoring Tool.
+available from
+http://www.cps.msu.edu/ enbody/perfmon.html,
+1999.
+[10] G.H. Golub and C.F. Van Loan. Matrix Computations.
+The Johns Hopkins University Press, 1989.
+[11] J. Hui, B. C. Ooi, H. Shen, C. Yu, and A. Zhou. An
+adaptive and eﬃcient dimensionality reduction
+algorithm for high-dimensional indexing. In Proc. 19th
+ICDE Conference, 2003.
+[12] I. T. Jolliﬀe. Principal Component Analysis.
+Springer-Verlag, 1986.
+[13] K. Kim, S. K. Cha, and K. Kwon. Optimizing
+multidimensional index trees for main memory access.
+In Proc. of the ACM SIGMOD Conference, pages
+139–150, 2001.
+[14] K. Lin, H. V. Jagadish, and C. Faloutsos. The
+TV-tree: An index structure for high-dimensional
+data. The VLDB Journal, 3(4):517–542, 1994.
+[15] J. Rao and K. Ross. Making B+-trees cache conscious
+in main memory. In Proc. of the ACM SIGMOD
+Conference, pages 475–486, 2000.
+[16] R. Weber, H. J. Schek, and S. Blott. A quantitative
+analysis and performance study for similarity-search
+methods in high-dimensional spaces. In Proc. 24th
+VLDB Conference, pages 194–205, 1998.
+[17] C. Yu. High-dimensional indexing. Lecture Notes in
+Computer Science 2341. Springer-Verlag, 2002.
+[18] C. Yu, B. C. Ooi, K. L. Tan, and H. V. Jagadish.
+Indexing the distance: An eﬃcient method to knn
+processing. In Proc. 27th VLDB Conference, pages
+421–430, 2001.
+490
+490

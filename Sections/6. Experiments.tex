@@ -1,0 +1,525 @@
+\section{Performance Evaluation} \label{sec:exp}
+\begin{comment}
+\noindent \textbf{Algorithms.} For the problem of fully-dynamic kNN join on high-dimensional data, we propose three novel approaches, which are \dualtree, \dualtree enhanced by the cost-oriented pruning, name\-ly \cpdualtree in the remainder of the paper, and \dualtree enhanced by the simplified pruning, name\-ly \spdualtree in the subsequent content. Prior to our work, representative existing methods that are applicable for high-dimensional \fdknnj include KNNJoin\textsuperscript{+}, \hdrtree, and \deltatree, although they were not originally designed for high-dimensional \fdknnj. In this section, we compare the performance of our newly proposed methods with that of the three aforementioned existing approaches. The information of the used involved methods is enumerated as below.
+\begin{enumerate}
+    \item \emph{kNNJoin$^+$} It~\cite{yu2010high} enables efficient computation of high-dimensional kNN join, without using dimension reduction technique.
+
+    \item \emph{\hdrtree.} This approach \cite{yang2014continuous} is designed to resolve the problem of continuous high-dimensional kNN Join when the answer set $I$ is dynamically updated and the query set is static.
+
+    \item \emph{\deltatree.} It is designed to enhance the efficiency of high-dimensional kNN Search while the query set is dynamically updated and the answer set $I$ is static \cite{cui2005indexing}.
+
+    \item \emph{Dual-Index Structure.} \dualtree is a new efficient approach proposed in this paper.  maintaining dual indices, enhanced to facilitate Fully Dynamic kNN Join. This structure comprises an \hdrtree and a \deltatree for efficient updates and optimal support of \fdknnj where both the query and answer sets are dynamically update.
+
+    \item  \emph{\cpdualtree.} The core technique of this approach is to enhance \dualtree by a cost-oriented pruning, whose number of pruning dimensions is depended on a series of computation with strict theoretical support. 
+
+    \item  \emph{\spdualtree.} This is a method is a combination of \dualtree and a simplified pruning step whose number of pruning dimensions is obtained by cost-oriented and simplified computation. 
+
+    \item  \emph{Linear Scan.} The brute force method to maintain the kNN Join result while dynamic update of $U$ and $I$. 
+
+\end{enumerate}
+
+
+\noindent \textbf{Types of updates and their parameters.} Specifically, we evaluate their effectiveness in maintaining the kNN Join result under three representative scenarios of the fully-dynamic setting: insertion of data points into the query set $U$, insertion of data points into the answer set $I$, and deletion of data points from the answer set $I$. Note that maintaining the kNN Join result upon the deletion of a query point is trivial and thus omitted from our experiments. To more intuitively demonstrate the efficiency difference between our proposed methods and existing ones in handling the \fdknnj problem where all three types of updates may occur, we further design a mixed-update scenario combining insertions into the query set $U$ and both deletions and insertions into the answer set $I$.
+
+The time cost of maintaining the kNN Join results under all update types—including insertions and deletions from $I$, insertions into $U$, and their combinations—is influenced by the parameters associated with these updates. Parameters of the updates includes the initial size of the updated dataset, the number of updated data points, the size of the dataset that are not updated, and the k value in kNN. To enable a more in-depth and comprehensive evaluation of the proposed methods, we select the dataset NUS-WIDE \cite{chua2009nus}, which is widely used in recent studies of high-dimensional kNN Join \cite{ukey2022efficient, ukey2023efficient, ukey2024cluster, ukey2023knn} to conduct a thorough comparison of the performance of the newly proposed and existing methods in maintaining the kNN Join results under each type of update scenarios with different parameter combinations. To validate the generality of our proposed methods, we conducted experiments on seven additional datasets. without loss of generality, for such additional datasets, we evaluated the performance of different methods under each type of update scenario with a fixed standard parameter configuration instead of varying the parameters of the updates.
+
+\noindent \textbf{Validation of the optimal pruning dimensionality.} To validate the optimality of the pruning dimensions identified by our two new methods \cpdualtree and \spdualtree, we conducted experiments measuring the time cost of \fdknnj by \dualtree equipped with various pruning dimensionalities. The results demonstrate that the pruning dimensions computed by our new methods are close to the true optimal values. 
+
+Accordingly, this section is organized into three parts. The first part presents experiments on the NUS-WIDE dataset allowing different combination of parameters for each type of update. The second part reports results on seven additional datasets, where the parameters of each type of update are fixed. The third part evaluates the time cost of \fdknnj using \dualtree with different pruning dimensionalities equipped to its leaf level.
+
+\noindent \textbf{Datasets.} All of the datasets used in this paper are real-world datasets. For our experiments, we primarily used the NUS-WIDE dataset and additionally extended our experimental scope to include the Fashion-MNIST, Audio, Sun, Trevi, Enron, Cifar, and Millionsong datasets, which cover a wide range of application including image, audio and Text.\footnote{\url{https://github.com/DBAIWangGroup/nns_benchmark}}
+The number of dimensions of the datasets vary from 128 to 4096, and the largest size is one million. We have included a summary of the datasets in Table \ref{tab:dataset}.
+
+\begin{table}[htb]
+    \centering
+    \begin{tabular}{|c|c|c|c|}
+    \hline
+    \textbf{Dataset} & \textbf{No. of Records} & \textbf{No. of Dims} & \textbf{Type}\\
+    \hline
+        NUS-WIDE & 260,000 & 128 & Image\\
+        Fashion-MNIST & 60,000 & 784 & Image\\
+        Audio & 53,000 & 192 & Audio\\
+        Cifar & 50,000 & 512 & Image\\
+        Trevi & 100,000 & 4096 & Image\\
+        Sun & 79,000 & 512 & Image\\
+        Enron & 95,000 & 1369 & Text\\
+        Millionsong & 1,000,000 & 420 & Audio\\
+    \hline
+    \end{tabular}
+    \caption{Dataset Summary}
+    \label{tab:dataset}
+\end{table}
+\end{comment}
+\begin{comment}
+We maintained a consistent configuration throughout our experiments, setting the default query and answer sets to 30,000 each. We set the dimensionality of the datasets as 128D unless explicitly specified otherwise. Key parameters such as $k$ were set to 5, while fanout $f$ to 5, and threshold $\theta$ to a value of 7. Furthermore, we assigned the query cluster value to 25, the answer cluster value to 100, and both cluster and pruning dimensionality to 8.
+%
+To evaluate the effectiveness of our proposed methods, we compared them with the following baseline algorithms:
+\end{comment}
+\begin{comment}
+\noindent \textbf{Hardware.} The algorithms are implemented in C++ and compiled using the g++ compiler with-O3 optimization flags. Experiments were conducted on a machine equipped with dual Intel(R) Xeon(R) Gold 6342 2.80GHz CPUs(each with 24 cores and hyper-threading enabled,capable of up to a total of 96 threads), 500GB of RAM,and running Ubuntu 22.04.1LTS.      \end{comment}  
+
+
+We present a comprehensive experimental study to validate the performance and theoretical underpinnings of our proposed methods. We begin by outlining the experimental setup.
+
+\paragraph{Algorithms}
+We evaluate three versions of our framework against a set of strong, adapted baselines.
+
+\noindent\textit{Proposed Methods:}
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{\dualtree}: Our foundational dual-index framework without fine-grained pruning.
+    \item \textbf{\dualtreeopt}: \dualtree enhanced with our cost-aware pruning, using the optimal dimensionality derived from the \textbf{rigorous theoretical model}.
+    \item \textbf{\dualtreefast}: \dualtree enhanced with pruning, using the dimensionality derived from the \textbf{fast, simplified model}.
+\end{itemize}
+
+\noindent\textit{Baselines:} To demonstrate the global advantage of our dual-index design in fully-dynamic settings, we compare against leading methods from partially-dynamic contexts, adapted to serve as strong, one-sided baselines.
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Linear Scan}: A brute-force approach that recomputes the join after each update. It serves as the performance floor.
+    \item \textbf{kNNJoin\textsuperscript{+}}~\cite{sphere_tree_yu2009}: A representative state-of-the-art method for incremental kNN joins, which we adapt for our setting.
+    \item \textbf{\hdrtree-only}~\cite{yang2014continuous}: An ablation baseline using only an \hdrtree on $U$. Forward kNN searches are performed via a linear scan of $I$.
+    \item \textbf{\deltatree-only}~\cite{cui2003contorting}: An ablation baseline using only a \deltatree on $I$. RkNN searches are emulated by a full scan of $U$.
+\end{itemize}
+Given our focus on high-stakes, low-tolerance applications, we exclusively evaluate exact kNN join methods and do not compare against approximate algorithms.
+
+\stitle{Experiments on NUS-WIDE.} 
+
+As is described previously, for the dataset NUS-WIDE, we design multiple parameter configurations for each type of update and evaluate the performance of each method for every type of update under every configuration. The following content outlines the principles guiding our experimental design on the NUS-WIDE dataset.
+
+\leveltwo{Principles for experiment design}
+\ssstitle{Parameter Configuration}
+
+For each update type among data insertion into $U$, data insertion into $I$, and data deletion from $U$, multiple parameter combinations are constructed by the following strategy: vary the value of each parameter among (i) the original size of the updated set, (ii) the number of data points being updated, (iii) the size of the non-updated set, and (iv) the value of $k$ in the kNN query while keeping the other three fixed, resulting in four groups of parameter combinations, each corresponding to one varying parameter.
+
+For combined update which consists of data insertion in $U$, data insertion in $I$, and data deletion from $I$, we adopt the following design to ensure equal proportions of the three update types within the combined update setting, and to make the execution conditions that affect the efficiency of processing update comparable across types. Specifically, we set the initial size of the query set $U$ and the initial size of the answer set $I$ as the same and set the number of data points inserted into $U$, the number of data points inserted into $I$, and the number of data points deleted from $I$ as the same for every parameter configuration of combined update. As a result, for combined update, we construct multiple parameter combinations by the following strategy: vary the value of each parameter among (i) the original size of the query set $U$ and the answer set $I$, (ii) the number of data points being updated with $U$ and $I$, and (iii) the value of $k$ in the kNN query while keeping the other two fixed, resulting in three groups of parameter combinations, each corresponding to one varying parameter.
+
+\ssstitle{Principle of Randomization}
+
+To enhance the reliability and generalizability of the experiment results, we adopt a randomized allocation and update-ordering strategy. Specifically, given a combination of parameters, which correspond to the initial size of the updated dataset, the size of the non-updated dataset, the number of updated data points and the $k$ value in kNN, the corresponding number of data points are randomly selected from the entire dataset and assigned to their respective sets. Furthermore, for a series of update, the order of the data points updated is randomized.
+
+\ssstitle{Principle of Balanced Distribution}
+
+To ensure parameter balance across experiments, we set the maximum number of data points that the query set $U$ and the answer set $I$ can contain—within each group of parameter combinations varying a single parameter—to be a half of the total dataset size.
+
+\ssstitle{Principle of Non-Redundancy}
+
+To avoid data waste, we ensure that all data points across the set to be updated, the set of points to be inserted into the set to be updated, and the set not to be updated are distinct. Note that the data points in NUS-WIDE have gone through removal of duplication.
+
+For convenient expression, we use $S$ to represent the total size 260,000 of the dataset 
+NUS-WIDE in the following discussion.
+
+
+
+
+
+
+\begin{comment}
+The performance of different methods are evaluated the under different update scenarios including insertion into $U$, deletion and insertion into $I$, and the combined updated. For convenience, we set the total dataset size of NUS-WIDE to $S$.\
+\end{comment}
+
+\leveltwo{Data Insertion in $\textbf{U}$.} 
+
+For insertion of data points into $U$, we evaluate the time cost of the newly proposed methods and the existing methods for different combination of parameters.
+
+\ssstitle{\textup{Exp-1} Insertion in $\textbf{U}$ while Varying the Insertion Number.} 
+
+In this series of experiments, we fix the $k$ value in kNN at $10$. According to the principle of balanced distribution, $S/2$ data points are assigned to $I$. To evaluate the performance of different methods when subjected to a number of insertions not exceeding the initial size of the dataset being updated, we divide the remained $S/2$ data points equally into two subsets of size $S/4$. One subset is used as the initial content of the $U$ set, while the other is used as the source for insertions. The latter is further partitioned into five segments of increasing size—$S/20$, $2S/20$, $3S/20$, $4S/20$, and $5S/20$—which are sequentially used as the number of inserted points. Under this configuration, all data points in the NUS-WIDE dataset are fully utilized.
+
+\begin{comment}
+Computation times for all seven methods significantly increase as the experimental parameter (from 13,000 to 65,000) increases. The performance ranking is consistently as follows: "Dual-Tree+prune" (fastest), "Dual-Tree+simplified prune", "Delta-Tree", "Dual-Tree", "kNNJoin+", "Linear Scan", and "HDR-Tree" (slowest).
+
+"Dual-Tree+prune" (1st) is approximately 8.3\% to 9.0\% faster than "Dual-Tree+simplified prune" (2nd) (e.g., 8.97\% at $p_1$, 8.79\% at $p_2$, 8.71\% at $p_3$, 8.98\% at $p_4$, and 8.26\% at $p_5$).
+"Dual-Tree+simplified prune" (2nd) shows a substantial advantage over "Delta-Tree" (3rd), being faster by approximately 17.9\% (at $p_1$), 25.4\% (at $p_2$), 27.2\% (at $p_3$), 43.5\% (at $p_4$), and 43.1\% (at $p_5$).
+"Delta-Tree" (3rd) is marginally faster than "Dual-Tree" (4th), with "Dual-Tree" taking approximately 1.013 to 1.023 times longer (i.e., "Delta-Tree" is faster by about 1.3\% to 2.2\%).
+The methods "Delta-Tree" and "Dual-Tree" are significantly more efficient than "kNNJoin+" (5th); for example, "Dual-Tree" is approximately 88.0\% to 91.0\% faster than "kNNJoin+".
+"kNNJoin+" (5th) is faster than "Linear Scan" (6th) by approximately 8.3\% to 8.9\%.
+Finally, "Linear Scan" (6th) performs slightly better than "HDR-Tree" (7th), being faster by approximately 0.2\% to 1.5\%.
+No performance inversions against the established ranking were observed for these comparisons across the parameters.
+\end{comment}
+
+As is shown in figure \ref{fig:XX}, computation times for all seven methods significantly increase as the insertion  number increases. This is because more inserted data points require more kNN Search to gain their near neighbors.
+
+Specifically, \cpdualtree, which is the fastest method, is approximately 8.7\% to 9.0\% faster than \spdualtree, which is the second fastest method. This is because \cpdualtree adopts a pruning dimensionality determined through a more rigorous estimation and optimization strategy, while \spdualtree also employs a pruning dimensionality close to the optimal. As a result, the performance gap between them is not large. \spdualtree shows a substantial advantage over \deltatree, being faster by up to 43.7\%, because of its newly added pruning step that helps prune a considerable amount of data points that are not really kNN members of the inserted data point.
+\deltatree is marginally faster than \dualtree, because they both use the same method to process kNN Search, but \dualtree requires update of its \hdrtree structure when new data points are inserted into $U$, which leads to a slight additional computational overhead. \dualtree is  significantly more efficient than kNNJoin\textsuperscript{+} by up to 91.0\%. This is because \fdknnj in this paper is conducted in high-dimensional context, where the dimensionality reduction technique PCA applied in \deltatree can help get rid of the heavy load of distance calculation in full-dimensional Euclidean space, while idistance, which is the index within kNNJoin\textsuperscript{+} for accelerating kNN Search does not use any dimension reduction strategy, consequently suffering from substantial overhead of high-dimensional distance computations. kNNJoin\textsuperscript{+} is faster than Linear Scan, because it provides an index structure idistance to accelerate kNN Search. Finally, \hdrtree presents the longest time cost, because \hdrtree only provides efficiency for RkNN Search and uses the Linear Scan method for kNN Search. Moreover, it requires update of the \hdrtree when new data points are inserted into $U$. Therefore, it is even slower than Linear Scan by 0.2\% to 1.5\% when faced with data insertion into $U$. It is observable that even when the proportion of dynamically inserted points reaches 100\% of the original dataset size, \cpdualtree and \spdualtree consistently maintains a definitive speed advantage over other compared methods. Concurrently, \dualtree, despite being marginally slower than \deltatree, also demonstrates a clear performance lead over all other approaches—excluding \deltatree and its own variant augmented with pruning steps—under the 100\% insertion scenario. This robustly illustrates that our proposed method sustains excellent performance even when the dataset undergoes substantial dynamic updates.
+
+\begin{comment}
+As is shown in the figure, generally, computation times for all seven methods increase substantially as the insertion number increases. This is because more inserted data points require more kNN Search to gain their near neighbors. The \hdrtree presents the longest time cost, because \hdrtree only provides efficiency for RkNN Search and uses the linear scan method for kNN Search. Moreover, it requires update the \hdrtree when new data points inserted into $U$. Therefore, it is even slower than the linear scan method when faced with insertion into $u$. kNNJoin\textsuperscript{+} is faster than linear scan, because it provides an index structure called idistance to accelerate kNN Search. \deltatree is faster than kNNJoin\textsuperscript{+}, because the \fdknnj conducted is in high-dimensional context, where the dimension reduction technique PCA applied on \deltatree can help decrease the load for calculation of high-dimensional Euclidean distance, while idistance does not use any dimension reduction strategy. \dualtree is slower than \deltatree by a slight degree, because they both use the same method to process kNN Search, but \dualtree requires update of its \hdrtree structure when new data points are inserted into $U$. \cpdualtree is consistently the fastest, demonstrating a relative speed improvement of approximately 8.7\% to 9.0\%. \spdualtree, in turn, shows a substantial relative advantage over \deltatree, being faster by approximately 17.9\% up to 43.7\%. \dualtree is substantially faster than kNNJoin\textsuperscript{+}, exhibiting a relative speed improvement of approximately 88\% to 91\%.
+\end{comment}
+
+
+\ssstitle{\textup{Exp-2} Insertion in $\textbf{U}$ while Varying Initial Size of $\textbf{U}$.} In this series of experiments, we fix the $k$ value in kNN at $10$. According to the principle of balanced distribution, $S/2$ data points are assigned to $I$. To evaluate the performance of different methods when subjected to a number of insertions no smaller than the initial size of the dataset being updated, we divide the remained $S/2$ data points equally into two subsets of size $S/4$. One subset is used for insertion, while the other is used as the source for initial $U$. The latter is further partitioned into five segments of increasing size—$S/20$, $2S/20$, $3S/20$, $4S/20$, and $5S/20$—which are sequentially used as the size of initial $U$. Under this setting, the number of insertion is one to five times of the initial size of $U$ and all data points in the NUS-WIDE dataset are fully utilized.
+
+\begin{comment}
+Computation times generally increase by a slight degree for almost all method, with Method 5 showing a slight deviation, when the initial size of $U$ increases. This slight trend observed above may be attributed to the randomness of the inserted points. The relative time costs among different methods remain largely consistent with the previous experiment. In terms of the magnitude of differences, \cpdualtree maintains a relative speed advantage over \spdualtree of approximately 8.7\% to 9.0\%. Subsequently, \spdualtree demonstrates a very significant advantage over \dualtree and \deltatree, ranging from approximately 41.9\% to 49.9\%. Compared to kNNJoin\textsuperscript{+}, \dualtree offers a substantial speedup, being approximately 88\% to 90\% faster.
+\end{comment}
+
+\begin{comment}
+"Dual-Tree+prune" (1st) is approximately 8.3\% to 9.0\% faster than "Dual-Tree+simplified prune" (2nd) (e.g., 8.97\% at $p_1$, 8.79\% at $p_2$, 8.71\% at $p_3$, 8.98\% at $p_4$, and 8.26\% at $p_5$).
+"Dual-Tree+simplified prune" (2nd) shows a substantial advantage over "Delta-Tree" (3rd), being faster by approximately 17.9\% (at $p_1$), 25.4\% (at $p_2$), 27.2\% (at $p_3$), 43.5\% (at $p_4$), and 43.1\% (at $p_5$).
+"Delta-Tree" (3rd) is marginally faster than "Dual-Tree" (4th), with "Dual-Tree" taking approximately 1.013 to 1.023 times longer (i.e., "Delta-Tree" is faster by about 1.3\% to 2.2\%).
+The methods "Delta-Tree" and "Dual-Tree" are significantly more efficient than "kNNJoin+" (5th); for example, "Dual-Tree" is approximately 88.0\% to 91.0\% faster than "kNNJoin+".
+"kNNJoin+" (5th) is faster than "Linear Scan" (6th) by approximately 8.3\% to 8.9\%.
+Finally, "Linear Scan" (6th) performs slightly better than "HDR-Tree" (7th), being faster by approximately 0.2\% to 1.5\%.
+Other than the minor local decrease for Method 5 between $p_2$ and $p_3$, no significant performance inversions against the established ranking were observed.
+
+\end{comment}
+In this experiment, the relative order of time consumption among the different methods remains consistent with that observed in the previous experiment. Overall, the newly proposed methods continues to maintain their advantages over existing approaches, where \cpdualtree, which is the fastest method is approximately 8.3\% to 9.0\% faster than \spdualtree, which is the second best method. And \spdualtree shows a substantial advantage over \deltatree, being faster by up to 43.5\%. \deltatree is marginally faster than \dualtree, which is significantly more efficient than kNNJoin\textsuperscript{+}; for instance, \dualtree is approximately 88.0\% to 91.0\% faster than kNNJoin\textsuperscript{+}. It can be observed that even when the proportion of dynamically inserted points reaches 500\% of the original dataset size where the initial size of $U$ is only $S/20$ while the insertion number is fixed at $S/4$, \cpdualtree and \spdualtree consistently maintains a definitive speed advantage over other compared methods. Concurrently, \dualtree, despite being marginally slower than \deltatree, also demonstrates a clear performance lead over all other approaches—excluding \deltatree and its own variant augmented with pruning steps—under the 500\% insertion scenario. This robustly illustrates that our proposed method sustains excellent performance even when the dataset undergoes substantial dynamic updates.
+
+\ssstitle{\textup{Exp-3} Insertion in $\textbf{U}$ while Varying Size of $\textbf{I}$.} In this series of experiments, we fix the $k$ value in the $k$NN search to 10. Following the principle of balanced distribution, the dataset is evenly divided into two halves: $S/2$ data points are designated for the $U$ set, and the remaining $S/2$ for the $I$ set. Within the portion assigned to $U$, $S/4$ data points are used to initialize the $U$ set, while the other $S/4$ are reserved for insertion. The $S/2$ data points assigned to $I$ are further partitioned into five segments of increasing size—$S/10$, $2S/10$, $3S/10$, $4S/10$, and $5S/10$—which are sequentially used as the sizes of $I$ in different parameter configurations. Under this setup, all data points in the NUS-WIDE dataset are fully utilized.
+
+\begin{comment}
+As is shown in the figure, generally, computation times for all seven methods increase substantially as the size of $I$ increases. This is because larger $I$ represents computation of more high-dimensional Euclidean distance to examine more candidate data points. In this experiment, \dualtree, \cpdualtree, and \spdualtree continues to show their advantage compared with other methods.
+\end{comment}
+
+\begin{comment}
+For this dataset, where experimental parameters range from 26,000 to 130,000, computation times for all seven methods consistently increase with the parameter value. The performance ranking, from fastest to slowest, is: "Dual-Tree+prune" (M1), "Dual-Tree+simplified prune" (M7), "Delta-Tree" (M3), "Dual-Tree" (M2), "kNNJoin+" (M5), "Linear Scan" (M6), and "HDR-Tree" (M4).
+
+"Dual-Tree+prune" (1st) is approximately 8.3\% to 9.1\% faster than "Dual-Tree+simplified prune" (2nd) (e.g., 8.70\% at $p_1=26k$, 9.06\% at $p_2=52k$, 8.92\% at $p_3=78k$, 8.79\% at $p_4=104k$, and 8.26\% at $p_5=130k$).
+"Dual-Tree+simplified prune" (2nd) shows a significant advantage over "Delta-Tree" (3rd), being faster by approximately 15.1\% (at $p_1$) to 44.1\% (at $p_4$).
+"Delta-Tree" (3rd) is marginally faster than "Dual-Tree" (4th), with "Dual-Tree's" computation time being approximately 1.012 to 1.016 times that of "Delta-Tree".
+The methods "Delta-Tree" and "Dual-Tree" are substantially more efficient than "kNNJoin+" (5th); for instance, "Dual-Tree" is approximately 75.8\% to 88.0\% faster than "kNNJoin+".
+"kNNJoin+" (5th) is faster than "Linear Scan" (6th) by approximately 7.1\% to 8.6\%.
+Finally, "Linear Scan" (6th) performs slightly better than "HDR-Tree" (7th), being faster by approximately 0.4\% to 1.5\%.
+No performance inversions against this established ranking were observed.
+\end{comment}
+
+When the size of $I$ is varied, computation times for all the methods consistently increase with the size of $I$. This is because a larger $I$ implies that a greater number of data points need to be verified to determine whether they are kNN members of the newly inserted data point in $U$ or not. This, in turn, necessitates more distance calculations and associated verification steps. Ranking of the performance of different methods in this experiment is the same as those of the previous two experiments. In this experiment, \cpdualtree, which is the fastest method, is approximately 8.3\% to 9.1\% faster than \spdualtree, which is the second fastest method. And \spdualtree shows a significant advantage by up to 44.1\% over \deltatree, which is marginally faster than \dualtree by up to 1.6\%. \dualtree is substantially more efficient than kNNJoin\textsuperscript{+}; for instance, \dualtree is up to 88.0\% faster than kNNJoin\textsuperscript{+}.
+
+
+\ssstitle{\textup{Exp-4} Insertion in $\textbf{U}$ while Varying $\textbf{k}$.} In this series of experiments, we fix the initial size of $U$ at $S/4$, and fix the insertion number at $S/4$, and fix the size of $I$ at $S/2$, while varying the $k$ value in kNN from $\{5,10,15,20,25\}$, to make full use of the whole NUS-WIED dataset.
+
+\begin{comment}
+For this dataset, computation times consistently increase for all methods when k improves. This is because larger k means larger pruning bound within each method,leading to more data points needing to be evaluated. \dualtree, \cpdualtree, and \spdualtree continues to show their advantage compared with other methods. 
+\end{comment}
+
+\begin{comment}
+For this dataset with experimental parameters $P = [5, 10, 15, 20, 25]$, computation times for all seven methods increase as the parameter value increases. The performance ranking, from fastest to slowest, is: "Dual-Tree+prune" (M1), "Dual-Tree+simplified prune" (M7), "Delta-Tree" (M3), "Dual-Tree" (M2), "kNNJoin+" (M5), "Linear Scan" (M6), and "HDR-Tree" (M4).
+
+"Dual-Tree+prune" (1st) is approximately 8.3\% to 9.1\% faster than "Dual-Tree+simplified prune" (2nd) (e.g., 9.02\% at $p_1=5$, 8.26\% at $p_2=10$, 9.10\% at $p_3=15$, 8.70\% at $p_4=20$, and 8.88\% at $p_5=25$).
+"Dual-Tree+simplified prune" (2nd) shows a substantial advantage over "Delta-Tree" (3rd), being faster by approximately 15.1\% (at $p_1$) to 51.9\% (at $p_1$ - error in previous, re-evaluating: 43.1% at $p_5$ to 51.9% at $p_1$).
+"Delta-Tree" (3rd) is marginally faster than "Dual-Tree" (4th), with "Dual-Tree's" computation time being approximately 1.007 to 1.016 times that of "Delta-Tree".
+The methods "Delta-Tree" and "Dual-Tree" are substantially more efficient than "kNNJoin+" (5th); for instance, "Dual-Tree" is approximately 86.7\% to 89.3\% faster than "kNNJoin+".
+"kNNJoin+" (5th) is faster than "Linear Scan" (6th) by approximately 7.2\% to 8.6\%.
+Finally, "Linear Scan" (6th) performs slightly better than "HDR-Tree" (7th), being faster by approximately 0.1\% to 1.5\%.
+No performance inversions against this established ranking were observed.
+\end{comment}
+
+When the $k$ value in kNN is varied, computation times for all seven methods increase as $k$ increases. This is because when $k$ is increased, the number of points in the candidate kNN lists expands. This, in turn, causes the pruning bound value equal to the distance from the query point to the farthest candidate currently in this list—to become larger. Consequently, more data points would be accepted into the candidate list, thereby increasing the requisite number of distance calculations. The performance ranking in this experiment is the same as those of the previous three experiments. In this experiment, \cpdualtree, which is the fastest method, is approximately 8.3\% to 9.1\% faster than \spdualtree, which is the second fastest method. \spdualtree shows a substantial advantage over \deltatree, being faster by approximately up to 51.9\%.
+And \deltatree is marginally faster than \dualtree by up to 1.6\%, which is substantially more efficient than kNNJoin\textsuperscript{+} by up to 89.3\%.
+
+\leveltwo{data Insertion in $\textbf{I}$}
+
+For the update type of insertion of data points into $I$, we evaluate the time cost of the newly proposed methods and the existing methods for different combinations of parameters. The parameter combinations for the update of insertion into $I$ are mirror settings with those for insertion into $U$, as a result, we omit their detailed explanation in the following discussion.  
+
+\ssstitle{\textup{Exp-5}
+Insertion in $\textbf{I}$ while Varying the Insertion Number.} 
+
+\begin{comment}
+Computation times consistently increase for all methods when the insertion number improves. This is because larger insertion number represents more RkNN computation required. \deltatree is the slowest method because it does not provide any acceleration for RkNN Search while requiring update of the \deltatree when insertion into $I$. kNNJoin\textsuperscript{+} is faster than linear scan because it applies an index called sphere tree to boost the RkNN Seach process, but slower than \hdrtree because it does not use any dimension reduction method in this high-dimensional context while \hdrtree is an optimized sphere tree by the classic dimension reduction method PCA. \dualtree is slightly slower than \hdrtree because they both use the same method to process RkNN Search, while \dualtree requires update of the \deltatree when insertion into $I$. \cpdualtree shows a relatively small advantage over \spdualtree, being approximately 3.8\% to 4.2\% faster. \spdualtree, however, is considerably faster than \dualtree/\hdrtree, with a relative speedup ranging from about 24\% to 34\%. \dualtree/\hdrtree are, in turn, faster than kNNJoin\textsuperscript{+}, ranging from approximately 10\% to 41\%. 
+\end{comment}
+
+\begin{comment}
+For this dataset, with experimental parameters $P = [13000, 26000, 39000, 52000, 65000]$, computation times for all seven methods increase as the parameter value increases. The performance ranking, from fastest to slowest, is: "Dual-Tree+prune" (M1), "Dual-Tree+simplified prune" (M7), "HDR-Tree" (M4), "Dual-Tree" (M2), "kNNJoin+" (M5), "Linear Scan" (M6), and "Delta-Tree" (M3).
+
+"Dual-Tree+prune" (1st) is approximately 3.8\% to 4.2\% faster than "Dual-Tree+simplified prune" (2nd) (e.g., 3.79\% at $p_1$, 3.86\% at $p_2$, 4.23\% at $p_3$, 3.79\% at $p_4$, and 4.24\% at $p_5$).
+"Dual-Tree+simplified prune" (2nd) shows a significant advantage over "HDR-Tree" (3rd), being faster by approximately 23.6\% to 33.3\%.
+Comparing "HDR-Tree" (3rd) and "Dual-Tree" (4th), the computation time of "Dual-Tree" is approximately 1.01 to 1.03 times that of "HDR-Tree".
+The tier of "HDR-Tree" and "Dual-Tree" is considerably faster than "kNNJoin+" (5th); for instance, "Dual-Tree" is approximately 10.2\% to 40.2\% faster than "kNNJoin+".
+"kNNJoin+" (5th) is faster than "Linear Scan" (6th) by approximately 10.1\% to 19.4\%.
+Finally, "Linear Scan" (6th) is faster than "Delta-Tree" (7th) by approximately 0.7\% to 1.2\%.
+No performance inversions against this established ranking were observed.
+\end{comment}
+
+
+In this experiment for data insertion into $I$ while the insertion number is varied, computation times for all seven methods increase as the insertion number increases. This is because more inserted data points into $I$ require more RkNN Search to locate the data points in $U$ whose kNN members are affected. In this experiment, \cpdualtree, which is the fastest method, is approximately 3.8\% to 4.2\% faster than \spdualtree, which is the second fastest method. This is because \cpdualtree adopts a pruning dimensionality determined through a more rigorous estimation and optimization strategy, while \spdualtree also employs a pruning dimensionality close to the optimal. As a result, the performance gap between them is not large. And \spdualtree shows a significant advantage over \hdrtree, being faster by approximately 23.6\% to 33.3\%, because its newly added pruning step can help prune a considerable amount of data points that are not really affected by the inserted data points. The computation time of \dualtree is marginally longer than that of \hdrtree by approximately 1 to 3\%, because they both use the same strategy for RkNN Search, which is the dominant process for maintenance of the kNN Join table when data insertion into $I$, however, \dualtree requires update of its \deltatree structure when new data points are inserted into $I$, which leads to a slight additional computational overhead. The efficiency of \dualtree is considerably higher than that of kNNJoin\textsuperscript{+} by up to 40.2\%. This is because \dualtree applies \hdrtree for RkNN Search while kNNJoin\textsuperscript{+} uses Sphere Tree for RkNN Search. \hdrtree is a PCA-enhanced variant optimized for high-dimensional data of Sphere Tree, thus suffers from smaller amount of high-dimensional distance computations. kNNJoin\textsuperscript{+} is faster than Linear Scan because Sphere Tree can provide cluster-based pruning for some unaffected data points that are distant from the inserted points. Finally, \deltatree is marginally slower than Linear Scan by approximately 0.7\% to 1.2\%, because \deltatree only provides efficiency for kNN Search and uses the Linear Scan method for RkNN Search. Moreover, it requires update of the \deltatree when new data points are inserted into $I$, which results in slight computational overhead. It is observable that even when the proportion of dynamically inserted points reaches 100\% of the original size of $I$, \cpdualtree and \spdualtree consistently maintains a definitive speed advantage over other compared methods. Concurrently, \dualtree, despite being marginally slower than \hdrtree, also demonstrates a clear performance lead over all other approaches—excluding \hdrtree and its own variant augmented with pruning steps—throughout the full 100\% insertion rate range. This robustly illustrates that our proposed method sustains excellent performance even when the dataset undergoes substantial dynamic updates.
+
+
+\ssstitle{\textup{Exp-6} Insertion in $\textbf{I}$ while Varying the Size of $\textbf{U}$.}
+
+In this case, time cost show a consistent increase for all methods when the size of $U$ increased. This is because larger size of $U$ represents more data points needing to be examined whether they are affected by the newly inserted points or not, which results in larger amount of high-dimensional distance computation and associated verification steps. Ranking of the efficiency of the tested methods is the same as the previous experiment. In this experiment, \cpdualtree is the fastest method and is approximately 4.0\% to 4.2\% faster than \spdualtree, which is the second fastest method. And \spdualtree shows a substantial advantage over \hdrtree, being faster by approximately 23.6\% to 43.2\%. \dualtree achieves up to a 15.7\% speedup over knnjoin\textsuperscript{+}, while incurring no more than a 3.3\% increase in computation time compared to \hdrtree. 
+
+\ssstitle{\textup{Exp-7} Insertion in $\textbf{I}$ while Varying the Size of $\textbf{I}$.} In contrast to previous experiments, time cost for all methods consistently decrease as the initial size of $I$ increases. Because a larger $I$ is more likely to provide data points that are closer to the data points in $U$ compared to a smaller $I$, and the parameters $dist_{kNN}$ and $dist_{MkNN}$ which serve as pruning bounds when RkNN Search depend solely on the distances from the query points to their $k$-th nearest neighbors, therefore, an increase in the size of $I$ can shrink the pruning bounds of RkNN Search. As a result, the probability that newly inserted points fall within pruning bounds and affect data points in $U$ decreases when the initial size of $I$ increases. Consequently, when initial size of $I$ increases, more data points in $U$ can be pruned during the RkNN search process, reducing the overhead of high-dimensional distance computations and associated verification steps. Ranking of the performance of different methods is the same as the two previous methods. In this experiment, \cpdualtree is the fastest method and  is approximately 3.8\% to 4.2\% faster than \spdualtree, which is the second fastest method, while \spdualtree shows a substantial advantage over \hdrtree, being faster by up to 31.4\%. Being considerably more efficient than knnjoin\textsuperscript{+} by up to 10.2\%, \dualtree costs only up to 1.5\% longer time than \hdrtree. It can be observed that even when the proportion of dynamically inserted points reaches 500\% of the original dataset size where the initial size of $I$ is only $S/20$ while the insertion number into $I$ is fixed at $S/4$, \cpdualtree and \spdualtree consistently maintains a definitive speed advantage over other compared methods. Concurrently, \dualtree, despite being marginally slower than \hdrtree, also demonstrates a clear performance lead over all other approaches excluding \hdrtree and its own variant augmented with pruning steps throughout the full 500\% insertion rate range. This robustly illustrates that our proposed method sustains excellent performance even when the dataset undergoes substantial dynamic updates.
+
+\ssstitle{\textup{Exp-8} Insertion in $\textbf{I}$ while Varying $\textbf{k}$.}
+
+In this experiment where data points are inserted into $I$ when the $k$ value in kNN is varied, computation times for all seven methods consistently increase with the $k$ value. Because larger $k$ values allow more members in the kNN lists for data points in $U$. Consequently, this elevates the parameters $dist_{MkNN}$ and $dist_{kNN}$, which function as pruning bounds in the RkNN Search process. Ultimately, this allows more data points in $U$ to bypass the pruning procedures, thereby necessitating increased distance computations in the RkNN Search process, which dominates the time cost for maintenance of the kNN Join table when data insertion into $I$. Therefore, time cost increases when $k$ increases.    
+In this experiment, the performance ranking of different methods is the same as those of the previous three experiments. \cpdualtree is the fastest method, and is approximately 3.8\% to 4.2\% faster than \spdualtree, which is the second fastest method. And \spdualtree shows a substantial advantage over \hdrtree, being faster by approximately 24.0\% to 29.5\%. Although it costs slightly longer time by up to 2.4\% than \hdrtree, \dualtree shows a considerably higher efficiency in comparison of kNNJoin\textsuperscript{+} by up to 26.9\%.
+
+
+\leveltwo{data Deletion from $\textbf{I}$.} 
+
+For the update type of deletion of data points from $I$, we evaluate the time cost of the newly proposed methods and the existing methods for different combination of parameters. In real-world applications, datasets involved in dynamic kNN Joins typically maintain a substantial proportion of their records, rather than shrinking to a marginal fraction due to deletion operations \cite{dong2021rocksdb, zhang2016dl, zhou2022autoindex}. As a result, we configure the lowest retention rate of $I$ after deletion operations in our experiments to be $50\%$.  
+
+\ssstitle{\textup{Exp-9} Deletion from $\textbf{I}$ while Varying the Deletion Number.} In this series of experiments, we fix the $k$ value in kNN at $10$. According to the principle of balanced distribution, the entire dataset is evenly divided into two halves, each of size $S/2$. One half is allocated to $U$, fixing the size of $U$ at $S/2$, while the other half is assigned to the initial $I$, also with size $S/2$. Because of the $50\%$ minimum retention rate, at most half of the initial $I$ (i.e., $S/4$ data points) is subject to deletion. This portion for deletion is further partitioned into five segments of increasing size—$S/20$ ,$2S/20$, $3S/20$, $4S/20$, and $5S/20$—which are sequentially used as deletion volumes under different parameter configurations.  
+
+In this experiment for data deletion from $I$ when the deletion number is varied, computation times for all seven methods consistently increase with the deletion number. This is because more data points deleted from $I$ requires more times of RkNN Search to locate the data points affected by them in $U$ and more times of kNN Search to obtain the new k-th nearest neighbors for the affected data points. In this experiment, \cpdualtree is the fastest method and is approximately 8.7\% to 9.0\% faster than \spdualtree, which is the second fastest method. This is because the time cost for maintenance of the kNN Join table when data deletion from $I$ consists of the time cost for RkNN Search and kNN Search. Both \cpdualtree and \spdualtree applies the same basic index structures that are \hdrtree and \deltatree to respectively optimize the RkNN and kNN process and the same method that is introducing a pruning step on the leaf level to optimize the basic structures. Through the dimensionalities for the pruning steps of \cpdualtree are determined through a more rigorous estimation and optimization strategy than that of \spdualtree, \spdualtree still determines pruning dimensionalities close to the optimal. Therefore, the efficiency of \cpdualtree is higher than that of \spdualtree, but the gap between their efficiency is not large. And \spdualtree shows a substantial advantage over \dualtree, being faster by approximately 23.6\% to 33.4\%. This is because the pruning steps newly equipped on both the \hdrtree side and the \deltatree side effectively help prune an amount of data points that are not really kNN or RkNN members but bypass the searching process on the non-leaf levels of the tree structures, although their applied pruning dimensionalities are computed by a simplified method. The time cost of \deltatree is approximately 1.11 to 1.28 times that of \dualtree. This is because \deltatree and \dualtree both use the same strategy for the kNN Search part of maintenance of the kNN Join table when data deletion from $I$, however, \dualtree applies a \hdrtree structure to effectively accelerate the RkNN Search process but \deltatree only use the basic Linear Scan method for RkNN Search without any optimization. And \deltatree is significantly more efficient than \hdrtree by approximately 85.0\% to 87.4\%. This is because when data deletion from $I$, computation overhead of kNN Join is dominated by the kNN Search process instead of the the RkNN Search process. Because one deleted data point from $I$ only requires one time of RkNN Search for the affectd data point in $U$ by it, however, it can affect significantly more than one data points in $U$ and lead to more than one time of kNN Search to restore the kNN lists of the affected data points. Therefore, \deltatree, which effectively boosts the kNN Search process which is the dominant process is faster than \hdrtree, which only accelerates the RkNN Search. And \hdrtree is faster than kNNJoin\textsuperscript{+} by approximately 6.4\% to 7.8\%, this is because the data is in high-dimensional context, and \hdrtree makes use of PCA to realize dimensional reduction to effectively reduce the high-dimensional distance computation, while kNNJoin\textsuperscript{+} does not incoporate any technique to overcome the challenges of high dimensional data. It can be observed that even when the proportion of dynamically deleted points reaches 50\% of the original dataset size where the initial size of $I$ is fixed at $S/2$ while the deletion number from $I$ is at $S/4$, \cpdualtree and \spdualtree consistently maintains a definitive speed advantage over other compared methods. Concurrently, \dualtree also demonstrates a clear performance lead over all other approaches excluding its own variant augmented with pruning steps throughout the 50\% deletion rate range. This robustly illustrates that our proposed method sustains excellent performance even when the dataset undergoes substantial dynamic updates.
+
+At this stage of the study, we observe that while \dualtree is slightly less efficient than \hdrtree and \deltatree under insertion scenarios where pure kNN Search or RkNN Search is needed, it outperforms both \deltatree and \hdrtree when faced with a scenario where both kNN and RkNN Search are needed.
+
+\begin{comment}
+Computation times exhibit a consistent increase across all methods for increasing number of deleted data points from $I$. This is because more deleted data points requires more times of RkNN Search to locate the affected data points in $U$ and more times of kNN Search for re-computation of the kNN lists of the affected data points. \deltatree is much faster than \hdrtree, being approximately 85\% to 89\% faster. This is because the kNN Search is dominate when maintaining of the kNN Join result faced with deletion from $I$. This is because one deleted data point only requires one time of RkNN Search, while it might have many affected data points that requires many time of kNN Search. \dualtree is faster than \deltatree by 11 to 28\%, because they use the same method for kNN Search while \dualtree can optimize the RkNN Search process by its \hdrtree structure. \cpdualtree is the fastest, closely followed by \spdualtree. The speed advantage of \cpdualtree over \spdualtree is approximately 8.7\% to 9.0\%. \cpdualtree is considerably faster than \dualtree, showing a relative improvement between roughly 24\% and 43\%.
+\end{comment}
+
+\ssstitle{\textup{Exp-10} Deletion from $\textbf{I}$ while Varying the Size of $U$.} 
+In this series of experiments, we fix the $k$ value in kNN at $10$. According to the principle of balanced distribution, the whole dataset is divided into two equal halves of size $S/2$. One half is allocated to $U$, which are further partitioned into five segments of increasing size—$S/10$, $2S/10$, $3S/10$, $4S/10$, and $5S/10$—which are sequentially used as the sizes of $U$ in different parameter configurations. The other half is assigned to initial $I$, of which $S/4$ data points (i.e., half of initial $I$) are subject to deletion in accordance with the lowest $50\%$ retention rate. 
+
+In this experiment where data points are deleted from $I$ when the size of $U$ is varied, computation times for all seven methods consistently increase with the size of $U$. This is because larger size of $U$ brings more data points in $U$ to be examined whether they are affected by the deleted points in $I$ or not, which increases the time cost for the RkNN Search process. And a larger $U$ set increases the likelihood that a deleted point from $I$ will affect more points within $U$, which results in more data points in $U$ bypassing the pruning procedures during RkNN search, thereby leading to more distance computations and verification steps. At the same time, more affected points in $U$ require more times of kNN Search to restore their kNN lists. The performance ranking of different methods is the same as that of the previous experiment. In this experiment, \cpdualtree is the fastest method and is approximately 8.6\% to 9.0\% faster than \spdualtree, which is the second fastest method. The efficiency of \spdualtree shows a substantial advantage over that of \dualtree by approximately 30.6\% to 42.1\%. And the computation time of \deltatree is up to 1.21 times that of \dualtree. \deltatree is in turn approximately 86.1\% to 87.3\% faster than \hdrtree, while \hdrtree is faster than kNNJoin\textsuperscript{+} by approximately 1.5\%.
+
+
+
+\begin{comment}
+For this dataset, where experimental parameters $P$ range from 26,000 to 130,000, computation times for all seven methods consistently increase with the parameter value. The performance ranking, from fastest to slowest, is: "Dual-Tree+prune" (M1), "Dual-Tree+simplified prune" (M7), "Dual-Tree" (M2), "Delta-Tree" (M3), "HDR-Tree" (M4), "kNNJoin+" (M5), and "Linear Scan" (M6).
+
+"Dual-Tree+prune" (1st) is approximately 8.6\% to 9.0\% faster than "Dual-Tree+simplified prune" (2nd) (e.g., 8.64\% at $p_1$, 8.99\% at $p_2$, 8.92\% at $p_3$, 8.78\% at $p_4$, and 8.66\% at $p_5$).
+"Dual-Tree+simplified prune" (2nd) shows a substantial advantage over "Dual-Tree" (3rd), being faster by approximately 30.6\% to 42.1\%.
+Comparing "Dual-Tree" (3rd) and "Delta-Tree" (4th), the computation time of "Delta-Tree" is approximately 1.06 to 1.21 times that of "Dual-Tree".
+The methods "Dual-Tree" and "Delta-Tree" are significantly more efficient than "HDR-Tree" (5th); for instance, "Delta-Tree" (ranked 4th) is approximately 86.1\% to 87.3\% faster than "HDR-Tree".
+"HDR-Tree" (5th) is faster than "kNNJoin+" (6th) by approximately 0.6\% to 1.5\%.
+Finally, "kNNJoin+" (6th) performs slightly better than "Linear Scan" (7th), being faster by approximately 0.8\% to 1.8\%.
+No performance inversions against this established ranking were observed.
+\end{comment}
+
+\begin{comment}
+Computation times for this set uniformly increase for all methods when the size of $U$ increases. This is because larger $U$ represents larger time cost of RkNN Search, because more data points are possibly to be affected by the deleted data points from $I$ and more candidate data points in $U$ need to be examined. Furthermore, more affected data points in $U$ cause larger time cost for kNN Search. The performance order is stable that  \dualtree, \cpdualtree, and \spdualtree continues to show their advantage compared with other methods.
+\end{comment}
+
+\ssstitle{\textup{Exp-11} Deletion from $\textbf{I}$ while Varying the Initial Size of $\textbf{I}$.} In this series of experiments, we fix the $k$ value in kNN at $10$. Complying with the balance principle, a half of the whole dataset is assigned to $U$, fixing the size of $U$ to $S/2$. And the other half is reserved for the initial $I$, which is further partitioned into five segments of increasing size—$S/10$ ,$2S/10$, $3S/10$, $4S/10$, and $5S/10$—which are sequentially used as the initial size of $I$ under different parameter configurations. Because of the $50\%$ lowest retention rate, $S/20$, which is a half of the smallest initial size (i.e., $S/10$) of $I$, is used as the fixed deletion number. 
+
+\ssstitle{\textup{Exp-12} Deletion from $\textbf{I}$ while Varying $\textbf{k}$.} In this series of experiments, we fix the size of $U$ at $S/2$, size of the initial $I$ at $S/2$, from which $S/4$ data points are for deletion, while varying the $k$ value in kNN over ${5, 10, 15, 20, 25}$.
+
+In this experiment for data deletion from $I$ where the $k$ value in kNN is varied, computation times for all seven methods consistently increase with the $k$ value. This is because larger $k$ would amplify the pruning bound values during kNN Search involved in the maintenance of the kNN Join table, which are the distances between the query points and the furthest data points in their candidate kNN lists, thus leading to more distance computation during the kNN Search process, as is discussed in analysis of experiment-4. And larger $k$ would also improve the time cost of the RkNN Search process involved by improving the parameters $dist_{kNN}$ and $dist_{MkNN}$, which serve as pruning bound values during RkNN Search, as is discussed in experiment-9. Performance ranking of different methods is the same as those of the previous three experiments. 
+In this experiment, \cpdualtree is the fastest method and is approximately 8.6\% to 8.9\% faster than \spdualtree, which is the second fastest method. And \spdualtree shows a substantial advantage over \dualtree, being faster by approximately 22.6\% to 48.3\%. The computation time of \deltatree is approximately 1.16 to 2.35 times that of \dualtree. \deltatree is in turn approximately 75.2\% to 89.4\% faster than \hdrtree, which is faster than kNNJoin\textsuperscript{+} by up to 11.9\%.
+
+Based on the experiment analysis thus far, several key observations can be made.
+\begin{enumerate}
+    \item Compared to any single-tree method (i.e., \hdrtree or \deltatree), \dualtree shows only a slight disadvantage in one of the insertion scenarios, while achieving a clear advantage in both the other insertion scenario and the deletion case. This suggests that in practical environments involving diverse update types, \dualtree offers greater adaptability and efficiency than any of the single-tree strategies—an observation further confirmed in the upcoming experiments on combined updates.
+    \item Maintaining the kNN Join table during data deletion from $I$ is considerably more expensive than during data insertion into $I$ or $U$. This is because processing one data point deleted from $I$ requires one time of RkNN Search and multiple times of kNN Search, resulting in a total cost approximately equivalent to that of handling one data point inserted into $I$ and multiple data points inserted into $U$.
+\end{enumerate}
+\begin{comment}
+First, our proposed methods consistently outperform existing approaches 
+Second, the dual-tree framework shows only marginal weakness compared to single-tree variants under one specific insertion scenario, but exhibits clear advantages in the other insertion case and in deletion operations. This suggests that in realistic applications involving mixed update patterns, the dual-tree design offers superior adaptability and efficiency—an observation further confirmed in the upcoming experiments on combined updates.
+Third, deletion operations incur significantly higher costs than insertions, as maintaining the $k$NN join table under deletions requires both $k$NN and R$k$NN searches.
+Fourth, even under high update intensity, the proposed methods retain a noticeable advantage over existing baselines.
+Fifth, two newly proposed strategies for high-dimensional fully dynamic kNN Join \cpdualtree and \spdualtree based on \dualtree with newly introduced pruning steps applying dimensionalities determined by sampling and theoretical computation outperform all other methods across all update types and parameter configurations.
+\end{comment}
+\begin{comment}
+For this dataset, with experimental parameters $P = [5, 10, 15, 20, 25]$, computation times for all seven methods consistently increase with the parameter value. The performance ranking, from fastest to slowest, is: "Dual-Tree+prune" (M1), "Dual-Tree+simplified prune" (M7), "Dual-Tree" (M2), "Delta-Tree" (M3), "HDR-Tree" (M4), "kNNJoin+" (M5), and "Linear Scan" (M6).
+
+"Dual-Tree+prune" (1st) is approximately 8.6\% to 8.9\% faster than "Dual-Tree+simplified prune" (2nd) (e.g., 8.93\% at $p_1$, 8.92\% at $p_2$, 8.64\% at $p_3$, 8.91\% at $p_4$, and 8.78\% at $p_5$).
+"Dual-Tree+simplified prune" (2nd) shows a substantial advantage over "Dual-Tree" (3rd), being faster by approximately 22.6\% to 48.3\%.
+Comparing "Dual-Tree" (3rd) and "Delta-Tree" (4th), the computation time of "Delta-Tree" is approximately 1.16 to 2.35 times that of "Dual-Tree".
+The methods "Dual-Tree" and "Delta-Tree" are significantly more efficient than "HDR-Tree" (5th); for instance, "Delta-Tree" (ranked 4th) is approximately 75.2\% to 89.4\% faster than "HDR-Tree".
+"HDR-Tree" (5th) is faster than "kNNJoin+" (6th) by approximately 0.9\% to 11.9\%.
+Finally, "kNNJoin+" (6th) performs better than "Linear Scan" (7th), being faster by approximately 2.0\%.
+No performance inversions against this established ranking were observed.
+\end{comment}
+
+\begin{comment}
+Computation times uniformly increase for all methods when $k$ value in kNN increases. This is because larger $k$ values results in larger $dist_{MkNN}$ for the data points in $U$, which cause more data points that need to examined and finally improve the time cost of RkNN Search. And larger $dist_{MkNN}$ represents more affected data points by the deleted data points from $I$, which calls for more times of kNN Search. The performance order in this experiment is stable that  \dualtree, \cpdualtree, and \spdualtree continues to show their advantage compared with other methods.
+\end{comment}
+\sstitle{Combined update.} Combined update is a combination of insertion into $U$, and insertion and deletion from $I$. To maintain a balanced proportion of the three update types within the combination, we keep the insertion number into $U$ and the insertion number and deletion number from $I$ the same when varying the parameters of the update. In addition, the initial size of $U$ and the initial size of $I$ are set to be the same. As an example, when the initial set size is $H$ and the update magnitude is $G$, the combined update consists of the following: inserting $G$ data points into $U$ whose initial size is $H$, inserting $G$ data points into $I$ whose initial size is also $H$, and removing $G$ data points from $I$. Based on the settings above, we present the specific parameter configurations and the corresponding experimental results for combined update in the following content.
+
+\ssstitle{\textup{Exp-13} Combined update while varying the update number.} In this series of experiments, we fix the $k$ value in kNN at 10. Because of the $50\%$ lowest retention rate, we fix the initial set size at $\frac{S}{4}$, and vary the update number from $\{5S/20,4S/20,3S/20,2S/20,S/20\}$.
+
+For this experiment of combined update where the update number is varied, computation times for all seven methods consistently increase with the update number. This is because larger number represents more times of kNN Search for the inserted data points into $U$ and more times of RkNN Search for the inserted data points into $I$ to locate their affected points in $U$ and more times of kNN Search for the affected data point in $U$ to restore theor kNN lists. \cpdualtree, which is the fastest methdod, is approximately 8.7\% to 9.1\% faster than \spdualtree, which is the second fastest method.
+And \spdualtree shows a substantial advantage over \dualtree, being faster by approximately 28.4\% to 35.6\%. The computation time of \deltatree is at most 1.26 times that of \dualtree. This is because \dualtree demonstrates superior performance over \deltatree when dealing with data insertion into $I$ and deletion from $I$, because it conducts more efficient RkNN Search to locate the affected data points in $U$ based on its \hdrtree component while \deltatree only has an index structure on $I$, thus performing brute RkNN Search. These significant advantages effectively outweigh the additional overheads incurred by \dualtree compared with \deltatree for updating the structure of its \hdrtree component when data insertion into $U$ and updating the $dist_{kNN}$ and $dist_{MkNN}$ parameters in its \hdrtree component when data insertion into and deletion from $I$. When compared with \hdrtree, \deltatree is significantly more efficient and is approximately 79.2\% to 80.7\% faster than \hdrtree. As is discussed before, dealing with one data point inserted into $U$ costs one time of kNN Search to obtain its kNN list and dealing with one data point inserted into $I$ costs one time of RkNN Search to locate its affected data points in $U$, while dealing with one data point deleted from $I$ costs one time of RkNN Search and multiple times of kNN Search to restore the kNN lists of the affected data points in $U$. As a result, when combined update, the frequency of need of kNN Search is multiplier times that of RkNN Search's. As a result, \deltatree, which effectively boosts the kNN Search process can perform much better than \hdrtree, which can only accelerate the process of RkNN Search. \hdrtree is in turn faster than kNNJoin\textsuperscript{+} by approximately 0.9\% to 2.6\%. Finally, kNNJoin\textsuperscript{+} performs slightly better than Linear Scan, being faster by approximately 1.9\% to 3.5\%.
+
+\begin{comment}
+ Computation times increase for all methods when the update number increases. This is because more update data points lead to more times of kNN and RkNN Search. The performance hierarchy places \cpdualtree first, \spdualtree second, \dualtree third, \deltatree fourth, and \hdrtree fifth. \cpdualtree's advantage over \spdualtree is stable and small, ranging from 8.7\% to 9.1\%. \spdualtree is significantly faster than \dualtree, with a relative improvement between approximately 28\% and 47\%. \deltatree requires approximately 1.16 to 1.26 times the computation time of \dualtree. Lastly, \deltatree are substantially faster than \hdrtree, demonstrating a relative speed advantage of roughly 79\% to 85\%.
+\end{comment}
+\begin{comment}
+For this dataset, with experimental parameters $P$ ranging from 13,000 to 65,000, computation times for all seven methods consistently increase with the parameter value. The performance ranking, from fastest to slowest, is: "Dual-Tree+prune" (M1), "Dual-Tree+simplified prune" (M7), "Dual-Tree" (M2), "Delta-Tree" (M3), "HDR-Tree" (M4), "kNNJoin+" (M5), and "Linear Scan" (M6).
+
+"Dual-Tree+prune" (1st) is approximately 8.7\% to 9.1\% faster than "Dual-Tree+simplified prune" (2nd) (e.g., 8.72\% at $p_1$, 8.85\% at $p_2$, 8.99\% at $p_3$, 9.09\% at $p_4$, and 8.71\% at $p_5$).
+"Dual-Tree+simplified prune" (2nd) shows a substantial advantage over "Dual-Tree" (3rd), being faster by approximately 28.4\% to 35.6\%.
+Comparing "Dual-Tree" (3rd) and "Delta-Tree" (4th), the computation time of "Delta-Tree" is approximately 1.16 to 1.26 times that of "Dual-Tree".
+The methods "Dual-Tree" and "Delta-Tree" are significantly more efficient than "HDR-Tree" (5th); for instance, "Delta-Tree" (ranked 4th) is approximately 79.2\% to 80.7\% faster than "HDR-Tree".
+"HDR-Tree" (5th) is faster than "kNNJoin+" (6th) by approximately 0.9\% to 2.6\%.
+Finally, "kNNJoin+" (6th) performs slightly better than "Linear Scan" (7th), being faster by approximately 1.9\% to 3.5\%.
+No performance inversions against this established ranking were observed.
+
+\end{comment}
+
+\ssstitle{\textup{Exp-14} Combined update while varying the initial set size.} In this series of experiments, we fix the $k$ value in kNN at $10$. Because of the $50\%$ lowest retention rate, we fix the update number at $S/22$, while varying the initial set size from $\{5S/11,4S/11,3S/11,2S/11, S/11\}$.
+
+For this experiment of combined update where the initial size of $U$ and $I$ is varied, computation times for all seven methods consistently increase with the initial set size. This is because when the size of $U$ is increased, more data points in $U$ need to be verified whether they are affected by the data points updated in $I$, thus increasing the time cost of RkNN Search involved in dealing with the update of $I$. And larger $U$ leads to more data points affected by the data points updated in $I$, thus resulting in more times of kNN Search to restore the affected kNN lists. Moreover, a larger $I$ would bring more data points to be verified whether they are in the kNN lists during the kNN Search for the data points newly inserted into $U$ and during the kNN Search for restoring the affected kNN lists of $U$ when update of $I$. Although a larger $I$, as is discussed in experiment-7, can shrink the pruning bound values (i.e., $dist_{kNN}$ and $dist_{MkNN}$) of the RkNN Search process to enable more data points in $U$ to be pruned, thereby decreasing the RkNN time, this effect of time cost reduction is outweighed by the four effects of time cost increase explained above. As a result, larger initial size of $U$ and $I$ can prolong the running time for maintenance of the kNN Join table when combined update. In this experiment, \cpdualtree is the fastest method and is approximately 8.8\% to 9.0\% faster than \spdualtree, which is the second fastest method. And \spdualtree shows a substantial advantage over \dualtree, being faster by approximately 29.2\% to 38.9\%. The computation time of \deltatree is at most 1.23 times that of \dualtree. Furthermore, \deltatree is significantly more efficient than \hdrtree, being approximately 56.6\% to 82.2\% faster than \hdrtree. \hdrtree is in turn faster than kNNJoin\textsuperscript{+} by up to 10.5\%. Finally, kNNJoin\textsuperscript{+} performs better than Linear Scan, being faster by approximately 3.6\% to 9.5\%.
+
+\begin{comment}
+For this dataset, with experimental parameters $P = [1, 2, 3, 4, 5]$, computation times for all seven methods consistently increase with the parameter value. The performance ranking, from fastest to slowest, is: "Dual-Tree+prune" (M1), "Dual-Tree+simplified prune" (M7), "Dual-Tree" (M2), "Delta-Tree" (M3), "HDR-Tree" (M4), "kNNJoin+" (M5), and "Linear Scan" (M6).
+
+"Dual-Tree+prune" (1st) is approximately 8.8\% to 9.0\% faster than "Dual-Tree+simplified prune" (2nd) (e.g., 9.04\% at $p_1$, 8.80\% at $p_2$, 8.81\% at $p_3$, 9.03\% at $p_4$, and 9.04\% at $p_5$).
+"Dual-Tree+simplified prune" (2nd) shows a substantial advantage over "Dual-Tree" (3rd), being faster by approximately 29.2\% to 38.9\%.
+Comparing "Dual-Tree" (3rd) and "Delta-Tree" (4th), the computation time of "Delta-Tree" is approximately 1.09 to 1.23 times that of "Dual-Tree".
+The methods "Dual-Tree" and "Delta-Tree" are significantly more efficient than "HDR-Tree" (5th); for instance, "Delta-Tree" (ranked 4th) is approximately 56.6\% to 82.2\% faster than "HDR-Tree".
+"HDR-Tree" (5th) is faster than "kNNJoin+" (6th) by approximately 2.8\% to 10.5\%.
+Finally, "kNNJoin+" (6th) performs better than "Linear Scan" (7th), being faster by approximately 3.6\% to 9.5\%.
+No performance inversions against this established ranking were observed.
+\end{comment}
+
+
+
+
+
+
+\ssstitle{\textup{Exp-15} Combined update while varying $k$ value in kNN.} In this series of experiments, we fix the update number at $\frac{S}{4}$, and fix the initial set size at $\frac{S}{4}$, while varying the $k$ value in kNN from $\{5,10,15,20,25\}$.
+
+From the above experimental results for combined update, it can be concluded that the proposed \dualtree structure consistently outperforms all existing approaches, including the single-tree structures (i.e., \deltatree and \hdrtree), in real-world fully dynamic kNN Join scenarios. This is primarily because, in practice, update of the datasets involved in fully dynamic kNN Join often include a mixture of update types. Under this scenario, the \dualtree structure offers a clear advantage as it can accelerate both RkNN Search to optimize the process for dealing with the updates to the $I$ set and kNN Search to improve the efficiency for processing data insertions to $U$ and deletions from $I$, whereas the single-tree structure is typically limited to optimizing only kNN Search or RkNN Search.
+
+
+
+
+
+
+\begin{comment}
+Computation times uniformly increase for all methods when $k$ value in kNN increases. This is because larger $k$ values results in larger $dist_{MkNN}$ for the data points in $U$, which cause more data points that need to examined and finally improve the time cost of RkNN Search. And larger $dist_{MkNN}$ represents more affected data points by the deleted data points from $I$, which calls for more times of kNN Search. Furthermore, larger $k$ lead to larger pruning bound when kNN Search, which represents more data points that need to be examined. The performance order in this experiment is stable that  \dualtree, \cpdualtree, and \spdualtree continues to show their advantage compared with other methods.
+\end{comment}
+
+
+\stitle{Experiments on additional datasets.} 
+To assess the robustness and universality of the advantages of our newly proposed methods compared to the existing ones, we evaluate their time cost for dynamic kNN Join against all types of update including data insertion into $U$ and $I$ and data deletion from $I$, across seven additional real datasets. Without loss of generality, each update type is tested with only one representative parameter configuration for clarity and conciseness.
+
+
+\sstitle{Insertion into $U$}
+The parameter configuration for data insertion into $U$ for all the seven additional datasets is as below. The initial size of $U$ is fixed at $S/4$, the size of $I$ is fixed at $S/2$, the update number is fixed at $S/4$, and the $k$ value in kNN is fixed at 10, where $S$ is the full size of the tested dataset.
+
+\begin{comment}
+This analysis evaluates the computation time of seven methods (HDR tree, Linear Scan, Delta tree, kNNJoin+, Dual tree, Dual Tree Prune, and Another prune) across seven distinct datasets (Cifar, Audio, Million Song, Sun, Trevi, Fashion Minist, and Enron). The relative performance ranking of the top four methods was found to be consistent across all datasets: "Dual Tree Prune" ranked 1st (fastest), followed by "Another prune" (2nd), "Delta tree" (3rd), and "Dual tree" (4th). While the ranking of the remaining three methods showed some dataset-specific variations, they consistently performed slower than these top four. An overall performance hierarchy based on average computation times across all datasets ranks the methods as: 1. Dual Tree Prune ($\approx 214.43$ avg.), 2. Another prune ($\approx 226.60$ avg.), 3. Delta tree ($\approx 373.71$ avg.), 4. Dual tree ($\approx 379.11$ avg.), 5. kNNJoin+ ($\approx 488.52$ avg.), 6. HDR tree ($\approx 653.82$ avg.), and 7. Linear Scan ($\approx 660.42$ avg.).
+
+"Dual Tree Prune" (1st) consistently outperforms "Another prune" (2nd). Across the seven datasets, "Dual Tree Prune" is faster than "Another prune" by approximately 2.3\% (on Million Song) to 13.3\% (on Audio), with an average advantage of about 6.5\%. For instance, on Cifar (50k, 512d), the advantage is $\approx 4.49\%$, while on Fashion Minist (69k, 784d), it is $\approx 8.01\%$.
+
+"Another prune" (2nd) is significantly faster than "Delta tree" (3rd). The advantage of "Another prune" over "Delta tree," with datasets ranked by this performance advantage (largest advantage first), is as follows: Audio (53k, 192d) ($\approx 43.3\%$), Sun (79k, 512d) ($\approx 37.0\%$), Trevi (100k, 4096d) ($\approx 35.1\%$), Fashion Minist (69k, 784d) ($\approx 27.4\%$), Million Song (922k, 420d) ($\approx 22.4\%$), Enron (95k, 1369d) ($\approx 20.4\%$), and Cifar (50k, 512d) ($\approx 15.7\%$). Overall, "Another prune" was faster than "Delta tree" by approximately 15.7\% to 43.3\%, with an average advantage of $\approx 28.8\%$.
+
+Comparing "Delta tree" (3rd) with "Dual tree" (4th), the datasets ranked by the advantage of "Delta tree" are: Fashion Minist (69k, 784d) ($\approx 7.2\%$), Sun (79k, 512d) ($\approx 4.8\%$), Audio (53k, 192d) ($\approx 4.3\%$), Cifar (50k, 512d) ($\approx 2.7\%$), Trevi (100k, 4096d) ($\approx 1.9\%$), Enron (95k, 1369d) ($\approx 1.3\%$), and Million Song (922k, 420d) ($\approx 0.7\%$). Thus, "Delta tree" was consistently faster than "Dual tree" by approximately 0.7\% to 7.2\%, with an average advantage of $\approx 3.0\%$.
+
+For "Dual tree" (ranked 4th), its performance advantage over the method immediately following it in rank on each specific dataset was analyzed. On all datasets, "kNNJoin+" was the method ranked 5th (based on average ranking, and often 5th or close on individual datasets after the top four) directly after "Dual tree". "Dual tree" was faster than "kNNJoin+" by a minimum of approximately 17.8\% (on Cifar: Dual tree 57.57 vs kNNJoin+ 70.00), a maximum of approximately 66.2\% (on Million Song: Dual tree 752.66 vs kNNJoin+ 2228.85), with an average advantage of about 43.7\% across all datasets when comparing "Dual tree" to "kNNJoin+".
+\end{comment}
+In this experiment, \cpdualtree is the fastest method and is faster than \spdualtree, which is the second fastest method, by up to 13.3\%(on Audio), and with an average advantage of about 6.5\% across all the seven datasets. And \spdualtree is faster than \deltatree, which is the third fastest method, by approximately 15.7\% to 43.3\%, with an average advantage of $\approx 28.8\%$, across all the seven datasets. For instance, \spdualtree is faster than \deltatree by 22.4\% on the Million Song dataset, and by 35.1\% on Trevi. \deltatree is in turn faster than \dualtree, which is the fourth fastest method by approximately 3\% on average across all of the seven datasets. 
+
+The superiority of our newly proposed strategies, \cpdualtree and \spdualtree, over all of the existing methods under the scenario of data insertion into $U$ is consistently observed across multiple datasets, even when a high insertion rate of 100\%. And such advantage is still maintained when the dataset processed is high-dimensional and large-scale(i.e., the Million Song dataset, with 922k data points and 420 dimensions) and when the dimensionality of the dataset is very high (i.e., the Trevi dataset with 4096 dimensions).
+
+\sstitle{Insertion into $I$}
+The parameter configuration for data insertion into $I$ mirrors that used for insertion into $U$.
+
+\begin{comment}
+This analysis evaluates the computation time of seven methods (HDR tree, Linear Scan, Delta tree, kNNJoin+, Dual tree, Dual Tree Prune, and Another prune) across seven distinct datasets (Cifar, Audio, Million Song, Sun, Trevi, Fashion Minist, and Enron). The relative performance ranking of the top four methods was found to be consistent across all datasets: "Dual Tree Prune" consistently ranked 1st (fastest), followed by "Another prune" (2nd), "HDR tree" (3rd), and "Dual tree" (4th). While the ranking of the remaining three methods showed some dataset-specific variations, they always performed slower than these top four.
+
+"Dual Tree Prune" (1st) consistently outperforms "Another prune" (2nd). Across the seven datasets, "Dual Tree Prune" is faster than "Another prune" by approximately 4.5\% (on Enron) to 6.7\% (on Audio), with an average advantage of about 5.5\%.
+
+"Another prune" (2nd) is significantly faster than "HDR tree" (3rd). The advantage of "Another prune" over "HDR tree" varies from approximately 6.9\% (on Enron) to a substantial 55.2\% (on Million Song), with an average speedup of about 25.8\%. The datasets, when ranked by this performance advantage of "Another prune" over "HDR tree" (largest advantage first), are: Million Song (922k, 420d) ($\approx 55.18\%$), Sun (79k, 512d) ($\approx 34.26\%$), Trevi (100k, 4096d) ($\approx 33.99\%$), Audio (53k, 192d) ($\approx 18.22\%$), Cifar (50k, 512d) ($\approx 16.79\%$), Fashion Minist (69k, 784d) ($\approx 15.15\%$), and Enron (95k, 1369d) ($\approx 6.89\%$).
+
+Comparing "HDR tree" (3rd) with "Dual tree" (4th), the datasets ranked by the advantage of "HDR tree" are: Sun (79k, 512d) ($\approx 6.46\%$), Fashion Minist (69k, 784d) ($\approx 3.57\%$), Enron (95k, 1369d) ($\approx 2.58\%$), Cifar (50k, 512d) ($\approx 2.56\%$), Trevi (100k, 4096d) ($\approx 2.34\%$), Audio (53k, 192d) ($\approx 1.68\%$), and Million Song (922k, 420d) ($\approx 0.84\%$). Thus, "HDR tree" was consistently faster than "Dual tree" by approximately 0.8\% to 6.5\%, with an average advantage of $\approx 2.86\%$.
+
+For "Dual tree" (ranked 4th), its performance advantage over the method immediately following it in rank on each specific dataset was analyzed. On all datasets, "kNNJoin+" was the method ranked 5th directly after "Dual tree". "Dual tree" was faster than "kNNJoin+" by a minimum of approximately 6.5\% (on Million Song), a maximum of approximately 46.5\% (on Trevi), with an average advantage of about 18.5\% across all datasets.
+\end{comment}
+
+In this experiment, \cpdualtree, which is the fastest method, is consistently faster than \spdualtree, which is the second fastest method, by up to 6.7\% (on Audio), and with an average advantage of about 5.5\%, across all of the seven datasets. And \spdualtree is significantly faster than \hdrtree, which is the third fastest method, by up to 55.2\%, with an average speedup of about 25.8\%, across all of the seven datasets. For instance, the advantage of \spdualtree over \hdrtree is 55.2\% on the Million Song dataset and is 33.99\% on the Trevi dataset. \hdrtree is in turn faster than \dualtree, which is the fourth fastest dataset, with an average advantage of 2.86\% across all of the seven datasets.
+
+The results above suggest that the advantage of the newly proposed strategies in this paper, \cpdualtree and \spdualtree, over all of the existing methods under the scenario of data insertion into $I$ shows its robustness across multiple datasets. And the newly proposed methods demonstrate their superiority when the dataset processed is of high-dimensional and large-scale (i.e., the Million Song dataset with 922k data points and 420 dimensions) and when the dataset is with very high dimensionality (i.e., the Trevi dataset with 4096 dimensions).
+
+ 
+
+\sstitle{Deletion from $I$}
+The parameter combination used for data deletion from $I$ for all the seven additional datasets is designed as below. The size of $U$ is fixed at $S/2$, the initial size of $I$ is fixed at $S/2$, the deletion number is fixed at $S/4$, and the $k$ value in kNN is fixed at 10, where $S$ is the full size of the tested dataset.
+
+\begin{comment}
+This analysis evaluates the computation time of seven methods (HDR tree, Linear Scan, Delta tree, kNNJoin+, Dual tree, Dual Tree Prune, and Another prune) across seven distinct datasets (Cifar, Audio, Million Song, Sun, Trevi, Fashion Minist, and Enron). A consistent relative performance ranking was observed for the top four methods across all datasets: "Dual Tree Prune" ranked 1st (fastest), followed by "Another prune" (2nd), "Dual tree" (3rd), and "Delta tree" (4th). While the ranking of the remaining three methods ("HDR tree," "kNNJoin+," and "Linear Scan") showed some dataset-specific variations, they consistently performed slower than these top four.
+
+"Dual Tree Prune" (1st) consistently outperforms "Another prune" (2nd). Across the seven datasets, "Dual Tree Prune" is faster than "Another prune" by approximately \textbf{1.6\% (on Million Song) to 20.9\% (on Audio)}, with an average advantage of about \textbf{6.0\%}.
+
+"Another prune" (2nd) is significantly faster than "Dual tree" (3rd). The advantage of "Another prune" over "Dual tree," with datasets ranked by this performance advantage (largest advantage first), is as follows: Trevi (100k, 4096d) ($\approx 76.7\%$), Fashion Minist (69k, 784d) ($\approx 74.3\%$), Enron (95k, 1369d) ($\approx 72.5\%$), Sun (79k, 512d) ($\approx 65.5\%$), Million Song (922k, 420d) ($\approx 64.2\%$), Audio (53k, 192d) ($\approx 40.9\%$), and Cifar (50k, 512d) ($\approx 26.2\%$). Overall, "Another prune" was faster than "Dual tree" by approximately \textbf{26.2\% to 76.7\%}, with an average advantage of $\approx 63.0\%$.
+
+Comparing "Dual tree" (3rd) with "Delta tree" (4th), the datasets ranked by the advantage of "Dual tree" are: Enron (95k, 1369d) ($\approx 90.3\%$), Trevi (100k, 4096d) ($\approx 86.0\%$), Million Song (922k, 420d) ($\approx 85.0\%$), Fashion Minist (69k, 784d) ($\approx 62.2\%$), Sun (79k, 512d) ($\approx 60.5\%$), Cifar (50k, 512d) ($\approx 43.5\%$), and Audio (53k, 192d) ($\approx 7.1\%$). Thus, "Dual tree" was consistently faster than "Delta tree" by approximately \textbf{7.1\% to 90.3\%}, with an average advantage of $\approx 62.1\%$.
+
+For "Delta tree" (ranked 4th), its performance advantage over the method immediately following it in rank on each specific dataset (which was "kNNJoin+" in all cases for this dataset) was analyzed. "Delta tree" was faster than "kNNJoin+" by a minimum of approximately \textbf{7.1\%} (on Cifar), a maximum of approximately \textbf{61.4\%} (on Million Song), with an average advantage of about \textbf{36.8\%} across all datasets.
+\end{comment}
+
+In this experiment, \cpdualtree, which is the fastest method, is consistently faster than \spdualtree, which is the second fastest method, by up to 13.22\% (on Audio), and with an average advantage of about 6.9\%, across all of the seven datasets. And \spdualtree is significantly faster than \dualtree, which is the third fastest method, by up to 46.48\%, with an average speedup of about 30.97\%, across all of the seven datasets. For instance, the advantage of \spdualtree over \dualtree is 24.13\% on the Million Song dataset and is 46.48\% on the Trevi dataset. \dualtree is in turn obviously faster than \deltatree, which is the fourth fastest dataset, by up to 26.38\%, and with an average advantage of 11.47\% across all of the seven datasets. For instance, \dualtree is faster than \deltatree by 20.25\% on the Trevi dataset and 26.38\% on the Fashion Minist dataset. This is because processing data deletion from $I$ not only requires RkNN Search but also requires kNN Search. And \dualtree not only has an index (\hdrtree) on $U$ to accelerate the RkNN Search process but also has an \deltatree on $I$ to boost kNN Search, while a single \deltatree can only optimize the kNN Search process.
+
+What is observed above indicates that the newly proposed methods, \cpdualtree and \spdualtree, are still the top two methods among all of the methods across a range of different datasets when data deletion from $I$, even faced with a deletion rate as high as 50\% when the dataset processed is of high-dimensional and large scale (i.e., the Million Song dataset with 922k data points and 420 dimensions) and when the dataset is with very high dimensionality (i.e., the Trevi dataset with 4096 dimensions). And the newly proposed \dualtree strategy demonstrates the generalizability of its superiority over all of the methods earlier than this work across a range of real-world datasets including the large and high-dimensional dataset and the very high-dimensional dataset, when the scenario of data deletion from $I$ with a high deletion rate. 
+
+
+\sstitle{Combined update}
+The parameter configuration for combined update for all the seven additional datasets is set as below. The initial size of $U$ and $I$ is fixed at $S/4$, the update number is fixed at $S/4$, and the $k$ value in kNN is fixed at 10, where $S$ is the full size of the tested dataset.
+
+In this experiment, \cpdualtree, which is the fastest method, is consistently faster than \spdualtree, which is the second fastest method, by up to 13.23\% (on Audio), and with an average advantage of about 6.79\%, across all of the seven datasets. And \spdualtree is significantly faster than \dualtree, which is the third fastest method, by up to 41.3\%, with an average speedup of about 29.86\%, across all of the seven datasets. For instance, the advantage of \spdualtree over \dualtree is 33.07\% on the Million Song dataset and is 41.3\% on the Trevi dataset. \dualtree is in turn obviously faster than \deltatree, which is the fourth fastest dataset, by up to 31.82\%, and with an average advantage of 16.16\% across all of the seven datasets. For instance, \dualtree is faster than \deltatree by 29.5\% on the Trevi dataset and 31.82\% on the Fashion Minist dataset. This is because combined update is a mixture of data insertion and deletion from $I$ and data insertion into $U$, which not only requires RkNN Search but also requires kNN Search. And \dualtree not only has an index (\hdrtree) on $U$ to accelerate the RkNN Search process but also has an \deltatree on $I$ to boost kNN Search, while a single \deltatree can only optimize the kNN Search process.
+
+What is observed above indicates that the newly proposed methods, \cpdualtree and \spdualtree, are still the top two methods among all of the methods across a range of different datasets when combined update, even faced with a high rate of update when the dataset processed is of high-dimensional and large scale (i.e., the Million Song dataset with 922k data points and 420 dimensions) and when the dataset is with very high dimensionality (i.e., the Trevi dataset with 4096 dimensions). And the newly proposed \dualtree strategy demonstrates the generalizability of its superiority over all of the methods earlier than this work across a range of real-world datasets including the large and high-dimensional dataset and the very high-dimensional dataset, when the scenario of combined update with a high update rate. As a result, \dualtree can outperform all of the earlier methods in almost all of the practical situation, because it is common for data update during the context of fully-dynamic kNN Join in real world to involve multiple type of update.
+
+In conclusion, the newly proposed strategies preserve their advantages compared with the existing methods across a range of different real datasets under a high update rate.
+\begin{comment}
+The results above suggest that the advantage of the newly proposed strategies in this paper, \cpdualtree and \spdualtree, over all of the existing methods under the scenario of data insertion into $I$ shows its robustness across multiple datasets. And the newly proposed methods demonstrate their superiority when the dataset processed is of high-dimensional and large-scale (i.e., the Million Song dataset with 922k data points and 420 dimensions) and when the dataset is with very high dimensionality (i.e., the Trevi dataset with 4096 dimensions).
+
+The results above suggest that the advantage of the newly proposed strategies in this paper, \cpdualtree and \spdualtree, over all of the existing methods under the scenario of data insertion into $I$ shows its robustness across multiple datasets. And the newly proposed methods demonstrate their superiority when the dataset processed is of high-dimensional and large-scale (i.e., the Million Song dataset with 922k data points and 420 dimensions) and when the dataset is with very high dimensionality (i.e., the Trevi dataset with 4096 dimensions).
+\end{comment}
+
+
+
+
+\begin{comment}
+This analysis evaluates the computation time of seven methods (HDR tree, Linear Scan, Delta tree, kNNJoin+, Dual tree, Dual Tree Prune, and Another prune) across seven distinct datasets (Cifar, Audio, Million Song, Sun, Trevi, Fashion Minist, and Enron). The relative performance ranking of the top four methods was found to be consistent across all datasets: "Dual Tree Prune" ranked 1st (fastest), followed by "Another prune" (2nd), "Dual tree" (3rd), and "Delta tree" (4th). While the ranking of the remaining three methods ("HDR tree," "kNNJoin+," and "Linear Scan") showed some dataset-specific variations, they consistently performed slower than these top four.
+
+"Dual Tree Prune" (1st) consistently outperforms "Another prune" (2nd). Across the seven datasets, "Dual Tree Prune" is faster than "Another prune" by approximately \textbf{4.5\% (on Cifar) to 23.7\% (on Audio)}, with an average advantage of about \textbf{10.0\%}. For instance, on Fashion Minist (69k, 784d), the advantage is $\approx 8.9\%$, while on Million Song (922k, 420d), it is $\approx 6.2\%$.
+
+"Another prune" (2nd) is significantly faster than "Dual tree" (3rd). The advantage of "Another prune" over "Dual tree," with datasets ranked by this performance advantage (largest advantage first), is as follows: Trevi (100k, 4096d) ($\approx 80.1\%$), Fashion Minist (69k, 784d) ($\approx 72.9\%$), Enron (95k, 1369d) ($\approx 72.8\%$), Million Song (922k, 420d) ($\approx 69.9\%$), Sun (79k, 512d) ($\approx 60.7\%$), Cifar (50k, 512d) ($\approx 29.4\%$), and Audio (53k, 192d) ($\approx 32.3\%$). Overall, "Another prune" was faster than "Dual tree" by approximately \textbf{29.4\% to 80.1\%}, with an average advantage of $\approx 59.9\%$.
+
+Comparing "Dual tree" (3rd) with "Delta tree" (4th), the datasets ranked by the advantage of "Dual tree" are: Enron (95k, 1369d) ($\approx 92.9\%$), Trevi (100k, 4096d) ($\approx 89.8\%$), Million Song (922k, 420d) ($\approx 87.5\%$), Fashion Minist (69k, 784d) ($\approx 66.5\%$), Sun (79k, 512d) ($\approx 58.3\%$), Cifar (50k, 512d) ($\approx 31.6\%$), and Audio (53k, 192d) ($\approx 5.9\%$). Thus, "Dual tree" was consistently faster than "Delta tree" by approximately \textbf{5.9\% to 92.9\%}, with an average advantage of $\approx 61.8\%$.
+
+For "Delta tree" (ranked 4th based on the consistent top-4 ordering), its performance advantage over the method immediately following it in rank on each specific dataset was analyzed. On Cifar, Sun, Fashion Minist, and Enron datasets, "kNNJoin+" followed "Delta tree". On Audio, "Linear Scan" followed "Delta tree". On Million Song and Trevi, "HDR tree" followed "Delta tree". "Delta tree" was faster than its immediate successor by a minimum of approximately \textbf{4.0\%} (vs kNNJoin+ on Fashion Minist), a maximum of approximately \textbf{60.2\%} (vs kNNJoin+ on Million Song), with an average advantage of about \textbf{26.3\%} over these varied next-ranked methods.
+\end{comment}
+
+
+\stitle{Experiments for varying pruning dimensionalities.} 
+
+This experiment is designed to verify whether our newly proposed theoretical strategy for deriving the optimal pruning dimensionality based on sampling and function optimization—as well as its simplified variant—indeed corresponds to the true optimal pruning dimensionality and provides the minimal cost to the \dualtree based index equipped with the pruning steps for maintaining the kNN Join table during dynamic data updates.
+
+\begin{comment}
+To verify the optimality of the pruning dimensionality determined by the proposed theoretical method for RkNN Search, when the pruning step is equipped on the leaf level of the \hdrtree part of \dualtree, experiments are designed as followings. For each dataset, fix the $k$ value in kNN at 10, randomly choose $S/2$ data points for the set $U$ and randomly separate the remained $S/2$ into two halves, one of which sized $S/4$ is assigned for the initial $I$ set while the other $S/4$ data points are reserved for insertion into $I$. Dimensionalities from $1$ to $D$, which is the full dimensionality of the dataset are used as pruning dimensionalities with an interval of $D/100$ on the leaf level of the \hdrtree part of \dualtree. The time costs of \dualtree equipped with a pruning step using those dimensionalities for maintenance of the kNN Join table against insertion of the $S/4$ data points into $I$ are recorded. These recorded time costs are to compared with the time costs of the \dualtree equipped with a pruning step using the dimensionalities derived by the proposed theoretical method. 
+\end{comment}
+
+To verify the optimality of the pruning dimensionality on the leaf level of the \hdrtree component in \dualtree for RkNN Search determined by our proposed theoretical method, an experiment is designed as follows.
+
+For each dataset, a random subset of $S/2$ data points is selected to form the query set $U$, and the remaining $S/2$ data points are split into two equal halves: one subset of size $S/4$ is assigned to initialize the answer set $I$, while the other $S/4$ data points are reserved for insertion into $I$, and the $k$ value in kNN is fixed at $10$. Candidate pruning dimensionalities are selected from the range $[1, D]$—where $D$ is the full dimensionality of the dataset—sampled at intervals of $D/100$. For each selected pruning dimensionality, we equip \dualtree with a pruning step using it as pruning dimensionality on its \hdrtree part and record the dimension cost on leaf level and the time cost required to maintain the kNN Join table during the insertion of the $S/4$ data points into $I$. Here, the dimension cost is defined as the total number of dimensions involved in all distance computations. Specifically, if the pruning dimensionality is set to $d$, and maintaining the kNN join table under the insertion of $S/4$ data points into $I$ involves $M$ pruning steps and $N$ full-dimensional distance computations at the leaf level of \dualtree, then the dimension cost is computed as $Md + ND$. Note that one unit of dimension cost corresponds to the cost of computing one dimension, consistent with the definition used in the content titled COST FOR A VISITED POINT, except that in that content, the per-dimension cost is denoted as $c$ for theoretical rigor in complexity modeling, whereas here we normalize the unit cost to $1$ for convenient expression.
+
+The recorded dimension costs on leaf level and the time costs are then compared against the costs of the \dualtree equipped with a pruning step using the dimensionalities derived by our newly proposed theoretical method.
+
+To verify the optimality of the pruning dimensionality on the leaf level of the \deltatree component in \dualtree for kNN Search determined by our proposed theoretical method, an experiment similar to that for verifying the optimality of the pruning dimensionalities derived for RkNN Search is designed as what follows. For each dataset, we record the dimension costs on leaf level and the time costs required by \dualtree—equipped with a pruning step using dimensionalities sampled from $[1, D]$ at intervals of $D/100$ in its \deltatree component to maintain the kNN Join table against the following update. The parameter configuration of the update to test the costs of each pruning dimensionality is that, $S/4$ data points are inserted into $U$ whose initial size is $S/4$ while the size of $I$ is fixed at $S/2$ and the value of $k$ is fixed at 10. The recorded dimension costs on leaf level and the time costs are then compared against the costs of the \dualtree equipped with a pruning step in its \deltatree component for kNN Search using the dimensionalities derived by our newly proposed theoretical method.
+
+We only conduct experiments under the scenarios of data insertion into $U$ and $I$ to verify the optimality of the pruning dimensionalities derived without studying the case where data points are deleted from $I$. This is because experiments under the scenarios of data insertion into $U$ and $I$ whose dominant processes are respectively kNN Search and RkNN Search can verify the optimality of the pruning dimensionalties derived for kNN Search and RkNN Search. And the cost of maintaining the kNN Join table when data deletion from $I$ consists of the costs for kNN Search and RkNN Search. As a result, once the optimal pruning dimensionalities for kNN Search and RkNN Search are determined, they can be equipped repectively on the \deltatree component and \hdrtree component of \dualtree to achieve an optimal maintenance of kNN Join table against data deletion from $I$.
+
+As shown in Figure~\ref{fig:xxx}, both the dimension cost and the time cost for maintaining the kNN Join table under the scenario of data insertion into $U$ or $I$ exhibit a consistent trend across all datasets: they first decrease and then increase as the pruning dimensionality increases. This is because, when the pruning dimensionality is relatively small, the increase in computational overhead of the pruning step due to a higher pruning dimensionality is outweighed by the cost reduction because of the improved pruning power resulting from the improvement of the pruning dimensionality. However, as the dimensionality becomes large, the pruning power saturates due to diminishing returns, and the computational burden of the pruning step dominates.
+
+As is shown figures \ref{fig:}, across all the experiments, the difference between the pruning dimensionality determined by our newly proposed theoretical method and the real optimal pruning dimensionality is at most $4.7\%$ of the full number of dimensions. And the relative error between the time cost of the pruning dimensionality determined by the theoretical method and the real optimal time cost is at most $5.7\%$. The difference between the pruning dimensionality determined by our simplified theoretical method and the real optimal dimensionality is at most $8.6\%$ of the full number of dimensions. And the average relative error between the time cost of the pruning dimensionality determined by our simplified method and the real optimal time cost is $8.4\%$. Compared to the worst pruning dimensionality providing the largest cost, the pruning dimensionality derived by the simplified method can save $76\%$ of dimension cost on average.
+
+In conclusion, these experiment results indicate that our theoretical model effectively captures the quantitative relationship between pruning dimensionality and computational cost, therefore, it can enable the estimation of pruning dimensionalities that closely approximate the true optimal values and provide the near-optimal computation cost. Moreover, the simplified variant of our theoretical method, still provides pruning dimensionalities and runtime estimates that remain highly consistent with both the full theoretical solution and the empirical optima, while significantly reducing the effort of the derivation process.
+\begin{comment}
+For each dataset, the time cost and the number of computed dimensions are recorded while different pruning dimensionalities are applied for the newly added pruning step on the leaf level of the tree structure to verify whether the theoretically optimal pruning dimensionalities computed by \cpdualtree and by \spdualtree are the real optimal. The performance of different pruning dimensionalities are only evaluated under the update of insertion into $U$ and the insertion into $U$, because maintaining the kNN Join result under these two update process requires two core operation for \fdknnj, which are kNN Search and RkNN Search. The efficiency of maintaining the kNN Join result when deletion from $I$ is depended on the efficiency of kNN Search and RkNN Search. Therefore, the optimal pruning dimensionality and optimal dimensionality for insertion into $I$ and $U$ form the optimal combination of optimal pruning dimesnionalities for deletion from $I$.  
+
+As is shown in the figures, the optimal pruning dimensionality computed by \cpdualtree is close to the real optimal point, their difference on number of dimensions is low than 10\% of the total dimension number, their difference on time cost and times of computed dimensions are also smaller than 10\%. And the optimal pruning dimensionality computed by \spdualtree is further to the real optimal dimensionality compared with that computed by \cpdualtree, but it still provide an advantage of 30\% faster in time cost and 80\% smaller in number of computed dimensions at least, when compared with the worst pruning dimensionality. 
+\end{comment}
+\begin{comment}
+\stitle{Exp-1: Varying Number of Updates while Adding Items.}
+%
+In our experiments, we assessed the performance of our dual-index method by varying the number of updates from 10,000 to 50,000. As depicted in Figure \ref{exp:add_items_vary_updates}, all comparative methods' computational cost of searching affected user data points increased linearly. However, our Dual Tree Batch Pruning technique demonstrated superior efficiency, outperforming others significantly. Specifically, it was approximately 10 to 20 times faster than the \hdrtree and kNNJoin$^+$ approaches.
+
+\stitle{Exp-2: Varying Users while Adding Items.}
+Figure \ref{exp:add_items_vary_users} examines the effect of varying user numbers from 80,000 to 120,000. As the user count increased, the kNN computation cost also increased, leading to longer processing times across all approaches. Still, our proposed method outperformed all referenced baseline approaches in efficiency.
+
+\stitle{Exp-3: Varying Items while Adding Items.}
+As shown in Figure \ref{exp:add_items_vary_items}, we varied the number of item data points from 80,000 to 120,000. Interestingly, the elapsed time for all approaches began to decrease gradually with the increasing item data points. This inverse relationship can be attributed to the fact that as the number of items grows, the dknn of users diminishes. As a result, fewer users are affected by adding items, leading to reduced RkNN search time costs. Our results prove that the Dual Tree Batch Pruning approach consistently outperformed the baseline methods in all tests.
+
+\stitle{Exp-4: Varying k while Adding Items.}
+We examined the impact of varying the $k$ from 5 to 25. Figure \ref{exp:add_items_vary_k} illustrates that as the $k$ value escalates, the time required by all approaches correspondingly increases. As the $k$ value increases, the dknn value of users increases, which results in an increasing number of users affected while performing item additions. Identifying the affected users through RkNN search is a costly operation. In these scenarios, our proposed approach consistently outperformed the baseline methods.
+\end{comment}
+
+
+\begin{comment}
+Fashion-MNIST~\cite{xiao2017fashion}, Audio, Cifar\footnote{\url{http://www.cs.toronto.edu/~kriz/cifar.html}}, and Trevi\footnote{\url{http://phototour.cs.washington.edu/patches/default.htm}}
+datasets\footnote{\url{http://phototour.cs.washington.edu/patches/default.htm}}. 
+\end{comment}
+
+\begin{comment}
+    \item \emph{Dual Tree Batch Pruning.} This is our proposed optimal approach, which seamlessly integrates the advantages of a dual-tree structure, batch updates, and a cost-based pruning strategy.
+
+    \item \emph{Dual Tree Batch Updates.} This method presents a cluster-based grouping approach specifically designed for efficient batch updates.
+
+
+    
+\end{comment}

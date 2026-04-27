@@ -1,0 +1,148 @@
+
+
+\section{Background}\label{sec:background}
+
+In this section, we introduce problem definitions and preliminary concepts in this work.
+
+\subsection{Problem Definitions}\label{subsec:definitions}
+
+In this paper, our focus is on a $D$-dimensional Euclidean space\footnote{In the rest of this paper, we will use $D$-dimensional space to denote $D$-dimensional Euclidean space. It is worth noting that while our focus is on Euclidean space in this paper, our method is generally applicable to the problems defined using other distance metrics in metric spaces.}, where each data point is represented as a $D$-dimensional vector. 
+%
+The distance $dist(u,i)$ between two data points $u$ and $i$ is defined as the Euclidean distance. Table~\ref{tab:symbol} summarises frequently used symbols for reference.
+
+\begin{definition}[kNN Search]\label{def:knn_search}
+    Given a query point $q$, an answer set $I$ in the $D$-dimensional space, and a positive integer $k\leq|I|$, a kNN search return a set $kNN(q, I)$ with the $k$ closest neighbours of $q$ in $I$. 
+    %
+    Specifically, when $k<|I|$, $kNN(q, I)\subset I$, $|kNN(q, I)|=k$, and $\forall p \in kNN(q, I)$, $\forall v$ $\in I-kNN(q, I),$ $dist(q,p)\leq dist(q,v)$, 
+    %
+    When $k = |I|$, $kNN(q, I) = I$.
+\end{definition}
+
+The $k$-th nearest neighbour of a data point $q$ in $I$, denoted as $NN_k(q,I)$, is the one in $kNN(q,I)$ with the maximum distance from $q$, i.e, $\forall p\in kNN(q,I), dist(NN_k(q,I),q)\geq dist(p,q)$. The maximum distance is denoted as $dist_\text{kNN}(q,I)$.
+
+\begin{definition}[kNN Join]\label{def:knnj}
+    Given a query set $U$, an answer set $I$ and an integer $k\leq|I|$, a kNN join, denoted as $kNN_{\bowtie}$, returns a set of 
+    $k$ closest neighbours in $I$ for each element in $U$, that is, $kNN_{\bowtie}(U,I)=\{(q, S)|q\in U, S=kNN(q,I)\}$.
+
+\end{definition}
+
+\begin{definition}[RkNN Search]\label{def:rknnj}
+  Given a query set $U$, an answer set $I$, a query point $q\in I$, and an integer $k\leq|I|$, a reverse kNN search (RkNN) search returns a set such that $RkNN(q,U,I)=\{p|p\in U, q\in kNN(p, I)|\}$
+\end{definition}
+
+We study kNN over dynamic data, where the dataset can be updated. These updates involve the insertion and deletion of data points within the set. 
+%
+We use $\oplus_{I}(q) = I \cup \{q\}$ to denote the insertion of the data point $p$ into the set $I$ and $\ominus_{I}(q) = I - \{q\}$ to denote the deletion of the data point $q$ from the set. For simplicity, we use $\odot$ to represent an update operation, which can be either an insertion or a deletion.
+
+\begin{definition}[Dynamic kNN Join]\label{def:dynamic-knnj}
+  Given a query set $U$, an answer set $I$ and an integer $k\leq|I|$, the (partial) dynamic kNN join is to continuously maintain the result of $kNN_{\bowtie}(U,I')$ with each update $I'=\odot_I(q)$.
+\end{definition}
+
+\begin{definition}[Fully Dynamic kNN Join]\label{def:fully-dynamic-knnj}
+ Given a query set $U$, an answer set $I$ and an integer $k\leq|I|$, the fully dynamic kNN join is to continuously maintain the result of $kNN_{\bowtie}(U',I)$ with each update $U'=\odot_U(q)$ or $kNN_{\bowtie}(U,I')$ with each update $I'=\odot_I(q)$.
+\end{definition}
+
+\stitle{Problem Statement.}
+%
+In this paper, our aim is to efficiently solve the \emph{fully} dynamic kNN join problem (\fdknnj) over dynamic high-dimensional data, where $D$ is typically a large integer number.
+
+
+\begin{table}[t]
+\footnotesize
+\caption{\footnotesize Summary of commonly used symbols and definitions.}
+\label{tab:symbol}
+\centering
+\begin{tabular}{|c|p{0.62\linewidth}|}
+\hline
+Symbols & Definitions \\
+\hline
+$U$ or $I$ & query set or answer set\\
+$u_i, i_j$ & a vector in $U$ and a vector in $I$\\
+%$W$ & Sliding window size/length\\
+%$k$ & the given positive integer $k$ in the de\\
+$D$ & Full number of dimensions of the Euclidean space where $U$ and $I$ are\\
+$d$ & The number of dimensions of a PC space\\
+%$Rl, Rp$ & Recommendation list and Reverse kNN set\\
+$f_{HDR}$ & Fanout (number of children in a non-leaf node on a \hdrtree)\\
+$f_\Delta$ & Fanout (number of children in a non-leaf node on a $\Delta$ Tree)\\
+$\theta_{HDR}$ & A threshold value, when the number of vectors in a cluster on a \hdrtree exceeds $\theta_{HDR}$, the cluster will be further split into multiple clusters on the next level of the tree, otherwise a leafnode will be formed that contains all the vectors in the cluster\\
+$\theta_{\Delta}$ & A threshold value, when the number of vectors in a cluster on a \deltatree exceeds $\theta_{\Delta}$, the cluster will be further split into multiple clusters on the next level of the tree, otherwise a leafnode will be formed that contains all the vectors in the cluster\\
+$l$ & Tree level (distance from a node to root, with the root node at level 1)\\
+$d_{l}$ & The number of dimensions of the PC space the $l-th$ level of the tree structure corresponds to\\
+$L_{HDR}$ & Height (maximum level from root to leaf) of the \hdrtree\\
+$L_{\Delta}$ & Height (maximum level from root to leaf) of the $\Delta$ Tree\\
+%$C_ij$ & The $j^{th}$ Cluster on the $i^{th}$ level of the tree structure\\
+$C$ & A cluster on the tree structure\\
+
+$C_{ij}$ & The $j-th$ cluster on the $i-th$ level of a tree structure\\
+
+$num(i)$ & The number of clusters on the $i-th$ level of a tree structure\\
+
+$l(C)$ & The sequence number of the level where the cluster $C$ is\\
+
+%$d(C_ij)$ & The number of dimensions corresponding to $C_ij$\\
+%$c_ij$ & Center of the $j^{th}$ cluster on the i^{th}$ level of the tree structure in the PCA space with the number of dimensions corresponding to the cluster\\
+
+$center_{l(C)}(C)$ & A vector which is the center vector of the cluster $C$ in the PC space with the number of dimensions corresponding to $l(C)$\\
+
+$center(C)$ & A vector which is the center vector of the cluster $C$ in the full dimensional space\\
+
+$r_{l(C)}(C)$ & The radius of the cluster $C$ in the PC space with the number of dimensions corresponding to $l(C)$\\
+
+$r(C)$ & The radius of the cluster $C$ in full-dimensional space\\
+
+$dist(u,i)$ & Full-dimension distance between $u$ and $i$, which is the distance between them in the space with the original number of dimensions\\
+
+$dist_{d}(u,i)$ & Distance between the vector $u$ and the vector $i$ in the PC space with the d dimensions\\
+
+
+
+%$dist_{pca}$ & Distance after PCA transformation\\
+%$dist_{node.dim}$ & distance in lower dimensions (based on node dimensionality) after PCA transformation \\ 
+$KNN(q, I,k)$ & The KNN Search result between the query vector $q$ and the answer vector set $I$ when the given integer is $k$\\
+$KNNJ(U, I, k)$ & The KNN Join result between the query vector set $U$ and the answer vector set $I$ when the given integer is $k$\\
+$RKNN(U, I, q,K)$ & The RKNN Search result based on the vector set $U$, the vector set $I$ and the query vector $q$ in $I$ when the given integer is $k$\\
+$dknn(u)$ & Distance from $u$ to the vector in $KNN(q, I,k)$ which is furthest from $u$\\
+$Cdknn(u)$ & a value that represents the distance from $u$ and the furthest $i$ in its candidate list of KNN members which only functions in the process of KNN Search for $u$ on the $\Delta$ Tree.\\
+$maxdknn(C)$ & Maximum value among the $dknn$ values of all the $u$ in a cluster in the \hdrtree built on $U$\\
+$root_{\Delta}$ & The root of a $\Delta$ Tree\\
+$root_{HDR}$ & The root of a \hdrtree\\
+
+\hline
+\end{tabular}
+\end{table}
+
+
+
+\subsection{Principal Component Analysis (PCA)}
+
+Principal Component Analysis (PCA) \cite{wold1987principal, chakrabarti2000local, abdi2010principal, vidal2016principal} is a popular dimension-reduction method that projects data points from a $D$-dimensional space into a $d$-dimensional space where $d\leq D$, by left-multiplying a $D$-dimensional data point by a matrix consisting of the first $d$ rows of the Principal Component Matrix (PC Matrix, denoted as $M_{PC}$).
+%
+To summarize, given a data point set $V$, the process of computing a  $M_{PC}$ is as follows:
+1) compute the covariance matrix $M$ of $V$;
+2) perform an eigen decomposition on $M$;
+3) for each eigenvalue $e_i$, compute the largest combination of its corresponding eigenvectors that are linearly independent, and implement orthogonalization and normalisation on the combination of eigenvectors;
+4) compose the combinations of eigenvectors into a matrix $M'_{PC}$ in the descending order of their corresponding eigenvalues; 
+
+We denote the lower-dimensional spaces to which the data points are projected by principal components as \emph{Principal Component Space}, or \emph{PC Space} in short.
+%
+A $d$-dimensional PC space based on $M_{PC}$ generated by a given set of $D$-dimensional data points can be represented by the first $d$ row vectors of $M_{PC}$. That is, a $D$-dimensional data point can be projected to the $d$-dimensional PC space by left-multiplying it by a matrix consisting of the first $d$ row of $M_{PC}$.
+
+\begin{theorem} [PC Distance]
+\label{thm:distance_pca}
+  The distance between two data points $u$ and $i$ in PC space is no larger than their distance in the original $D$-dimensional space, namely $dist_{PC}(u,i)\leq dist(u,i)$, where $dist_{PC}(u,i)$ represents the distance between $u$ and $i$ in the PC space.
+\end{theorem}
+
+% Proof of the theorem can be referred to in \cite{ukey2023knn}. 
+Theorem \ref{thm:distance_pca} is widely employed in exact kNN search and join over high-dimensional data \cite{xia2004gorder, yu2007efficient, yang2014continuous, ukey2022efficient, ukey2023efficient, ukey2023knn}, addressing the challenge posed by the `curse of dimensionality'.
+%
+While other dimensionality reduction techniques are used in approximate methods~\cite{chakrabarti2002locally, cui2005exploring, zhang2012efficient, sun2014srs, yang2014continuous, gu2018approximate}, PCA ensures accurate pruning of unpromising candidates in the PC space, thereby reducing the number of full-dimensional distance computations in exact methods.
+
+
+\begin{remark}
+In practice, PCA commonly captures the majority of the \emph{variance} in the original data within the first few rows in practice, the distances calculated in a PC space with only a few PCA dimensions can closely approximate the original distance for real-world data \cite{gewers2021principal, hasan2021review}.
+%
+Specifically, we have $=\frac{e_{i}}{\sum_{i=1}^{D}e_{i}}=\frac{\sigma_{M_{PC}}^{V}(i)}{\sum_{i=1}^{D}(\sigma_{M_{pc}}^{V}(i))}$, where $\sigma_{M_{PC}}^{V}(i)$ represents the variance of the data points in $V$ along the direction indicated by the $i^\text{th}$ row vector of $M_{PC}$ (i.e., the variance on the $i^\text{th}$ dimension in the PC space represented by $M_{PC}$), and $e_{i}$ represents the corresponding eigenvalue of the covariance matrix $M$.
+%
+Since row vectors in $M_{PC}$ are sorted in non-ascending order of their corresponding eigenvalues, the first few row vectors of $M_{PC}$ usually capture a large proportion of the variance for real-world data. As a result, a close approximation of the distance can be made in a PC space using only a few dimensions.
+\end{remark}

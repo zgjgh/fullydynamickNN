@@ -1,0 +1,356 @@
+%%is is file `sample-sigconf.tex',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% samples.dtx  (with options: `all,proceedings,bibtex,sigconf')
+%% 
+%% IMPORTANT NOTICE:
+%% 
+%% For the copyright see the source file.
+%% 
+%% Any modified versions of this file must be renamed
+%% with new filenames distinct from sample-sigconf.tex.
+%% 
+%% For distribution of the original source see the terms
+%% for copying and modification in the file samples.dtx.
+%% 
+%% This generated file may be distributed as long as the
+%% original source files, as listed above, are part of the
+%% same distribution. (The sources need not necessarily be
+%% in the same archive or directory.)
+%%
+%%
+%% Commands for TeXCount
+%TC:macro \cite [option:text,text]
+%TC:macro \citep [option:text,text]
+%TC:macro \citet [option:text,text]
+%TC:envir table 0 1
+%TC:envir table* 0 1
+%TC:envir tabular [ignore] word
+%TC:envir displaymath 0 word
+%TC:envir math 0 word
+%TC:envir comment 0 0
+%%
+%% The first command in your LaTeX source must be the \documentclass
+%% command.
+%%
+%% For submission and review of your manuscript please change the
+%% command to \documentclass[manuscript, screen, review]{acmart}.
+%%
+%% When submitting camera ready or to TAPS, please change the command
+%% to \documentclass[sigconf]{acmart} or whichever template is required
+%% for your publication.
+%%
+%%
+\documentclass[sigconf,anonymous,review]{acmart}
+%%
+%% \BibTeX command to typeset BibTeX logo in the docs
+\AtBeginDocument{%
+  \providecommand\BibTeX{{%
+    Bib\TeX}}}
+
+%% Rights management information.  This information is sent to you
+%% when you complete the rights form.  These commands have SAMPLE
+%% values in them; it is your responsibility as an author to replace
+%% the commands and values with those provided to you when you
+%% complete the rights form.
+\settopmatter{printacmref=false}
+\setcopyright{none}
+\pagestyle{plain}
+
+% ==== 功能性包（精简且安全）====
+% 数学与定理
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{bm}
+
+% 图表
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{subcaption} % 需要子图时再用；不用可删
+
+% 算法环境（二选一，默认使用 algorithm2e）
+\usepackage[ruled,linesnumbered,noend]{algorithm2e}
+% 如更喜欢伪代码风格，改用下两行并注释掉上一行：
+% \usepackage{algorithm}
+% \usepackage{algpseudocode}
+
+% 少量安全宏支持
+\usepackage{xspace}
+\usepackage{microtype}
+
+
+\usepackage{subcaption} % 用于创建子图
+\usepackage{tikz}       % 用于精确绘制图形，这里用来画图例
+\usetikzlibrary{shapes.geometric} % 用于图例中的标记形状
+\usepackage{booktabs,tabularx,makecell,array}
+
+
+% ==== 定理环境 ====
+\theoremstyle{plain}
+
+\theoremstyle{definition}
+
+
+\theoremstyle{remark}
+
+
+\newcommand{\stitle}[1]{\vspace{0.5ex} \noindent {\bf \MakeUppercase{{#1}}}}
+\newcommand{\sstitle}[1]{\vspace{0.5ex} \noindent{\textbf {#1}}}
+\newcommand{\ssstitle}[1]{\vspace{0.5ex} \noindent{\textbf {#1}}}
+\newcommand{\sssstitle}[1]{\vspace{0.5ex} \noindent{\textit {\textbf{#1}}}}
+\newcommand{\leveltwo}[1]{\vspace{0.8ex}\noindent\textbf{\textsc{#1}}\par}
+
+
+
+
+
+\newcommand{\conditionsituation}[1]{%
+  \vspace{0.5ex}%
+  \noindent\raisebox{-0.8ex}{#1}%
+  \par\vspace{3.5mm}
+  \noindent\rule{\widthof{\textit{\textbf{#1}}}}{0.5pt}\\[-2.2ex]%
+  \noindent\rule{\widthof{\textit{\textbf{#1}}}}{0.5pt}%
+  \vspace{0.5ex}% 标题与正文间的间距
+}
+
+
+\newcommand{\todo}[1]{\textcolor{red}{$\Rightarrow$ TODO: #1}}
+
+\newcommand{\kw}[1]{{\ensuremath {\mathsf{#1}}}\xspace}
+\newcommand{\bkw}[1]{{\ensuremath {\mathsf{\textbf{#1}}}}\xspace}
+\newcommand{\kwnospace}[1]{{\ensuremath {\mathsf{#1}}}}
+
+\theoremstyle{definition}
+\newtheorem{example}{Example}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+\newcommand{\fdknnj}{\kw{FdkNNj}}
+\newcommand{\dualtree}{\kw{Dual}-\kw{Tree}}
+\newcommand{\dualtreeopt}{\kw{Dual}-\kw{Tree}-\kw{opt}}
+\newcommand{\dualtreefast}{\kw{Dual}-\kw{Tree}-\kw{fast}}
+\newcommand{\bdualtree}{\bkw{Dual}-\bkw{Tree}-\bkw{fast}}
+\newcommand{\dualcluster}{\kw{Cluster Dual}-kw{Tree}}
+\newcommand{\hdrtree}{HDR-Tree\xspace}
+\newcommand{\deltatree}{$\Delta$-Tree\xspace}
+\newcommand{\myline}{\rule[0.5ex]{\linewidth}{0.5pt}} % 定义横线命令
+
+
+
+
+
+%%\copyrightyear{2018}
+%%\acmYear{2018}
+%%\acmDOI{XXXXXXX.XXXXXXX}
+%% These commands are for a PROCEEDINGS abstract or paper.
+%%\acmConference[Conference acronym 'XX]{Make sure to enter the correct
+  %%conference title from your rights confirmation email}{June 03--05,
+  %%2018}{Woodstock, NY}
+%%
+%%  Uncomment \acmBooktitle if the title of the proceedings is different
+%%  from ``Proceedings of ...''!
+%%
+%%\acmBooktitle{Woodstock '18: ACM Symposium on Neural Gaze Detection,
+%%  June 03--05, 2018, Woodstock, NY}
+%%\acmISBN{978-1-4503-XXXX-X/2018/06}
+
+
+%%
+%% Submission ID.
+%% Use this when submitting an article to a sponsored event. You'll
+%% receive a unique submission ID from the organizers
+%% of the event, and this ID should be used as the parameter to this command.
+%%\acmSubmissionID{123-A56-BU3}
+
+%%
+%% For managing citations, it is recommended to use bibliography
+%% files in BibTeX format.
+%%
+%% You can then either use BibTeX with the ACM-Reference-Format style,
+%% or BibLaTeX with the acmnumeric or acmauthoryear sytles, that include
+%% support for advanced citation of software artefact from the
+%% biblatex-software package, also separately available on CTAN.
+%%
+%% Look at the sample-*-biblatex.tex files for templates showcasing
+%% the biblatex styles.
+%%
+
+%%
+%% The majority of ACM publications use numbered citations and
+%% references.  The command \citestyle{authoryear} switches to the
+%% "author year" style.
+%%
+%% If you are preparing content for an event
+%% sponsored by ACM SIGGRAPH, you must use the "author year" style of
+%% citations and references.
+%% Uncommenting
+%% the next command will enable that style.
+%%\citestyle{acmauthoryear}
+
+
+%%
+%% end of the preamble, start of the body of the document source.
+\begin{document}
+
+%%
+%% The "title" command has an optional parameter,
+%% allowing the author to define a "short title" to be used in page headers.
+\title{Efficient Fully Dynamic High-Dimensional kNN Joins via Dual Indexing and Cost-Aware Pruning}
+
+%%
+%% The "author" command and its associated commands are used to define
+%% the authors and their affiliations.
+%% Of note is the shared affiliation of the first two authors, and the
+%% "authornote" and "authornotemark" commands
+%% used to denote shared contribution to the research.
+\author{Anonymous Author(s)}
+\begin{comment}
+\authornote{Both authors contributed equally to this research.}
+\email{trovato@corporation.com}
+\orcid{1234-5678-9012}
+\author{G.K.M. Tobin}
+\authornotemark[1]
+\email{webmaster@marysville-ohio.com}
+\affiliation{%
+  \institution{Institute for Clarity in Documentation}
+  \city{Dublin}
+  \state{Ohio}
+  \country{USA}
+}
+
+\author{Lars Th{\o}rv{\"a}ld}
+\affiliation{%
+  \institution{The Th{\o}rv{\"a}ld Group}
+  \city{Hekla}
+  \country{Iceland}}
+\email{larst@affiliation.org}
+
+\author{Valerie B\'eranger}
+\affiliation{%
+  \institution{Inria Paris-Rocquencourt}
+  \city{Rocquencourt}
+  \country{France}
+}
+
+\author{Aparna Patel}
+\affiliation{%
+ \institution{Rajiv Gandhi University}
+ \city{Doimukh}
+ \state{Arunachal Pradesh}
+ \country{India}}
+
+\author{Huifen Chan}
+\affiliation{%
+  \institution{Tsinghua University}
+  \city{Haidian Qu}
+  \state{Beijing Shi}
+  \country{China}}
+
+\author{Charles Palmer}
+\affiliation{%
+  \institution{Palmer Research Laboratories}
+  \city{San Antonio}
+  \state{Texas}
+  \country{USA}}
+\email{cpalmer@prl.com}
+
+\author{John Smith}
+\affiliation{%
+  \institution{The Th{\o}rv{\"a}ld Group}
+  \city{Hekla}
+  \country{Iceland}}
+\email{jsmith@affiliation.org}
+
+\author{Julius P. Kumquat}
+\affiliation{%
+  \institution{The Kumquat Consortium}
+  \city{New York}
+  \country{USA}}
+\email{jpkumquat@consortium.net}
+\end{comment}
+%%
+%% By default, the full list of authors will be used in the page
+%% headers. Often, this list is too long, and will overlap
+%% other information printed in the page headers. This command allows
+%% the author to define a more concise list
+%% of authors' names for this purpose.
+%%\renewcommand{\shortauthors}{Trovato et al.}
+
+%%
+%% The abstract is a short summary of the work to be presented in the
+%% article.
+\begin{abstract}
+  The $k$-nearest neighbor (kNN) join is a core operation in modern high-dimensional analytics, widely used in machine learning, vector databases, and data mining. 
+While prior work has explored \emph{partially}-dynamic settings where either the query or reference set is updated, efficiently supporting \emph{fully}-dynamic kNN joins remains open. 
+%
+We study the fully-dynamic kNN join problem on high-dimen\-sional data, where both sets evolve through insertions and deletions. 
+We propose \emph{\dualtree}, a dual-index framework that symmetrically maintains an \hdrtree\ on the query set and a \deltatree\ on the reference set, supporting both kNN and reverse kNN (RKNN) searches in a fully dynamic environment. 
+To make the pruning efficiency theoretically maximal, we develop a mathematically grounded low-dimensional point-wise pruning strategy that adaptively selects the optimal projection dimension. 
+%
+Experiments on real high-dimensional datasets show that the \dualtree\ framework equipped with the proposed fine-grained pruning step achieves up to \textbf{2.0}$\times$ speedup over the strongest baseline.
+\end{abstract}
+\keywords{kNN Join,
+High-Dimensional Data,
+Dynamic Data}
+\maketitle
+%%
+%% The code below is generated by the tool at http://dl.acm.org/ccs.cfm.
+%% Please copy and paste the code instead of the example below.
+%%
+\input{Sections/1. Introduction}
+\input{Sections/2. Background}
+\input{Sections/4. Proposed Work}
+\input{Sections/5. Fine-gained Pruning_1}
+\input{Sections/6. Experiments_1}
+\input{Sections/7. Conclusion}
+
+
+
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{Bibliography}
+
+
+%%
+%% If your work has an appendix, this is the place to put it.
+\appendix
+\begin{comment}
+\section{Research Methods}
+
+\subsection{Part One}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi
+malesuada, quam in pulvinar varius, metus nunc fermentum urna, id
+sollicitudin purus odio sit amet enim. Aliquam ullamcorper eu ipsum
+vel mollis. Curabitur quis dictum nisl. Phasellus vel semper risus, et
+lacinia dolor. Integer ultricies commodo sem nec semper.
+
+\subsection{Part Two}
+
+Etiam commodo feugiat nisl pulvinar pellentesque. Etiam auctor sodales
+ligula, non varius nibh pulvinar semper. Suspendisse nec lectus non
+ipsum convallis congue hendrerit vitae sapien. Donec at laoreet
+eros. Vivamus non purus placerat, scelerisque diam eu, cursus
+ante. Etiam aliquam tortor auctor efficitur mattis.
+
+\section{Online Resources}
+
+Nam id fermentum dui. Suspendisse sagittis tortor a nulla mollis, in
+pulvinar ex pretium. Sed interdum orci quis metus euismod, et sagittis
+enim maximus. Vestibulum gravida massa ut felis suscipit
+congue. Quisque mattis elit a risus ultrices commodo venenatis eget
+dui. Etiam sagittis eleifend elementum.
+
+Nam interdum magna at lectus dignissim, ac dignissim lorem
+rhoncus. Maecenas eu arcu ac neque placerat aliquam. Nunc pulvinar
+massa et mattis lacinia.
+\end{comment}
+\end{document}
+\endinput
+%%
+%% End of file `sample-sigconf.tex'.
