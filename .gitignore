@@ -28,3 +28,16 @@
 *.dvi
 *.pdfsync
 ~$*.docx
+~$*
+build/
+$outputDir/
+*.synctex
+*.synctex(busy)
+code/.idea/
+code/.vs/
+code/cmake-build-debug/
+code/cmake-build-release/
+code/build-benchmark/
+code/out/
+code/Normalized_WT.dat
+code/datasets/Normalized_WT.dat

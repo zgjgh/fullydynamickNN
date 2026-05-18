@@ -40,11 +40,7 @@ At any time, these three objects must remain synchronized: the join table must s
 \noindent\textbf{Dynamicizing \hdrtree.}
 The original \hdrtree is used with a static query side and a dynamic reference side. Our setting requires updates on $U$ itself. We therefore extend \hdrtree with query-side insertion and deletion routines and maintain the stored kNN distance of each query together with the join table. This gives the framework a query-side structure that remains current under insertions, deletions, and row refreshes.
 
-Later RkNN search on \hdrtree prunes subtrees according to the cluster radius together with the stored kNN-distance threshold under that subtree. To keep this pruning region tight, a new query is not inserted into an arbitrary child cluster. Instead, when descending the tree, we choose the child cluster that minimizes the post-insertion value of
-\[
-radius_{PC}(C)+\dmknn(C),
-\]
-where both terms are evaluated after inserting the new query into the candidate cluster: $radius_{PC}(C)$ is the resulting cluster radius in that level-specific PCA space, and $\dmknn(C)$ is the resulting maximum stored kNN distance under the cluster. This quantity governs the pruning region of later RkNN search on \hdrtree, so the insertion policy is chosen to keep later affected-query search tight. In addition, each query maintains a direct pointer to its hosting leaf entry together with its ancestor path in \hdrtree. This allows later deletion of the query or refresh of its stored kNN distance to be carried out locally, without rediscovering the query location by scanning unrelated clusters.
+Later RkNN search on \hdrtree prunes subtrees according to the cluster radius together with the stored kNN-distance threshold under that subtree. To keep this pruning region tight, a new query is not inserted into an arbitrary child cluster. Instead, when descending the tree, we choose the child cluster that minimizes the post-insertion score $\eta(C,u)=radius^{new}_{PC}(C,u)+\max(\dmknn(C),d_u)$. Here, $radius^{new}_{PC}(C,u)$ is the resulting cluster radius in that level-specific PCA space after inserting $u$ into candidate cluster $C$, and $\max(\dmknn(C),d_u)$ is the resulting maximum stored kNN distance under that cluster. This quantity governs the pruning region of later RkNN search on \hdrtree, so the insertion policy is chosen to keep later affected-query search tight. In addition, each query maintains a direct pointer to its hosting leaf entry together with its ancestor path in \hdrtree. This allows later deletion of the query or refresh of its stored kNN distance to be carried out locally, without rediscovering the query location by scanning unrelated clusters.
 
 \begin{algorithm}[t]
 \caption{Update\_HDR\_Insert($u$)}
@@ -55,9 +51,9 @@ $d_u \leftarrow \dknn(u,I)$\;
 $node \leftarrow root_{HDR}$\;
 $P \leftarrow [\,]$\;
 \While{$node$ is not a leaf}{
-  $C^\star \leftarrow \arg \min_{C \in children(node)} \{radius^{new}_{PC}(C,u)+\max(\dmknn(C),d_u)\}$\;
+  $C^\star \leftarrow \arg\min_{C \in children(node)} \eta(C,u)$\;
   update $radius_{PC}(C^\star)$ after inserting $u$\;
-  $\dmknn(C^\star) \leftarrow \max(\dmknn(C^\star),d_u)$\;
+  update $\dmknn(C^\star)$ after inserting $u$\;
   append $C^\star$ to $P$\;
   \If{$LeafOverflow(C^\star,u)$}{
       grow subtree below $C^\star$\;
@@ -65,15 +61,15 @@ $P \leftarrow [\,]$\;
   $node \leftarrow child(C^\star)$\;
 }
 insert $u$ into $node$\;
-store pointers from $u$ to $node$ and ancestor path $P$\;
+store pointers from $u$ to $node$ and path $P$\;
 \end{algorithm}
 
 Algorithm~\ref{alg:UpdateHDRInsert} inserts the new query along the path that minimizes the future search region used in reverse localization. The radius and $\dmknn$ values are updated immediately on the selected path. If an overflow occurs below the selected cluster, a new lower level is grown; once the dimensionality ceiling is reached, that growth continues in the full-dimensional space.
 
 \begin{algorithm}[t]
-\caption{Update\_HDR\_Adjust($u$, mode)}
+\caption{HDR\_Adjust($u$, mode)}
 \label{alg:UpdateHDRAdjust}
-\KwData{Affected query point $u$ and maintenance mode in \{delete, refresh\}}
+\KwData{Affected $u$ and the maintenance mode in \{delete, refresh\}}
 \KwResult{Updated \hdrtree}
 \tcp*[l]{Use the direct pointers for $u$}
 locate the leaf and ancestor path $P$ for $u$\;
@@ -102,7 +98,7 @@ When a new query point $u$ is inserted into $U$, the join table gains a new row.
 \caption{$\knnjoin$\_Insertion\_U($u$)}
 \label{alg:UpdateKNN_insertion_U}
 \KwData{New query point $u$}
-\KwResult{Updated $\knnjoin(U,I)$ and \hdrtree}
+\KwResult{Updated $\knnjoin(U,I)$, \hdrtree}
 $A\leftarrow$ kNN\_\dualtree($u$)\;
 insert $(u,A)$ into $\knnjoin(U,I)$\;
 Update\_HDR\_Insert($u$)\;
@@ -111,10 +107,10 @@ Update\_HDR\_Insert($u$)\;
 Algorithm~\ref{alg:UpdateKNN_insertion_U} implements this path by first computing the new row through \deltatree-based kNN search and then inserting the new query into \hdrtree so that its stored kNN distance becomes available to later pruning.
 
 \noindent \textbf{Case 2: deletion from $U$.}
-When a query point $u$ is deleted from $U$, the corresponding row is removed from $\knnjoin(U,I)$ and \hdrtree is updated through Update\_HDR\_Adjust($u$, delete). Because the reference set remains unchanged, no kNN search, no reverse localization, and no repair of other rows are needed. The update only touches the deleted row and the hosting path of $u$ in \hdrtree.
+When a query point $u$ is deleted from $U$, the corresponding row is removed from $\knnjoin(U,I)$ and \hdrtree is updated through HDR\_Adjust($u$, delete). Because the reference set remains unchanged, no kNN search, no reverse localization, and no repair of other rows are needed. The update only touches the deleted row and the hosting path of $u$ in \hdrtree.
 
 \noindent \textbf{Case 3: insertion into $I$.}
-When a new reference point $i$ is inserted into $I$, the task is to identify the rows for which $i$ enters the current top-$k$ result. This follows the reverse-localization path. We therefore use RkNN search on \hdrtree to locate the affected queries. For each affected row, the previous $k$-th neighbor is replaced by $i$, after which the stored kNN distance of that query is refreshed through Update\_HDR\_Adjust($u$, refresh). The new point $i$ is then inserted into \deltatree so that subsequent kNN searches in forward repair operate on the updated reference space.
+When a new reference point $i$ is inserted into $I$, the task is to identify the rows for which $i$ enters the current top-$k$ result. This follows the reverse-localization path. We therefore use RkNN search on \hdrtree to locate the affected queries. For each affected row, the previous $k$-th neighbor is replaced by $i$, after which the stored kNN distance of that query is refreshed through HDR\_Adjust($u$, refresh). The new point $i$ is then inserted into \deltatree so that subsequent kNN searches in forward repair operate on the updated reference space.
 
 
 \begin{algorithm}[t]
@@ -125,7 +121,7 @@ When a new reference point $i$ is inserted into $I$, the task is to identify the
 $R\leftarrow$ RkNN\_\dualtree($root_{HDR}$, $q$)\;
 \ForEach{$u_a\in R$}{
   replace the previous $k$-th neighbor of $u_a$ by $q$ in the row of $u_a$\;
-  Update\_HDR\_Adjust($u_a$, refresh)\;
+  HDR\_Adjust($u_a$, refresh)\;
 }
 $\Delta$\_Insert($q$)\;
 \end{algorithm}
@@ -133,7 +129,7 @@ $\Delta$\_Insert($q$)\;
 Algorithm~\ref{alg:UpdateKNN_insert_I} realizes this path by first using \hdrtree to perform reverse localization and then updating only the affected rows. After the stored kNN distance of each affected query is refreshed, the corresponding path in \hdrtree and the reference-side \deltatree are synchronized.
 
 \noindent \textbf{Case 4: deletion from $I$.}
-When a reference point $i$ is deleted from $I$, some stored query answers may become invalid and require fresh forward repair. For this reason, \deltatree must first be updated to reflect the current reference set $I\setminus\{i\}$. Only then can later kNN searches in forward repair return correct results. After updating \deltatree, we use RkNN search on \hdrtree to perform reverse localization on the affected query rows. Each affected row is repaired by recomputing its current exact kNN list over the updated reference set, and the stored kNN distance of that query is then synchronized through Update\_HDR\_Adjust($u$, refresh).
+When a reference point $i$ is deleted from $I$, some stored query answers may become invalid and require fresh forward repair. For this reason, \deltatree must first be updated to reflect the current reference set $I\setminus\{i\}$. Only then can later kNN searches in forward repair return correct results. After updating \deltatree, we use RkNN search on \hdrtree to perform reverse localization on the affected query rows. Each affected row is repaired by recomputing its current exact kNN list over the updated reference set, and the stored kNN distance of that query is then synchronized through HDR\_Adjust($u$, refresh).
 
 \begin{algorithm}[t]
 \caption{$\knnjoin$\_Deletion\_I($q$)}
@@ -145,7 +141,7 @@ $R\leftarrow$ RkNN\_\dualtree($root_{HDR}$, $q$)\;
 \ForEach{$u_a\in R$}{
   recompute $\knn(u_a, I\setminus\{q\})$ with kNN\_\dualtree($u_a$)\;
   update the row of $u_a$\;
-  Update\_HDR\_Adjust($u_a$, refresh)\;
+  HDR\_Adjust($u_a$, refresh)\;
 }
 \end{algorithm}
 

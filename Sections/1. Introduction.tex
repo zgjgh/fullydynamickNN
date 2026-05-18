@@ -18,16 +18,16 @@ On top of this framework instantiation, we introduce a point-wise low-dimensiona
 
 In summary, this paper makes the following contributions:
 
-\noindent(1) \underline{\emph{A bidirectional locate-and-repair framework.}}
+\noindent(1) \emph{A bidirectional locate-and-repair framework.}
 We formulate exact fully dynamic kNN join maintenance as a bidirectional locate-and-repair problem over a materialized neighborhood view. This abstraction separates kNN-based row repair from affected-query localization and provides the framework-level basis of our method.
 
-\noindent(2) \underline{\emph{A dual-index instantiation.}}
+\noindent(2) \emph{A dual-index instantiation.}
 We instantiate this framework with \dualtree, which combines \deltatree-based kNN search and row repair with a dynamically maintained \hdrtree-based affected-query localization component. The resulting system supports updates on both the query and reference sides while keeping the materialized join table and index summaries synchronized throughout maintenance.
 
-\noindent(3) \underline{\emph{Point-wise pruning and cost-aware modeling.}}
+\noindent(3) \emph{Point-wise pruning and cost-aware modeling.}
 We extend reduced-space pruning from the cluster level to the point level at leaf nodes and derive a cost-aware model that selects the projection dimensionality by balancing pruning power against projection cost. This replaces heuristic dimension selection with an explicit optimization objective.
 
-\noindent(4) \underline{\emph{Comprehensive evaluation.}}
+\noindent(4) \emph{Comprehensive evaluation.}
 We evaluate the proposed methods on eight real datasets with dimensionalities from 128 to 4096. The results show that \dualtree consistently outperforms strong one-sided baselines, while \dualtreeopt achieves an average speedup of 1.88$\times$ over the strongest one-sided baseline across seven additional datasets and up to 2.65$\times$ on Trevi.
 
 The remainder of the paper is organized as follows. Section~\ref{background} gives definitions and index preliminaries. Section~\ref{sec:related-works} reviews related work. Section~\ref{sec:framework} presents the bidirectional framework and its dual-index instantiation. Section~\ref{sec:pruning} develops fine-grained pruning and cost-aware dimension selection. Section~\ref{sec:exp} reports the experimental results, and Section~\ref{sec:conclusion} concludes the paper.

@@ -1,0 +1,53 @@
+{
+    // LaTeX Workshop: tell it where MiKTeX lives
+    "latex-workshop.latex.tools": [
+        {
+            "name": "pdflatex",
+            "command": "C:/Users/HP/AppData/Local/Programs/MiKTeX/miktex/bin/x64/pdflatex.exe",
+            "args": [
+                "-synctex=1",
+                "-interaction=nonstopmode",
+                "-file-line-error",
+                "-output-directory=%OUTDIR%",
+                "%DOC%"
+            ]
+        },
+        {
+            "name": "bibtex",
+            "command": "C:/Users/HP/AppData/Local/Programs/MiKTeX/miktex/bin/x64/bibtex.exe",
+            "args": ["%OUTDIR%/%DOCFILE%"]
+        }
+    ],
+    // Build recipe: pdflatex -> bibtex -> pdflatex -> pdflatex (standard 4-pass)
+    "latex-workshop.latex.recipes": [
+        {
+            "name": "pdflatex -> bibtex -> pdflatex x2",
+            "tools": ["pdflatex", "bibtex", "pdflatex", "pdflatex"]
+        },
+        {
+            "name": "pdflatex (quick, no bib)",
+            "tools": ["pdflatex"]
+        }
+    ],
+    // Put all aux/log files in a separate folder to keep the project clean
+    "latex-workshop.latex.outDir": "%DIR%/build",
+    // Auto-compile on save
+    "latex-workshop.latex.autoBuild.run": "onSave",
+    // Use the first recipe by default
+    "latex-workshop.latex.recipe.default": "first",
+    // Open PDF viewer in VSCode tab alongside the editor
+    "latex-workshop.view.pdf.viewer": "tab",
+    // SyncTeX: click PDF to jump to source, and vice versa
+    "latex-workshop.synctex.afterBuild.enabled": true,
+    // Don't show the build log panel unless there's an error
+    "latex-workshop.message.log.show": false,
+    "latex-workshop.message.badbox.show": false,
+    // Clean up aux files on successful build
+    "latex-workshop.latex.autoClean.run": "onSucceeded",
+    "latex-workshop.latex.clean.fileTypes": [
+        "*.aux", "*.bbl", "*.blg", "*.idx", "*.ind",
+        "*.lof", "*.lot", "*.out", "*.toc", "*.acn",
+        "*.acr", "*.alg", "*.glg", "*.glo", "*.gls",
+        "*.ist", "*.fls", "*.log", "*.fdb_latexmk"
+    ]
+}
