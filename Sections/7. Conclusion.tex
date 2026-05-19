@@ -2,21 +2,21 @@
 We presented \dualtree, an exact dual-index framework for fully dynamic high-dimensional kNN joins. By maintaining complementary indexes over the query and reference sets, \dualtree accelerates both forward kNN search and reverse kNN localization, avoiding the asymmetric bottlenecks of one-sided dynamic join methods. We further introduced a leaf-level fine-grained pruning stage and a cost-aware dimensionality-selection model that balances pruning power against projection overhead. Experiments on eight real datasets show that the dual-index architecture consistently improves over adapted baselines, while the pruning model provides additional gains and selects near-optimal pruning dimensions in practice.
 \appendix
 \section*{Appendix A.1: Preliminary for proof of lemma \ref{thm:normal_distribution_local}}
-In this part of appendix, three lemmas and four theorems are given as preliminaries for proof of lemma \ref{thm:normal_distribution_local}.
+This part of the appendix collects the auxiliary bounds and standard identities used in the proof of Lemma~\ref{thm:normal_distribution_local}.
 \begin{lemma}
     For three series of random variables $\{Z_k\}$, $\{Z'_k\}$ and $\{Y_k\}$, $1\leq k\leq D$, where $Z'_k$ follows a uniform distribution $\mathcal{U}(a_k, b_k)$, $0\leq a_k\leq b_k$, and $Y_k=Z^2_k-E(Z^2_k)$, if the following conditions are satisfied that:
     \begin{enumerate}
         \item the probability density function $f_{Z_k}(x)$ of $Z_k$ is equal to $0$, when $x\notin[a_k,b_k]$, consistent with the density function $f_{Z'_k}(x)$ of $Z'_k$, that is, 
         \begin{flalign}
-        f_{Z_k}(x)=0, x\notin[a_k,b_k], 1\leq k\leq D \IEEEyesnumber \label{equ:pdf_not_in_ab}
+        f_{Z_k}(x)=0, x\notin[a_k,b_k]\IEEEyesnumber \label{equ:pdf_not_in_ab}
         \end{flalign}
         \item the nature of $f_{Z_k}(x)$ in the interval $[a_k,b_k]$ leads to the validation of the following relation:
     \end{enumerate}    
         \begin{flalign}
-            \kappa_1 \leq \frac{E(Z^2_k)}{E((Z'_k)^2)}\leq \kappa_2, \quad 0<\iota\leq \frac{Var(Z^2_k)}{Var((Z'_k)^2)}, 1\leq k\leq D \IEEEyesnumber \label{equ:expectation_variance_appro}
+            \kappa_1 \leq \frac{E(Z^2_k)}{E((Z'_k)^2)}\leq \kappa_2, \quad 0<\iota\leq \frac{Var(Z^2_k)}{Var((Z'_k)^2)}\IEEEyesnumber \label{equ:expectation_variance_appro}
             \end{flalign}    
 
-then, the conclusion below can be drawn that: 
+\noindent then, the conclusion below can be drawn that:
 \begin{flalign}
     &\frac{\sum^{D}_{k=1}E(|Y_k|^{2+\delta})}{\sqrt{\sum^{D}_{k=1}Var(Y_k)}^{2+\delta}} \IEEEnonumber \\
     \leq & \sqrt{(\frac{45\times(\max_{1\leq k\leq D}\{\max\{\eta_{1k}, \eta_{2k}\}\})^2}{\iota\sum^D_{k=1}(b_k - a_k)^2(4a^2_k + 7a_kb_k + 4b^2_k)})^\delta}\IEEEyesnumber \label{equ:lemma_1_conclusion}
@@ -63,20 +63,20 @@ After computing the probability density function of $Z^{'2}_k$, we can obtain it
     &= \frac{(4a^2_k + 7a_kb_k + 4b^2_k)(b_k - a_k)^2}{45}
     \label{equ:z_k_variance}
 \end{flalign}
-Given $E(Z^{'2}_k)$ and $Var(Z^{'2}_k)$, two variables composing the right side of equation \ref{equ:Y_k_TO_Z_k} that $\sum^D_{k=1}E(|Z^2_k-E(Z^2_k)|^{2+\delta})$ and $(\sum^D_{k=1}Var(Z^2_k))^{\frac{2+\delta}{2}}$ can be analyzed to progress the proof. 
+Given $E(Z^{'2}_k)$ and $Var(Z^{'2}_k)$, two variables composing the right side of equation \ref{equ:Y_k_TO_Z_k} that $\sum^D_{k=1}E(|Z^2_k-E(Z^2_k)|^{2+\delta})$ and $(\sum^D_{k=1}Var(Z^2_k))^{\frac{\delta}{2}}$ can be analyzed to progress the proof.
 
-For $(\sum^D_{k=1}Var(Z^2_k))^{\frac{2+\delta}{2}}$, because of equation \ref{equ:z_k_variance} and the condition stated in expression \ref{equ:expectation_variance_appro}, a lower bound of $(\sum^D_{k=1}Var(Z^2_k))^{\frac{2+\delta}{2}}$ can be derived that:
+For $(\sum^D_{k=1}Var(Z^2_k))^{\frac{\delta}{2}}$, because of equation \ref{equ:z_k_variance} and the condition stated in expression \ref{equ:expectation_variance_appro}, a lower bound of $(\sum^D_{k=1}Var(Z^2_k))^{\frac{\delta}{2}}$ can be derived that:
 \begin{flalign}
-&(\sum^D_{k=1}Var(Z^2_k))^{\frac{2+\delta}{2}}\IEEEnonumber\\
-\geq&(\iota\sum^D_{k=1}\frac{(4a^2_k + 7a_kb_k + 4b^2_k)(b_k - a_k)^2}{45})^{1+\frac{\delta}{2}}\IEEEyesnumber
+&(\sum^D_{k=1}Var(Z^2_k))^{\frac{\delta}{2}}\IEEEnonumber\\
+\geq&(\iota\sum^D_{k=1}\frac{(4a^2_k + 7a_kb_k + 4b^2_k)(b_k - a_k)^2}{45})^{\frac{\delta}{2}}\IEEEyesnumber
 \label{equ:variance_two_plus_delta_moment}
 \end{flalign}
 
 For $\sum^D_{k=1}E(|Z^2_k-E(Z^2_k)|^{2+\delta})$, according to equation \ref{equ:z_k_E}, the condition stated in expression \ref{equ:expectation_variance_appro},  and the range $[a^2_k,b^2_k]$ where $Z^2_k$ is confined to, the ensuing deduction can be carried out that when $a^2_k\leq y \leq b^2_k$: 
 \begin{flalign}
 &|y-E(Z^2_k)|\IEEEnonumber\\
-\leq &\max\{|b^2_k-\frac{\kappa_1(b_k-a_k)(2b_k+a_k)}{3}|, \IEEEnonumber\\
-&\quad\quad\;\; |a^2_k-\frac{\kappa_2(b_k-a_k)(2b_k+a_k)}{3}|\}   \IEEEyesnumber \label{equ:two_upperbound}\\
+\leq &\max\{|b^2_k-\frac{\kappa_1(a^2_k+a_kb_k+b^2_k)}{3}|, \IEEEnonumber\\
+&\quad\quad\;\; |a^2_k-\frac{\kappa_2(a^2_k+a_kb_k+b^2_k)}{3}|\}   \IEEEyesnumber \label{equ:two_upperbound}\\
 \Leftrightarrow&|y-E(Z^2_k)|\leq \max\{\eta_{1k}, \eta_{2k}\} \IEEEyesnumber \label{two_uppbound_eta12}
 \end{flalign}
 As a result, an upper bound of $\sum^D_{k=1}E(|Z^2_k-E(Z^2_k)|^{2+\delta})$ can be derived by the subsequent computation:
@@ -96,10 +96,8 @@ As a result, an upper bound of $\sum^D_{k=1}E(|Z^2_k-E(Z^2_k)|^{2+\delta})$ can 
 
 Based on expression \ref{equ:Y_k_TO_Z_k},\ref{equ:variance_two_plus_delta_moment} and \ref{equ:Z_k_square_two_delta_moment}, the conclusion of lemma \ref{lm:Y_K_delta_moment_bound} can be gained:
 \begin{flalign}
-&\frac{\sum^D_{k=1}E(|Y_k-E(Y_k)|^{2+\delta})}{\sqrt{\sum^D_{k=1}Var(Y_k)}^{2+\delta}}\IEEEnonumber \\
-=&\frac{\sum^D_{k=1}E(|Z^2_k-E(Z^2_k)|^{2+\delta})}{\sqrt{\sum^D_{k=1}Var(Z^2_k)}^{2+\delta}}  \IEEEnonumber\\
+&\frac{\sum^D_{k=1}E(|Y_k|^{2+\delta})}{\sqrt{\sum^D_{k=1}Var(Y_k)}^{2+\delta}}\IEEEnonumber \\
 \leq&\frac{\max_{1\leq k\leq D}\{(\max\{\eta_{1k},\eta_{2k}\})^{\delta}\}\cdot \sum^D_{k=1} Var(Z^2_k)}{(\sum^D_{k=1}Var(Z^2_K))^{(1+\frac{\delta}{2})}}\IEEEnonumber \\
-=&\frac{(\max_{1\leq k\leq D}\{\max\{\eta_{1k}, \eta_{2k}\}\})^\delta\cdot \sum^D_{k=1} Var(Z^2_k)}{(\sum^D_{k=1}Var(Z^2_k))^{(1+\frac{\delta}{2})}}   \IEEEnonumber \\
 \leq&\sqrt{(\frac{45\times(\max_{1\leq k\leq D}\{\max\{\eta_{1k}, \eta_{2k}\}\})^2}{\iota\sum^D_{k=1}(b_k - a_k)^2(4a^2_k + 7a_kb_k + 4b^2_k)})^\delta} \IEEEyesnumber
 \end{flalign}
     \end{proof}    \label{lm:Y_K_delta_moment_bound}
@@ -111,9 +109,9 @@ For a series of random variables $\{Y_k\}$, $1\leq k \leq D$, and two arbitrary 
 &\frac{\sum^D_{k=1}\int_{|x|>\epsilon s_D}|x|^2f_{Y_k}(x)dx}{s^2_D} \leq\frac{\sum^D_{k=1}E(|Y_k|^{2+\delta})}{\epsilon^{\delta}s^{2+\delta}_D} \IEEEyesnumber \label{equ:delta_moment}
 \end{flalign}
 \begin{proof}
-    \begin{flalign}    &\frac{\sum^D_{k=1}\int_{|x|>\epsilon s_D}|x|^2f_{Y_k}(x)dx}{s^2_D}\IEEEnonumber \\
-\leq &\frac{\sum^D_{k=1}\int_{|x|>\epsilon s_D}|x|^{2+\delta}f_{Y_k}(x)dx}{\epsilon^{\delta}s^{2+\delta}_D} \IEEEnonumber \\
-\leq &\frac{\sum^D_{k=1}\int^{+\infty}_{-\infty}|x|^{2+\delta}f_{Y_{k}}(x)dx}{\epsilon^{\delta}s^{2+\delta}_D}=\frac{\sum^D_{k=1}E(|Y_k|^{2+\delta})}{\epsilon^{\delta}s^{2+\delta}_D}
+    \begin{flalign}    &\frac{\sum^D_{k=1}\int_{|x|>\epsilon s_D}|x|^2f_{Y_k}(x)dx}{s^2_D}\leq\IEEEnonumber \\
+ &\frac{\sum^D_{k=1}\int_{|x|>\epsilon s_D}|x|^{2+\delta}f_{Y_k}(x)dx}{\epsilon^{\delta}s^{2+\delta}_D}\leq  \IEEEnonumber \\
+&\frac{\sum^D_{k=1}\int_{\infty}|x|^{2+\delta}f_{Y_{k}}(x)dx}{\epsilon^{\delta}s^{2+\delta}_D}=\frac{\sum^D_{k=1}E(|Y_k|^{2+\delta})}{\epsilon^{\delta}s^{2+\delta}_D}
     \end{flalign}
 \end{proof}
 \label{lm:delta_moment}
@@ -133,14 +131,12 @@ These bounds follow from the integral remainder form of Taylor's expansion for $
 
 
 
-\begin{theorem}
-    The characteristic function $\psi_{Y}(t)$ of a random variable $Y$ is defined by the followings : 
-\begin{flalign}
-\psi_{Y}(t)=E(e^{itY}) \IEEEyesnumber \label{characteristic_function}
-\end{flalign}
+\noindent\textbf{Characteristic function.}
+For a random variable $Y$, its characteristic function is
+\[
+\psi_Y(t)=E(e^{itY}),
+\]
 where $E$ denotes the expected value and $i$ is the imaginary unit \cite{durrett2019probability, teicher1978probability, chung2000course}.
-\label{thm:thm_characteristic_function}
-\end{theorem}
 \begin{comment}
 \begin{theorem}
     Given the characteristic function $\psi_{Y}(t)$ of a random variable $Y$, the density probability function $f_{Y}(x)$ of $Y$ can be derived as the followings \cite{durrett2019probability, teicher1978probability, chung2000course}:
@@ -150,24 +146,24 @@ f_Y(x) = \frac{1}{2\pi}\int_{-\infty}^{+\infty} e^{-itx}\psi_Y(t)\,dt \IEEEyesnu
 \label{thm:thm_reverse_characterisc}
 \end{theorem}
 \end{comment}
-\begin{theorem}
-    For any complex values $w_k$ and $h_k$ with $|w_k|\leq 1$ and $|h_k|\leq 1$, the relationship below holds \cite{durrett2019probability, teicher1978probability, chung2000course}:
-\begin{flalign}
-\left| \prod_{k=1}^{D} w_k - \prod_{k=1}^{D} h_k \right| \leq \sum_{k=1}^{D} |h_k - w_k| \IEEEyesnumber \label{equ: complex_value_multiply_sum}
-\end{flalign}
-\label{thm:complex_mul_sum}
-\end{theorem}
+\begin{lemma}[Product-difference bound]\label{lm:complex_product_bound}
+For any complex values $w_k$ and $h_k$ with $|w_k|\leq 1$ and $|h_k|\leq 1$,
+\begin{equation}
+\left| \prod_{k=1}^{D} w_k - \prod_{k=1}^{D} h_k \right|
+\leq \sum_{k=1}^{D} |h_k - w_k| .
+\label{equ:complex_value_multiply_sum}
+\end{equation}
+\end{lemma}
 
-\begin{theorem}
-    The characteristic function of the standard Normal Distribution $\mathcal{N}(0,1)$ is as followings \cite{durrett2019probability, teicher1978probability, chung2000course}:
-\begin{flalign}
-\psi_{\mathcal{N}(0,1)}(t)=e^{-\frac{t^2}{2}} \IEEEyesnumber \label{equ:std_chara}
-\end{flalign}
-\label{thm:normal_chara}
-\end{theorem}
+\noindent\textbf{Standard normal characteristic function.}
+For the standard normal distribution $\mathcal{N}(0,1)$,
+\[
+\psi_{\mathcal{N}(0,1)}(t)=e^{-t^2/2}
+\]
+\cite{durrett2019probability, teicher1978probability, chung2000course}.
 
-The discussion above provides three lemmas and four theorems which will be applied in the proof of theorem \ref{thm:normal_distribution_local}. The proof will be given in the next part of appendix.  
-\section*{Appendix A.2: Proof of theorem \ref{thm:normal_distribution_local}}
+The auxiliary bounds and standard identities above are used in the proof of Lemma~\ref{thm:normal_distribution_local}. The proof is given in the next part of the appendix.
+\section*{Appendix A.2: Proof of Lemma \ref{thm:normal_distribution_local}}
 What needs to be proved is the proposition below:
 \begin{flalign}
 dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}})/b_{p}^2(q_{\mathcal{O}^i},j) \sim \mathcal{N}(\mu,\,\sigma^2), \quad \text{approximately} \IEEEyesnumber  \label{equ:normal_distribution_1}
@@ -283,7 +279,7 @@ $\psi_Z(t)$ and $\psi_Y(t)$, respectively. Then, for any $T>0$, we have
 where $C>0$ is an absolute constant independent of $Y$, $Z$ and $T$.
 \end{lemma}
 
-To analyze the upper bound of the difference between the cumulative distribution functions of $S_D/s_D$ and the standard normal distribution $\mathcal{N}(0,1)$ based on the Esseen's inequality, the central task is to evaluate the difference between the characteristic functions of $S_D/s_D$ and $\mathcal{N}(0,1)$. According to theorem \ref{thm:complex_mul_sum} and that $Cov(Y_i, Y_j)\approx0$, which is discussed in the deduction of equality \ref{equ:independent}, the following deduction can be done: 
+To analyze the upper bound of the difference between the cumulative distribution functions of $S_D/s_D$ and the standard normal distribution $\mathcal{N}(0,1)$ based on the Esseen's inequality, the central task is to evaluate the difference between the characteristic functions of $S_D/s_D$ and $\mathcal{N}(0,1)$. According to Lemma~\ref{lm:complex_product_bound} and that $Cov(Y_i, Y_j)\approx0$, which is discussed in the deduction of equality \ref{equ:independent}, the following deduction can be done:
 \begin{flalign}
 &|E(e^{it\cdot \frac{S_D}{s_D}})-e^{-\frac{t^2}{2}}|\IEEEnonumber \\
  =&|\prod^{D}_{k=1}E(e^{it\cdot \frac{Y_k}{s_D}})-\prod ^{D}_{k=1}e^{-\frac{Var(Y_k)t^2}{2s^2_D}}| \IEEEnonumber \\
