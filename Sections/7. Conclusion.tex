@@ -105,7 +105,7 @@ Based on expression \ref{equ:Y_k_TO_Z_k},\ref{equ:variance_two_plus_delta_moment
     \end{proof}    \label{lm:Y_K_delta_moment_bound}
 \end{lemma}
 
-\begin{lemma}
+\begin{lemma}[Tail-moment bound]
 For a series of random variables $\{Y_k\}$, $1\leq k \leq D$, and two arbitrary positive value $\delta$ and $\epsilon$, let $s_D=\sqrt{\sum^D_{k=1}Var^2(Y_k)}$, if $E(Y_k)=0$ and $Y_k$ has $2+\delta$-th moment, then:
 \begin{flalign}
 &\frac{\sum^D_{k=1}\int_{|x|>\epsilon s_D}|x|^2f_{Y_k}(x)dx}{s^2_D} \leq\frac{\sum^D_{k=1}E(|Y_k|^{2+\delta})}{\epsilon^{\delta}s^{2+\delta}_D} \IEEEyesnumber \label{equ:delta_moment}
@@ -119,57 +119,15 @@ For a series of random variables $\{Y_k\}$, $1\leq k \leq D$, and two arbitrary 
 \label{lm:delta_moment}
 \end{lemma}
 
-\begin{lemma}
-By applying integration by parts, we can derive the following  equality where $i$ denotes the imaginary unit:
-\begin{flalign}
-&\frac{i^{N+1}}{N!}\int^{y}_{0}(y-x)^Ne^{ix}dx \IEEEnonumber \\
-=&\frac{i^{N+1}}{N!}(-ie^{ix}(y-x)^{N}\mathop{|}\nolimits^{y}_{0}
--\int^{y}_{0}iN(y-x)^{N-1}e^{ix}dx) \IEEEnonumber \\
-=&\frac{i^N}{(N-1)!}\int^{y}_{0}(y-x)^{N-1}(e^{ix}-1)dx\IEEEyesnumber \label{equ:min_one_two} \\
-=&-\frac{(iy)^N}{N!}+\frac{i^N}{(N-1)!}\int^y_0(y-x)^{N-1}e^{ix}dx \IEEEyesnumber \label{equ:iterative}
-\end{flalign}
-\begin{comment}
-=&\frac{i^{N}}{(N-1)!}\frac{(e^{ix}(y-x)^{N}\mathop{|}\nolimits^{y}_{0})}{N}+\frac{i^N}{(N-1)!}\int^{y}_{0}(y-x)^{N-1}e^{ix}dx  \IEEEnonumber \\
-=&\frac{i^{N}}{(N-1)!}\frac{-y^N}{N}+\frac{i^N}{(N-1)!}\int^{y}_{0}(y-x)^{N-1}e^{ix}dx \IEEEnonumber \\
-\end{comment}
-Equation \ref{equ:iterative} is equivalent to the followings:
-\begin{flalign}
-&\frac{i^{N+1}}{N!}\int^{y}_{0}(y-x)^Ne^{ix}dx-\frac{i^N}{(N-1)!}\int^y_0(y-x)^{N-1}e^{ix}dx \IEEEnonumber \\
-&=-\frac{(iy)^N}{N!} \label{equ:middle_iterative}
-\end{flalign}
-Repeat the process above, a series of middle equations and the final equation below where $N$ is reduced to 1 can be gained that:
-\begin{flalign}
-\frac{i^2}{1!}\int^{y}_{0}(y-x)^1e^{ix}dx-\frac{i}{0!}\int^y_0(y-x)^0e^{ix}dx=-\frac{(iy)^1}{1!} \IEEEyesnumber \label{equ:final_iterative}
-\end{flalign}
-\begin{comment}
-=&\frac{i^2}{1!}\int^{y}_{0}(y-x)^1e^{ix}dx-(e^{iy}-1)\IEEEnonumber \\
-\end{comment}
-Sum equation \ref{equ:middle_iterative} and all the middle equations until equation \ref{equ:final_iterative} where $N$ is decreased to 1, the subsequent formula can be achieved. 
-\begin{flalign}
-&\frac{i^{N+1}}{N!}\int^{y}_{0}(y-x)^Ne^{ix}dx-(e^{iy}-1)=-\sum^{N}_{n=1}\frac{(iy)^{n}}{n!} \IEEEnonumber \\
-\Leftrightarrow &\frac{i^{N+1}}{N!}\int^{y}_{0}(y-x)^Ne^{ix}dx=e^{iy}-\sum^{N}_{n=0}\frac{(iy)^{n}}{n!} \IEEEyesnumber \label{equ:formula_iterative}
-\end{flalign}
-According to the the triangle inequality for integrals of complex-valued functions and the multiplicative property of the modulus and that $|e^{ix}|=1$, the ensuing deduction holds that:
-\begin{flalign}
-&|\frac{i^{N+1}}{N!}\int^{y}_{0}(y-x)^Ne^{ix}dx| 
-\leq \frac{i^{N+1}}{N!}\int^{y}_{0}|(y-x)^N||e^{ix}|dx \IEEEnonumber \\
-=& \frac{|y|^{N+1}}{(N+1)!} \IEEEyesnumber \label{equ:min_1}
-\end{flalign}
-\begin{comment}
-= &\frac{i^{N+1}}{N!}\int^{y}_{0}|(y-x)^N||e^{ix}|dx 
-= \frac{i^{N+1}}{N!}\int^{y}_{0}|(y-x)^N|dx \IEEEnonumber \\
-\end{comment}
-By the same reasoning, we can deduce the following inequality:
-\begin{flalign}
-|\frac{i^N}{(N-1)!}\int^{y}_{0}(y-x)^{N-1}(e^{ix}-1)dx| 
-\leq \frac{2|y|^N}{N!} \IEEEyesnumber \label{equ:min_2}
-\end{flalign}
-Based on expression \ref{equ:min_one_two}, \ref{equ:formula_iterative}, \ref{equ:min_1}, and \ref{equ:min_2}, the conclusions of lemma 2 can be achieved \cite{durrett2019probability, teicher1978probability, chung2000course} that:
-\begin{flalign}
-    &|e^{iy}-\sum^{N}_{n=0}\frac{(iy)^{n}}{n!}|\leq \frac{|y|^{N+1}}{(N+1)!} \IEEEyesnumber \label{equ:min_11} \\
-    &|e^{iy}-\sum^{N}_{n=0}\frac{(iy)^{n}}{n!}|\leq \frac{2|y|^{N}}{N!} \IEEEyesnumber \label{equ:min_12}
-\end{flalign}
-\label{lm:min}
+\begin{lemma}[Taylor remainder bound]\label{lm:min}
+For any real value $y$ and integer $N\geq 1$, the following bounds hold:
+\begin{align}
+\left|e^{iy}-\sum^{N}_{n=0}\frac{(iy)^{n}}{n!}\right|
+&\leq \frac{|y|^{N+1}}{(N+1)!}, \label{equ:min_11} \\
+\left|e^{iy}-\sum^{N}_{n=0}\frac{(iy)^{n}}{n!}\right|
+&\leq \frac{2|y|^{N}}{N!}. \label{equ:min_12}
+\end{align}
+These bounds follow from the integral remainder form of Taylor's expansion for $e^{iy}$, together with $|e^{ix}|=1$ and $|e^{ix}-1|\leq2$ \cite{durrett2019probability, teicher1978probability, chung2000course}.
 \end{lemma}
 
 

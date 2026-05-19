@@ -31,8 +31,8 @@
     ],
     // Put all aux/log files in a separate folder to keep the project clean
     "latex-workshop.latex.outDir": "%DIR%/build",
-    // Auto-compile on save
-    "latex-workshop.latex.autoBuild.run": "onSave",
+    // Compile only when manually triggered
+    "latex-workshop.latex.autoBuild.run": "never",
     // Use the first recipe by default
     "latex-workshop.latex.recipe.default": "first",
     // Open PDF viewer in VSCode tab alongside the editor
