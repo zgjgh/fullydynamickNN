@@ -477,7 +477,7 @@ The second task is to derive the weight values $p_m$ and the parameters $\sigma_
 \noindent\textit{Step 1.}
 Divide the sampled data points into groups, where the $\dknn$ values within each group vary by no more than a small threshold ratio $\Delta$ that:
 \begin{flalign}
-\frac{|\dknn(q_1)-\dknn(q_2)|}{\max{(\dknn(q_1),\dknn(q_2))}}\leq \Delta  \IEEEyesnumber
+\frac{|\dknn(q_1,I)-\dknn(q_2,I)|}{\max{(\dknn(q_1,I),\dknn(q_2,I))}}\leq \Delta  \IEEEyesnumber
 \label{equ:group_difference}
 \end{flalign}
 where $q_1$ and $q_2$ are arbitrary two data points in a group. The number of groups formed serves as an approximation for $M$. In this study, we set $\Delta$ to 10\% to strike a balance between preserving intra-group similarity and controlling the number of groups.
@@ -537,9 +537,9 @@ Then, the number of the groups formed can serve as the approximation of $M$. In 
 
 
 \noindent\textit{Step 2.}
-For each sampled data point in each group, the $\dknn$ values of the data points visited at the leaf nodes of the \hdrtree part of the \dualtree during its RkNN search process are divided into different sets. For any two $\dknn$ values $d_1$ and $d_2$ in the same set, the relationship below should hold that:
+For each sampled data point in each group, the $\dknn$ values of the data points visited at the leaf nodes of the \hdrtree part of the \dualtree during its RkNN search process are divided into different sets. For any two visited points $v_1$ and $v_2$ whose kNN distances are assigned to the same set, the relationship below should hold that:
 \begin{flalign}
-\frac{|d_1-d_2|}{\max\{d_1,d_2\}}\leq \Delta \IEEEyesnumber
+\frac{|\dknn(v_1,I)-\dknn(v_2,I)|}{\max\{\dknn(v_1,I),\dknn(v_2,I)\}}\leq \Delta \IEEEyesnumber
 \end{flalign}
 where $\Delta$ is a small threshold ratio that controls the within-set variation of the $\dknn$ values under a low level. In this study, we set $\Delta$ as 10\%. For each sampled data point, the number of sets gained is recorded. Then, the mode of these set counts across all the sampled data points in the $i$-th group can serve as the approximation of the number $B_i$ of bound kernels of the $i$-th subspace $\mathcal{O}^{i}_I$ of $\mathcal{O}_I$. 
 
