@@ -128,24 +128,6 @@ For any real value $y$ and integer $N\geq 1$, the following bounds hold:
 These bounds follow from the integral remainder form of Taylor's expansion for $e^{iy}$, together with $|e^{ix}|=1$ and $|e^{ix}-1|\leq2$ \cite{durrett2019probability, teicher1978probability, chung2000course}.
 \end{lemma}
 
-
-
-
-\noindent\textbf{Characteristic function.}
-For a random variable $Y$, its characteristic function is
-\[
-\psi_Y(t)=E(e^{itY}),
-\]
-where $E$ denotes the expected value and $i$ is the imaginary unit \cite{durrett2019probability, teicher1978probability, chung2000course}.
-\begin{comment}
-\begin{theorem}
-    Given the characteristic function $\psi_{Y}(t)$ of a random variable $Y$, the density probability function $f_{Y}(x)$ of $Y$ can be derived as the followings \cite{durrett2019probability, teicher1978probability, chung2000course}:
-\begin{flalign}
-f_Y(x) = \frac{1}{2\pi}\int_{-\infty}^{+\infty} e^{-itx}\psi_Y(t)\,dt \IEEEyesnumber \label{equ: reversed_characteristic}
-\end{flalign}
-\label{thm:thm_reverse_characterisc}
-\end{theorem}
-\end{comment}
 \begin{lemma}[Product-difference bound]\label{lm:complex_product_bound}
 For any complex values $w_k$ and $h_k$ with $|w_k|\leq 1$ and $|h_k|\leq 1$,
 \begin{equation}
@@ -155,8 +137,12 @@ For any complex values $w_k$ and $h_k$ with $|w_k|\leq 1$ and $|h_k|\leq 1$,
 \end{equation}
 \end{lemma}
 
-\noindent\textbf{Standard normal characteristic function.}
-For the standard normal distribution $\mathcal{N}(0,1)$,
+\noindent\textbf{Characteristic functions.}
+For a random variable $Y$, its characteristic function is
+\[
+\psi_Y(t)=E(e^{itY}),
+\]
+where $E$ denotes the expected value and $i$ is the imaginary unit. In particular, the characteristic function of the standard normal distribution $\mathcal{N}(0,1)$ is
 \[
 \psi_{\mathcal{N}(0,1)}(t)=e^{-t^2/2}
 \]
