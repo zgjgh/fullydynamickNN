@@ -150,40 +150,47 @@ where $E$ denotes the expected value and $i$ is the imaginary unit. In particula
 
 The auxiliary bounds and standard identities above are used in the proof of Lemma~\ref{thm:normal_distribution_local}. The proof is given in the next part of the appendix.
 \section*{Appendix A.2: Proof of Lemma \ref{thm:normal_distribution_local}}
-What needs to be proved is the proposition below:
+What needs to be proved is that the proposition below holds approximately:
 \begin{flalign}
-dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}})/b_{p}^2(q_{\mathcal{O}^i},j) \sim \mathcal{N}(\mu,\,\sigma^2), \quad \text{approximately} \IEEEyesnumber  \label{equ:normal_distribution_1}
+dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}})/b_{p}^2(q_{\mathcal{O}^i},j) \sim \mathcal{N}(\mu,\,\sigma^2) \IEEEyesnumber  \label{equ:normal_distribution_1}
 \end{flalign}
-In the proposition above, $q_{\mathcal{O}^i}$ represents an arbitrary data point in the $i$-th sub-space of $\mathcal{O}$, $v^{j}_{q_{\mathcal{O}^i}}$ represents a random data point visited at the leaf nodes of \dualtree encountering the $j$-th pruning bound or bound kernel of $q_{\mathcal{O}^i}$, and $b_p(q_{\mathcal{O}^i},j)$ represents the $j$-th pruning bound or bound kernel value of $q_{\mathcal{O}^i}$. Note that although $q_{\mathcal{O}^i}$ is an arbitrary data point in $O^{i}$, it is treated as a fixed point when constructing the random variable $dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}})/b_{p}^2(q_{\mathcal{O}^i},j)$. Therefore, $b_p(q_{\mathcal{O}^i},j)$, the $j$-th pruning bound or bound kernel value of $q_{\mathcal{O}^i}$, which is considered as a fixed point, is also considered as a constant value. Consequently, the following equivalence is valid:
+In the proposition above, $q_{\mathcal{O}^i}$ represents an arbitrary data point in the $i$-th sub-space of $\mathcal{O}$, $v^{j}_{q_{\mathcal{O}^i}}$ represents a random data point visited at the leaf nodes of \dualtree encountering the $j$-th pruning bound or bound kernel of $q_{\mathcal{O}^i}$, and $b_p(q_{\mathcal{O}^i},j)$ represents the $j$-th pruning bound or bound kernel value of $q_{\mathcal{O}^i}$. Note that although $q_{\mathcal{O}^i}$ is an arbitrary data point in $O^{i}$, it is treated as a fixed point when constructing the random variable $dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}})/b_{p}^2(q_{\mathcal{O}^i},j)$. Therefore, $b_p(q_{\mathcal{O}^i},j)$, the $j$-th pruning bound or bound kernel value of $q_{\mathcal{O}^i}$, which is considered as a fixed point, is also considered as a constant value. Consequentely, Consequently, it suffices to prove the following normalized form:
 \begin{flalign}
-&dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}})/b_{p}^2(q_{\mathcal{O}^i},j) \sim \mathcal{N}(\mu,\,\sigma^2), \quad \text{approximately} \IEEEnonumber \\  \Leftrightarrow &dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}}) \sim \mathcal{N}(\mu,\,\sigma^2), \quad \text{approximately} \IEEEyesnumber \label{equ:normal_distribution_2}
+dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}}) \sim \mathcal{N}(\mu,\,\sigma^2), \quad \text{approximately} \IEEEyesnumber \label{equ:normal_distribution_2}
 \end{flalign}
 
 Owing to the definition of Euclidean distance and the fact that a full-dimensional PCA transformation preserves pairwise Euclidean distances \cite{ukey2023efficient}, the random variable $dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}})$ in expression~\ref{equ:normal_distribution_2} can be equivalently expressed as follows:
 
 \begin{flalign}
-dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}})&=\sum^D_{k=1} (q_{\mathcal{O}^i}[k]-v^{j}_{q_{\mathcal{O}^i}}[k])^2 \IEEEnonumber \\
-&=\sum^{D_{PC}}_{k_{PC}=1} (q_{\mathcal{O}^i}[k_{PC}]-v^{j}_{q_{\mathcal{O}^i}}[k_{PC}])^2 
+dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}})
+=\sum^{D_{PC}}_{k_{PC}=1} (q_{\mathcal{O}^i}[k_{PC}]-v^{j}_{q_{\mathcal{O}^i}}[k_{PC}])^2 
 \label{equ:euclidean_distance}
 \end{flalign}
 where $k_{PC}$ and $D_{PC}$ respectively represents the $k$-th and $D$-th (last) principal component dimension. For notational simplicity in what follows, we use $Z_k$ to denote $|q_{\mathcal{O}^i}[k_{PC}]-v^{j}_{q_{\mathcal{O}^i}}[k_{PC}]|$.
 
+\begin{comment}
 According to the definition of $Z_{k}$ and the formula \ref{equ:euclidean_distance}, the equivalence below holds that:
 \begin{flalign}
 &dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}}) \sim \mathcal{N}(\mu,\,\sigma^2), \quad \text{approximately} \IEEEnonumber \\ \Leftrightarrow &
 \sum^D_{k=1}Z^2_k \sim \mathcal{N}(\mu, \sigma^2), \quad \text{approximately} \IEEEyesnumber
 \label{equ:zk_normal}
 \end{flalign}
+\end{comment}
+
 According to the definition of PCA \cite{mackiewicz1993principal}, the data mapped to the principal component dimensions has little correlation. As a result, $Cov(Z^2_i, Z^2_j)$ ($1\leq i,j\leq D$) can be considered approximately as 0 because the series of random variables $\{Z^2_{k}\}$ is generated on the principal components. Therefore,
 \begin{flalign}
-Var(\frac{\sum^D_{k=1}Z^2_k}{\sqrt{\sum^{D}_{k=1}Var(Z^2_k)}})=1 \IEEEyesnumber \label{equ:independent}
+Var(\frac{\sum^D_{k=1}Z^2_k}{\sqrt{\sum^{D}_{k=1}Var(Z^2_k)}})\approx1 \IEEEyesnumber \label{equ:independent}
 \end{flalign}
+
+\begin{comment}
 As a result, the subsequent equivalence can be derived that:
 \begin{flalign}
 &\sum^D_{k=1}Z^2_k \sim \mathcal{N}(\mu, \sigma^2), \quad \text{approximately} \IEEEnonumber \\
 \Leftrightarrow & \frac{\sum^D_{k=1}(Z^2_k-E(Z^2_k))}{\sqrt{\sum^{D}_{k=1}Var(Z^2_k)}}\sim \mathcal{N}(0,1), \quad \text{approximately} \IEEEyesnumber
 \label{equ:zk_normalized_normal}
 \end{flalign}
+\end{comment}
+
 To simplify the reminder of the paper, the following notations are introduced that:
 \begin{enumerate}
     \item $Y_k$=$Z^2_k-E(Z^2_k)$
@@ -191,7 +198,7 @@ To simplify the reminder of the paper, the following notations are introduced th
     \item $s_D=\sqrt{\sum^D_{k=1}Var(Y_k)}$ 
 \end{enumerate}
 It is deserved to be noticed that $\{Y_k\}$ is generated by translating $\{Z^2_k\}$, as a result, $Var(Y_k)=Var(Z^2_k)$.
-Based on the notations above and the expression \ref{equ:normal_distribution_1}, \ref{equ:normal_distribution_2}, \ref{equ:zk_normal}, and \ref{equ:zk_normalized_normal}, the proposition needing to be proved is equivalent to the followings:
+Based on the notations above, the definition of $Z_k$, and the expression \ref{equ:normal_distribution_2}, \ref{equ:euclidean_distance}, and \ref{equ:independent}, the proposition needing to be proved is equivalent to the followings:
 \begin{flalign}
 \frac{S_D}{s_D}\sim \mathcal{N}(0,1), \quad \text{approximately}
 \label{equ:proof_final} 
@@ -256,11 +263,11 @@ and $\max a_k$ is the cell bound of $a_k$ when $1\leq k<+\infty$, and $\min \int
 We use the Esseen inequality \cite{korolev2012improvement, korolev2010upper} as the main framework of the proof.
 \begin{lemma}[Esseen's inequality]
 Let $Z$ and $Y$ be two arbitrary random variables with distribution functions $F_{Z}(x)$ and $F_{Y}(x)$, and with characteristic functions
-$\psi_Z(t)$ and $\psi_Y(t)$, respectively. Then, for any $T>0$, we have
+$Z(t)$ and $Y(t)$, respectively. Then, for any $T>0$, we have
 \[
 \sup_{x\in\mathbb{R}} |F_{Z}(x)-F_{Y}(x)| 
 \;\leq\; \frac{1}{\pi}\int_{-T}^{T} 
-\left| \frac{\psi_Z(t)-\psi_Y(t)}{t} \right| \, dt \;+\; \frac{C}{T},
+\left| \frac{Z(t)-Y(t)}{t} \right| \, dt \;+\; \frac{C}{T},
 \]
 where $C>0$ is an absolute constant independent of $Y$, $Z$ and $T$.
 \end{lemma}
@@ -274,11 +281,20 @@ To analyze the upper bound of the difference between the cumulative distribution
 \end{flalign}
 According to the Jensen inequality \cite{mcshane1937jensen}, the convexity of norm, and lemma \ref{lm:min}, the first item in the sum function of inequality \ref{equ:characteristic_two_term} can be further analyzed as below:
 
+\begin{comment}
 \begin{flalign}
 &|E(e^{it\cdot\frac{Y_k}{s_D}})-E(1+\frac{Y_kt}{s_D}-\frac{Y^2_kt^2}{2s^2_D})|\IEEEnonumber \\
 \leq &E|e^{it\cdot\frac{Y_k}{s_D}}-(1+\frac{Y_kt}{s_D}-\frac{Y^2_kt^2}{2s^2_D})| \IEEEnonumber \\
 \leq &E(\frac{|tY_k|^3}{6s^3_D}) \IEEEyesnumber \label{equ:first_item_bound}
 \end{flalign}
+\end{comment}
+
+\begin{flalign}
+&|E(e^{it\cdot\frac{Y_k}{s_D}})-E(1+\frac{Y_kt}{s_D}-\frac{Y^2_kt^2}{2s^2_D})|\leq E|e^{it\cdot\frac{Y_k}{s_D}}-\IEEEnonumber\\
+&(1+\frac{Y_kt}{s_D}-\frac{Y^2_kt^2}{2s^2_D})| \leq E(\frac{|tY_k|^3}{6s^3_D}) \IEEEyesnumber \label{equ:first_item_bound}
+\end{flalign}
+
+
 By the same reasoning, we have:
 \begin{flalign}
 &|E(e^{it\cdot\frac{Y_k}{s_D}})-E(1+\frac{Y_kt}{s_D}-\frac{Y^2_kt^2}{2s^2_D})|\leq E(\frac{t^2Y^2_k}{2s^2_D}) \IEEEyesnumber \label{equ:second_item_bound}
@@ -286,7 +302,7 @@ By the same reasoning, we have:
 Based on the observation that $|e^{-x}-1+x|\leq x^2/2$, and that $E(Y_k)=E(Z^2_k-E(Z^2_k))=0$, the second item in the sum function of inequality \ref{equ:characteristic_two_term} can be further analyzed as followings:
 \begin{flalign}
 &|E(1+\frac{Y_{k}t}{s_D}-\frac{Y^2_kt^2}{2s^2_D})-e^{-\frac{Var(Y_k)t^2}{2s^2_D}}|\IEEEnonumber \\
-=&|1-\frac{Var(Y_k)t^2}{2s^2_D}-(e^{-\frac{Var(Y_k)t^2}{2s^2_D}}-1-\frac{Var(Y_k)t^2}{2s^2_D}+1\IEEEnonumber \\+&\frac{Var(Y_k)t^2}{2s^2_D})| 
+=&|1-\frac{Var(Y_k)t^2}{2s^2_D}-(e^{-\frac{Var(Y_k)t^2}{2s^2_D}}-1-\frac{Var(Y_k)t^2}{2s^2_D}\IEEEnonumber \\+&1\frac{Var(Y_k)t^2}{2s^2_D})| 
 \leq \frac{Var^2(Y_k)t^4}{8s^4_D} \IEEEyesnumber \label{equ:third_item_bound}
 \end{flalign}
 Based on inequality \ref{equ:characteristic_two_term}, \ref{equ:first_item_bound}, \ref{equ:second_item_bound}, and \ref{equ:third_item_bound}, the bound of the difference between the characteristic function of $S_D/s_D$ and standard Normal Distribution can be further examined following the inequality \ref{equ:characteristic_two_term} that: for an arbitrary positive value $\epsilon$, the subsequent relation can be derived:
@@ -298,23 +314,34 @@ And that:
     &|E(e^{it\cdot \frac{S_D}{s_D}})-e^{-\frac{t^2}{2}}|\leq\sum^D_{k=1}(\frac{Var^2(Y_k)t^4}{8s^4_D}+E(\frac{|tY_k|^3}{6s^2_D})) \IEEEyesnumber \label{equ:inequ_2}
 \end{flalign}
 Based on inequality \ref{equ:inequ_1} and \ref{equ:inequ_2}, the difference between the characteristic function of $S_D/s_D$ and Normal Distribution can be bounded by the inequality below under the setting that $\textbf{1}_{A}$ means the indicator function:
+\begin{comment}
 \begin{flalign}
     &|E(e^{it\cdot \frac{S_D}{s_D}})-e^{-\frac{t^2}{2}}|\IEEEnonumber \\
     \leq &\sum^{D}_{k=1}(\frac{t^2}{s^2_D}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})+\frac{|t|^3\epsilon}{6s^2_D}E(Y_k^2\textbf{1}_{|Y_k|\leq \epsilon s_D})\IEEEnonumber \\ &+\frac{Var^2(Y_k)t^4}{8s^4_D}) \IEEEnonumber \\
     \leq &\frac{t^2}{s^2_D}\sum^D_{k=1}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})+t^4\max_{1\leq k\leq D}\frac{Var(Y_k)}{s^2_D}+|t|^3\epsilon\IEEEyesnumber \label{equ:need_to_analyze} 
 \end{flalign}
+\end{comment}
+\begin{flalign}
+    &|E(e^{it\cdot \frac{S_D}{s_D}})-e^{-\frac{t^2}{2}}|\IEEEnonumber \\
+    \leq &\sum^{D}_{k=1}(\frac{t^2}{s^2_D}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})+\frac{|t|^3\epsilon}{6s^2_D}E(Y_k^2\textbf{1}_{|Y_k|\leq \epsilon s_D})\IEEEnonumber \\ &+\frac{Var^2(Y_k)t^4}{8s^4_D}) 
+    \leq \frac{t^2}{s^2_D}\sum^D_{k=1}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})+\IEEEnonumber \\
+    &t^4\max_{1\leq k\leq D}\frac{Var(Y_k)}{s^2_D}+|t|^3\epsilon\IEEEyesnumber \label{equ:need_to_analyze} 
+\end{flalign}
 Based on the observation that $\epsilon$ can enable inequality \ref{equ:need_to_analyze} to hold for any given positive value, $\epsilon$ can be set to be equal to $(\frac{5}{4}\xi)^\frac{1}{2}$ without loss of generality that:
 \begin{flalign}
 \xi=\frac{45\times(\max_{1\leq k\leq D}\{\max\{\eta_{1k}, \eta_{2k}\}\})^2}{\iota\sum^D_{k=1}(b_k - a_k)^2(4a^2_k + 7a_kb_k + 4b^2_k)}\IEEEyesnumber \label{equ:xi}
 \end{flalign}
-where 
+,where $|a^2_k-\frac{\kappa_2(a^2_k+a_kb_k+b^2_k)}{3}|$ and $|b^2_k-\frac{\kappa_1(a^2_k+a_kb_k+b^2_k)}{3}|$ are assigned to $\eta_{1k}$ and $\eta_{2k}$, respectively.
+\begin{comment}
 \begin{flalign}
 &\eta_{1k}=|a^2_k-\frac{\kappa_2(a^2_k+a_kb_k+b^2_k)}{3}|\IEEEyesnumber \label{equ:eta_1} \\
     &\eta_{2k}=|b^2_k-\frac{\kappa_1(a^2_k+a_kb_k+b^2_k)}{3}|\IEEEyesnumber \label{equ:eta_2}
 \end{flalign}
+\end{comment}
+
 After specifying the value of $\epsilon$, the first two terms in inequality \ref{equ:need_to_analyze} can be examined to deepen the analysis of $|E(e^{it\cdot \frac{S_D}{s_D}})-e^{-\frac{t^2}{2}}|$. For the first term, because of lemma \ref{lm:Y_K_delta_moment_bound} and lemma \ref{lm:delta_moment}, the following lemma can be developed that:
 \begin{lemma}
-    When $\epsilon=(\frac{5}{4}\xi)^{\frac{1}{2}}$, $\frac{t^2}{s^2_D}\sum^D_{k=1}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})$=0
+    $\frac{t^2}{s^2_D}\sum^D_{k=1}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})$=0, when $\epsilon=(\frac{5}{4}\xi)^{\frac{1}{2}}$. 
     \begin{proof}
        because of lemma \ref{lm:Y_K_delta_moment_bound} and lemma \ref{lm:delta_moment},
        \begin{flalign}
@@ -322,9 +349,15 @@ After specifying the value of $\epsilon$, the first two terms in inequality \ref
 &\leq \frac{t^2\sum^D_{k=1}E(|Y_k|^{2+\delta})}{\epsilon^\delta s^{2+\delta}_{D}}\leq t^2\cdot \frac{\xi^{\frac{\delta}{2}}}{(\frac{5}{4}\xi)^\frac{\delta}{2}}=t^2\cdot(\frac{4}{5})^\frac{\delta}{2}\IEEEyesnumber \label{equ:zero_1}
 \end{flalign}
 Because lemma \ref{lm:delta_moment} accepts assignment of any positive value to $\delta$, the development of inequality \ref{equ:zero_1} follows naturally that:
+\begin{comment}
 \begin{flalign}
 &0\leq \frac{\sum^D_{k=1}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})}{s^2_D}\leq \lim_{\delta \to +\infty}(\frac{4}{5})^{\delta}=0 \IEEEnonumber \\
 \Rightarrow &\frac{\sum^D_{k=1}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})}{s^2_D}=0\IEEEnonumber\\
+\Rightarrow&\frac{t^2\sum^D_{k=1}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})}{s^2_D}=0 \IEEEyesnumber \label{equ:first_term}
+\end{flalign}
+\end{comment}
+\begin{flalign}
+&0\leq \frac{\sum^D_{k=1}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})}{s^2_D}\leq \lim_{\delta \to +\infty}(\frac{4}{5})^{\frac{\delta}{2}}=0 \IEEEnonumber \\
 \Rightarrow&\frac{t^2\sum^D_{k=1}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})}{s^2_D}=0 \IEEEyesnumber \label{equ:first_term}
 \end{flalign}
     \end{proof}
@@ -353,13 +386,13 @@ Lemma \ref{lm:first_item}, lemma \ref{lm:sec_term}, and the assignment of $(\fra
 The deduction above presents an upper bound of the absolute difference between the characteristic functions of $S_D/s_D$ and $\mathcal{N}(0,1)$, to further analyze this obtained bound deeper, we study the value $\xi$.
 \begin{lemma}   $\lim_{D\to\infty}\xi=0$
     \begin{proof}
-        Because of assumption 1 that $\kappa_1$ and $\kappa_2$ are two constant values and assumption 2 that $a_k$ and $b_k$ are bounded by $[b^l_{a_k}, b^u_{a_k}]$ and $[b^l_{b_k}, b^u_{b_k}]$, then, $\eta_{1k}$ , which is equal to $|a^2_k-\frac{\kappa_2(a^2_k+a_kb_k+b^2_k)}{3}|$ according to its definition in expression \ref{equ:eta_1} and $\eta_{2k}$, which is equal to $|b^2_k-\frac{\kappa_1(a^2_k+a_kb_k+b^2_k)}{3}|$ according to its definition in expression \ref{equ:eta_2}, are bounded. Therefore, $45\times(\max_{1\leq k\leq D}\{\max\{\eta_{1k}, \eta_{2k}\}\})^2$ is bounded.
+        Because of assumption 1 that $\kappa_1$ and $\kappa_2$ are two constant values and assumption 2 that $a_k$ and $b_k$ are bounded by $[b^l_{a_k}, b^u_{a_k}]$ and $[b^l_{b_k}, b^u_{b_k}]$, then, $\eta_{1k}$ , which is equal to $|a^2_k-\frac{\kappa_2(a^2_k+a_kb_k+b^2_k)}{3}|$ according to its definition, and $\eta_{2k}$, which is equal to $|b^2_k-\frac{\kappa_1(a^2_k+a_kb_k+b^2_k)}{3}|$ according to its definition, are bounded. Therefore, $45\times(\max_{1\leq k\leq D}\{\max\{\eta_{1k}, \eta_{2k}\}\})^2$ is bounded.
        
        By the similar reasoning, because of assumption 1 that $\iota$ is a constant values and assumption 2 that $a_k$ and $b_k$ are bounded by $[b^l_{a_k}, b^u_{a_k}]$ and $[b^l_{b_k}, b^u_{b_k}]$, then, $\iota\sum^D_{k=1}(b_k - a_k)^2(4a^2_k + 7a_kb_k + 4b^2_k)$ is equal to infinity when $D$ tend to be infinity.
 
        Consequently, according to the definition of $\xi$ stated in expression \ref{equ:xi}, we have
        \begin{flalign}
-           \lim_{D\to\infty}\xi=\frac{45(\max_{1\leq k\leq D}\{\max\{\eta_{1k}, \eta_{2k}\}\})^2}{\iota\sum^D_{k=1}(b_k - a_k)^2(4a^2_k + 7a_kb_k + 4b^2_k)}=0
+           \lim_{D\to\infty}\xi=\frac{45(\max_{1\leq k\leq D}\{\max\{\eta_{1k}, \eta_{2k}\}\})^2}{\iota\sum^D_{k=1}(b_k - a_k)^2(4a^2_k + 7a_kb_k + 4b^2_k)}=0 \IEEEnonumber
        \end{flalign}
     \end{proof}
     \label{lm:xi_zero}
@@ -391,13 +424,13 @@ Based on Esseen smoothing inequality \cite{borda2021berry} and that $|E(e^{-it\c
 
 Following the detailed evaluation of the difference between the characteristic functions of $S_D/s_D$ and $\mathcal{N}(0,1)$, analysis can be reverted to Esseen's inequality so that the upper bound on the discrepancy between the two cumulative distribution functions of can be assessed. 
 
-\begin{theorem}
+\begin{lemma}
     According to Esseen 's inequality, the upper bound of the absolute difference between the cumulative distribution functions of $S_D/s_D$ and $\mathcal{N}(0,1)$ approaches $0$ when the dimensionality $D$ tends to be positive infinity, namely 
 \begin{flalign}
 \lim_{D\rightarrow+\infty}\sup_{x\in\mathbb{R}} \left| F_{\frac{S_D}{s_D}}(x)-F_{\mathcal{N}(0,1)}(x)\right|=0 
 \end{flalign}
 \label{thm:lim_sup}
-\end{theorem}
+\end{lemma}
 \begin{proof}
     According to Esseen's inequality and inequality \ref{equ:new_bound}, the following deduction can be performed that:
     \begin{flalign}
@@ -413,7 +446,7 @@ Following the detailed evaluation of the difference between the characteristic f
     \end{flalign}
     
 \end{proof}
-Based on theorem \ref{thm:lim_sup} and the high-dimensional context of this work where the dimensionality is a large value, a conclusion can be drawn that the upper bound of the absolute difference between the cumulative distribution function of $S_D/s_D$ and the cumulative distribution function of the standard Normal Distribution $\mathcal{N}(0,1)$ can be very close to $0$, as a result, the distribution of $S_D/s_D$ is very similar to that of $\mathcal{N}(0,1)$. According to the expression \ref{equ:normal_distribution_1}, \ref{equ:normal_distribution_2}, \ref{equ:zk_normal}, and \ref{equ:zk_normalized_normal}, theorem \ref{thm:normal_distribution_local} is proved.
+Based on lemma \ref{thm:lim_sup} and the high-dimensional context of this work where the dimensionality is a large value, a conclusion can be drawn that the upper bound of the absolute difference between the cumulative distribution function of $S_D/s_D$ and the cumulative distribution function of the standard normal distribution $\mathcal{N}(0,1)$ can be very close to $0$, as a result, the distribution of $S_D/s_D$ is very similar to that of $\mathcal{N}(0,1)$. Therefore, the expression \ref{equ:proof_final}, which is equivalent to lemma \ref{thm:normal_distribution_local}, is proved. Therefore, lemma \ref{thm:normal_distribution_local} is proved.
 
 \section*{Appendix A.3: Parameters in \bm{$f_{dist^2(q,v)/b_{p}^2}$}}
  At the beginning of the update, we employ a sampling-based method to determine the parameters in the density distribution function $f_{dist^2(q,v)/b_{p}^2}$ of $dist^2(q,v)/b_{p}^2$ throughout the update process. Since the data distribution evolves slowly during the update process, it is reasonable to assume that the data in $U\cup I$ at the beginning of the phase remains representative of the entire period. Thus, estimating the parameters of $f_{dist^2(q,v)/b^2_{p}}$ based on the initial state of the update is reasonable.

@@ -37,6 +37,11 @@
     "latex-workshop.latex.recipe.default": "first",
     // Open PDF viewer in VSCode tab alongside the editor
     "latex-workshop.view.pdf.viewer": "tab",
+    // Prefer LaTeX Workshop's internal PDF viewer over the generic PDF plugin.
+    // The generic PDF preview can keep main.pdf locked on Windows.
+    "workbench.editorAssociations": {
+        "*.pdf": "latex-workshop-pdf-hook"
+    },
     // SyncTeX: click PDF to jump to source, and vice versa
     "latex-workshop.synctex.afterBuild.enabled": true,
     // Don't show the build log panel unless there's an error
