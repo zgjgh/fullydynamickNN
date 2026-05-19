@@ -154,7 +154,7 @@ What needs to be proved is that the proposition below holds approximately:
 \begin{flalign}
 dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}})/b_{p}^2(q_{\mathcal{O}^i},j) \sim \mathcal{N}(\mu,\,\sigma^2) \IEEEyesnumber  \label{equ:normal_distribution_1}
 \end{flalign}
-In the proposition above, $q_{\mathcal{O}^i}$ represents an arbitrary data point in the $i$-th sub-space of $\mathcal{O}$, $v^{j}_{q_{\mathcal{O}^i}}$ represents a random data point visited at the leaf nodes of \dualtree encountering the $j$-th pruning bound or bound kernel of $q_{\mathcal{O}^i}$, and $b_p(q_{\mathcal{O}^i},j)$ represents the $j$-th pruning bound or bound kernel value of $q_{\mathcal{O}^i}$. Note that although $q_{\mathcal{O}^i}$ is an arbitrary data point in $O^{i}$, it is treated as a fixed point when constructing the random variable $dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}})/b_{p}^2(q_{\mathcal{O}^i},j)$. Therefore, $b_p(q_{\mathcal{O}^i},j)$, the $j$-th pruning bound or bound kernel value of $q_{\mathcal{O}^i}$, which is considered as a fixed point, is also considered as a constant value. Consequentely, Consequently, it suffices to prove the following normalized form:
+In the proposition above, $q_{\mathcal{O}^i}$ represents an arbitrary data point in the $i$-th subspace of $\mathcal{O}$, $v^{j}_{q_{\mathcal{O}^i}}$ represents a random data point visited at the leaf nodes of \dualtree encountering the $j$-th pruning bound or bound kernel of $q_{\mathcal{O}^i}$, and $b_p(q_{\mathcal{O}^i},j)$ represents the $j$-th pruning bound or bound kernel value of $q_{\mathcal{O}^i}$. Note that although $q_{\mathcal{O}^i}$ is an arbitrary data point in $O^{i}$, it is treated as a fixed point when constructing the random variable $dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}})/b_{p}^2(q_{\mathcal{O}^i},j)$. Therefore, $b_p(q_{\mathcal{O}^i},j)$, the $j$-th pruning bound or bound kernel value of $q_{\mathcal{O}^i}$, which is considered as a fixed point, is also considered as a constant value. Consequentely, Consequently, it suffices to prove the following normalized form:
 \begin{flalign}
 dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}}) \sim \mathcal{N}(\mu,\,\sigma^2), \quad \text{approximately} \IEEEyesnumber \label{equ:normal_distribution_2}
 \end{flalign}
@@ -442,100 +442,110 @@ Following the detailed evaluation of the difference between the characteristic f
 =&\frac{2}{\pi}\cdot(\frac{5\xi T^4}{16}+\frac{\sqrt{5\xi}T^3}{6})+\frac{C}{T}\label{equ:sup}
     \end{flalign}
     For an arbitrary positive value $\varsigma$, $\frac{C}{T}$ can be fixed at $\frac{\varsigma}{2}$ under the assignment of $\frac{2C}{\varsigma}$ to $T$. And according to lemma \ref{lm:xi_zero}, there must exist a dimensionality $D(\frac{\varsigma}{2})$ that enables $\frac{2}{\pi}\cdot (\frac{5\xi T^4}{16}+\frac{\sqrt{5\xi}T^3}{6})<\frac{\varsigma}{2}$ for any dimensionality $D'>D(\frac{\varsigma}{2})$. Therefore, for any positive value $\varsigma$, there must exist a dimensionality that enables the upper bound of the absolute difference between the cumulative distribution functions of $\frac{S_D}{s_D}$ and $\mathcal{N}(0,1)$ to be smaller than $\varsigma$ for any dimensionality that is larger than it. In conclusion, 
-    \begin{flalign}    \lim_{D\rightarrow+\infty}\sup_{x\in\mathbb{R}} \left| F_{\frac{S_D}{s_D}}(x)-F_{\mathcal{N}(0,1)}(x)\right|=0.     
+    \begin{flalign}    \lim_{D\rightarrow+\infty}\sup_{x\in\mathbb{R}} \left| F_{\frac{S_D}{s_D}}(x)-F_{\mathcal{N}(0,1)}(x)\right|=0.   
     \end{flalign}
     
 \end{proof}
-Based on lemma \ref{thm:lim_sup} and the high-dimensional context of this work where the dimensionality is a large value, a conclusion can be drawn that the upper bound of the absolute difference between the cumulative distribution function of $S_D/s_D$ and the cumulative distribution function of the standard normal distribution $\mathcal{N}(0,1)$ can be very close to $0$, as a result, the distribution of $S_D/s_D$ is very similar to that of $\mathcal{N}(0,1)$. Therefore, the expression \ref{equ:proof_final}, which is equivalent to lemma \ref{thm:normal_distribution_local}, is proved. Therefore, lemma \ref{thm:normal_distribution_local} is proved.
+Based on lemma \ref{thm:lim_sup} and the high-dimensional context of this work where the dimensionality is a large value, a conclusion can be drawn that the upper bound of the absolute difference between the cumulative distribution function of $S_D/s_D$ and the cumulative distribution function of the standard normal distribution $\mathcal{N}(0,1)$ can be very close to $0$, as a result, the distribution of $S_D/s_D$ is very similar to that of $\mathcal{N}(0,1)$. Therefore, expression \ref{equ:proof_final}, which is equivalent to lemma \ref{thm:normal_distribution_local}, is proved. Therefore, lemma \ref{thm:normal_distribution_local} is proved.
 
-\section*{Appendix A.3: Parameters in \bm{$f_{dist^2(q,v)/b_{p}^2}$}}
- At the beginning of the update, we employ a sampling-based method to determine the parameters in the density distribution function $f_{dist^2(q,v)/b_{p}^2}$ of $dist^2(q,v)/b_{p}^2$ throughout the update process. Since the data distribution evolves slowly during the update process, it is reasonable to assume that the data in $U\cup I$ at the beginning of the phase remains representative of the entire period. Thus, estimating the parameters of $f_{dist^2(q,v)/b^2_{p}}$ based on the initial state of the update is reasonable.
+\section*{Appendix A.3: Parameter Estimation}
+ At the beginning of the update, we employ a sampling-based method to determine the parameters in the probability density function $f_{dist^2(q,v)/b_{p}^2}$ of $dist^2(q,v)/b_{p}^2$ throughout the update process. Since the data distribution evolves slowly during the update process, it is reasonable to assume that the data in $U\cup I$ at the beginning of the phase remains representative of the entire period. Thus, estimating the parameters of $f_{dist^2(q,v)/b^2_{p}}$ based on the initial state of the update is reasonable.
 
 As discussed earlier, the optimal pruning dimensionality is computed from the probability distribution of $dist^2(q,v)/b_{p}^2$ and applies to both the kNN search process and the RkNN search process on \dualtree. This appendix describes how the parameters of $f_{dist^2(q,v)/b_{p}^2}$ are estimated in the two cases.
 
-\noindent\textbf{ a). Parameters for kNN search process.}
+\noindent\textbf{Parameters for kNN search.}
 In the kNN search scenario, the query point $q$ belongs to $U$, and the visited point $v$ at a leaf node of the \deltatree part of \dualtree belongs to $I$. The pruning bound $b_p$ is the distance from $q$ to the farthest point in its current candidate kNN list (refer to the exact kNN search algorithm on \deltatree~\cite{cui2003contorting} for details), and $\mathcal{O}_U$ denotes the smallest $D$-dimensional space containing all data points in $U$ during the update process. 
 
-To estimate the parameters of the probability density function $f_{dist^2(q,v)/b^2_p}$ of $dist^2(q,v)/b^2_p$, an appropriate proportion of the data points are sampled from each leaf node of the \hdrtree part of the \dualtree where the data points in $U$ are stored. In this paper, we find that 10\% provides a good balance between diversity and efficiency in practice. Then, three things are collected from such sample data points:
-\begin{enumerate}
-    \item The $dist_{kNN}$ values of the sampled data points.
+To estimate the parameters of the probability density function $f_{dist^2(q,v)/b^2_p}$ of $dist^2(q,v)/b^2_p$, an appropriate proportion of the data points are sampled from each leaf node of the \hdrtree part of the \dualtree where the data points in $U$ are stored. In this paper, we find that 10\% provides a good balance between diversity and efficiency in practice. Then, three quantities are collected from such sample data points:
+\begin{itemize}
+    \item The $\dknn$ values of the sampled data points.
     \item The number of distinct $b_p$ values encountered during the kNN search process for each sampled data point.
     \item The $dist^2(q,v)/b_{p}^2$ values occurring in the kNN search process for each sampled data point.  
-\end{enumerate}
+\end{itemize}
 
 After the sampling stage, two procedures are implemented to estimate the parameters in $f_{dist^2(q,v)/b^2_p}$.
 
 
 The first task is to determine $M$ and $B_i$, $1\leq i\leq M$. $M$ represents the number of parts into which $\mathcal{O}_U$ can be partitioned. $B_i$ is the number of $b_p$ values encountered in the kNN search process of an arbitrary query point within $\mathcal{O}^i_U$. 
 
-The second task is to derive the weight values $p_m$ and the parameters $\sigma_m$ and $\mu_m$ of each sub-model of $f_{dist^2(q,v)/b^2_p}$, which is a Mixed Normal Distribution. 
+The second task is to derive the weight values $p_m$ and the parameters $\sigma_m$ and $\mu_m$ of each sub-model of $f_{dist^2(q,v)/b^2_p}$, which is modeled as a Gaussian mixture. 
 
-\noindent\textbf{1). Determine \bm{$M$} and \bm{$B_i$}.} Two steps can be applied to determine $M$ and $B_i$.
+\noindent\textbf{\textit{Determine \bm{$M$} and \bm{$B_i$}.}} Two steps can be applied to determine $M$ and $B_i$.
 
 
 
-\noindent\textbf{\textit{Step 1.}}
-Divide the sampled data points into groups, where the $dist_{kNN}$ values within each group vary by no more than a small threshold ratio $\Delta$ that:
+\noindent\textit{Step 1.}
+Divide the sampled data points into groups, where the $\dknn$ values within each group vary by no more than a small threshold ratio $\Delta$ that:
 \begin{flalign}
-\frac{|dist_{kNN}(q_1)-dist_{kNN}(q_2)|}{\max{(dist_{kNN}(q_1),dist_{kNN}(q_2))}}\leq \Delta  \IEEEyesnumber
+\frac{|\dknn(q_1)-\dknn(q_2)|}{\max{(\dknn(q_1),\dknn(q_2))}}\leq \Delta  \IEEEyesnumber
 \label{equ:group_difference}
 \end{flalign}
-where $q_1$ and $q_2$ are arbitrary two data points in a group. The number of groups formed serve as an approximation for $M$. In this study, we set $\Delta$ to 10\% to strike a balance between preserving intra-group similarity and controlling the number of groups.
+where $q_1$ and $q_2$ are arbitrary two data points in a group. The number of groups formed serves as an approximation for $M$. In this study, we set $\Delta$ to 10\% to strike a balance between preserving intra-group similarity and controlling the number of groups.
 
-\noindent\textbf{\textit{Step 2.}}
+\noindent\textit{Step 2.}
 For the $i$-th group ($1\leq i\leq M$), count the number of $b_p$ values encountered during the kNN search of each data point in it, and then use the mode of these counts as an approximation of $B_i$.
 
 
 
 
 
-As the sampling process draws data points from all the leaf nodes of the \hdrtree part of the \dualtree, the resulting sample can be assumed to be globally representative, that is, these collected points can be considered distributed across all the $\mathcal{O}^i_U$ ($1\leq i \leq M$) sub-spaces. 
+As the sampling process draws data points from all the leaf nodes of the \hdrtree part of the \dualtree, the resulting sample can be assumed to be globally representative, that is, these collected points can be considered distributed across all the $\mathcal{O}^i_U$ ($1\leq i \leq M$) subspaces. 
 
-Since data points within the same sub-space $O^{i}_{U}$ ($1\leq i\leq M$) of $O_U$ share the same number of distinct $b_p$ values and exhibit similar probability distributions of the distance to the visited data points under the $b_p$ value with the same index, the distribution of nearby points within $I$ of the data points in the same sub-space should be highly similar. As a result, data points sampled from the same sub-space tend to have very close $dist_{kNN}$ values and are thus likely to fall into the same group. In contrast, the distribution of the data points in $I$ near data points from different sub-spaces are not similar, making it unlikely for data points in different sub-spaces to have comparable $dist_{kNN}$ values, and hence unlikely to be assigned to the same group. Consequently, the groups that the sampled data points are divided into according to the similarity of their $dist_{kNN}$ values tend to align approximately one-to-one with the sub-spaces of $O_U$.
+Since data points within the same subspace $\mathcal{O}^{i}_{U}$ ($1\leq i\leq M$) of $\mathcal{O}_U$ share the same number of distinct $b_p$ values and exhibit similar probability distributions of the distance to the visited data points under the $b_p$ value with the same index, the distribution of nearby points within $I$ of the data points in the same subspace should be highly similar. As a result, data points sampled from the same subspace tend to have very close $\dknn$ values and are thus likely to fall into the same group. In contrast, the distribution of the data points in $I$ near data points from different subspaces are not similar, making it unlikely for data points in different subspaces to have comparable $\dknn$ values, and hence unlikely to be assigned to the same group. Consequently, the groups that the sampled data points are divided into according to the similarity of their $\dknn$ values tend to align approximately one-to-one with the subspaces of $\mathcal{O}_U$.
 
-Therefore, the number of groups into which the sampled points are divided can be used to estimate $M$, which is the number of sub-spaces $\mathcal{O}_U$ can be partitioned into, and the mode of the numbers of $b_p$ values during the kNN search process of the data points in the $i$-th group can be used to estimate $B_i$.
+Therefore, the number of groups into which the sampled points are divided can be used to estimate $M$, which is the number of subspaces $\mathcal{O}_U$ can be partitioned into, and the mode of the numbers of $b_p$ values during the kNN search process of the data points in the $i$-th group can be used to estimate $B_i$.
 
 
-\noindent\textbf{2). Derive the weight values \bm{$p_m$} and the parameters \bm{$\sigma_m$} and \bm{$\mu_m$} of each sub-model.}
+\noindent\textbf{\textit{Weight values and local parameters.}}
 After determining $M$ and $B_i$, the following approach is applied to estimate the weight and parameters of each sub-model, which follows a Normal Distribution. The values of $dist^2(q, v)/b_{p}^2$ encountered during the kNN search process for each sampled data point (which are collected in the sampling process but are not used in the estimation of $M$ and $B_i$) are utilized to infer the weight and parameters of each sub-model.
 
 Because $F_{dist^2(q,v)/b_{p}^2}$ follows a mixed Normal Distribution, we apply the standard EM algorithm \cite{ng2012algorithm} to infer the corresponding mixture weights and Gaussian parameters. Here, EM serves only as a standard parameter-estimation routine for the mixture model, so its update equations are omitted.
 
-\noindent\textbf{ b). Parameters for RkNN search process.}
-In the RkNN search scenario, the query point $q$ belongs to $I$, and the visited point $v$ at a leaf node of the \hdrtree\ part of \dualtree belongs to $U$. The pruning bound $b_p$ is the $dist_{kNN}$ value of the visited point (refer to the RkNN search algorithm on \hdrtree~\cite{yang2014continuous} for details), and $\mathcal{O}_I$ denotes the smallest $D$-dimensional space containing all data points in $I$ during the update process. 
+\noindent\textbf{Parameters for RkNN search.}
+In the RkNN search scenario, the query point $q$ belongs to $I$, and the visited point $v$ at a leaf node of the \hdrtree\ part of \dualtree belongs to $U$. The pruning bound $b_p$ is the $\dknn$ value of the visited point (refer to the RkNN search algorithm on \hdrtree~\cite{yang2014continuous} for details), and $\mathcal{O}_I$ denotes the smallest $D$-dimensional space containing all data points in $I$ during the update process. 
 
-To estimate the parameters of $f_{dist^2(q,v)/b^2_p}$ during RkNN search, an appropriate proportion of the data points are sampled from each leaf node of the \deltatree part of the \dualtree where the data points in $I$ are stored. In this paper, we find that 10\% provides a good balance between diversity and efficiency in practice. Then, two things are collected from such sample data points:
-\begin{enumerate}
-    \item The $dist_{kNN}$ values of the visited data points at the leaf node of the \hdrtree part of the \dualtree of each sampled data point.
+To estimate the parameters of $f_{dist^2(q,v)/b^2_p}$ during RkNN search, an appropriate proportion of the data points are sampled from each leaf node of the \deltatree part of the \dualtree where the data points in $I$ are stored. In this paper, we find that 10\% provides a good balance between diversity and efficiency in practice. Then, two quantities are collected from such sample data points:
+\begin{itemize}
+    \item The $\dknn$ values of the visited data points at the leaf node of the \hdrtree part of the \dualtree of each sampled data point.
     \item The $dist^2(q,v)/b_{p}^2$ values occurring in the RkNN search process for each sampled data point.  
-\end{enumerate}
+\end{itemize}
 
 
-Similar to the kNN search case, the number $M$ of sub-spaces $\mathcal{O}_I$ can be partitioned into and the approximate number $B_i$ of bound kernels of each $\mathcal{O}^i_I$ are determined first, followed by the derivation of the weights and parameters of each sub-model of $f_{dist^2(q,v)/b^2_p}$.
+Similar to the kNN search case, the number $M$ of subspaces $\mathcal{O}_I$ can be partitioned into and the approximate number $B_i$ of bound kernels of each $\mathcal{O}^i_I$ are determined first, followed by the derivation of the weights and parameters of each sub-model of $f_{dist^2(q,v)/b^2_p}$.
 
-\noindent\textbf{1). Determine \bm{$M$} and \bm{$B_i$}.}
-
+\noindent\textbf{\textit{Determine \bm{$M$} and \bm{$B_i$}.}}
 Two steps can be applied to determine $M$ and $B_i$.
 
 
-\noindent\textbf{\textit{Step 1.}} For each sampled data point, compute the average value of the $dist_{kNN}$ values of all the RkNN members of it. Then, divide the sampled data points into groups, where the average $dist_{kNN}$ values of the RkNN members of the sampled data points within the same group should vary by no more than a small threshold ratio $\Delta$. For arbitrary two sampled data points $q_1$ and $q_2$ in the same group, the below relationship should hold that:
+\noindent \textit{Step 1.} For each sampled data point, compute the average value of the $\dknn$ values of all the RkNN members of it. Then, divide the sampled data points into groups, where the average $\dknn$ values of the RkNN members of the sampled data points within the same group should vary by no more than a small threshold ratio $\Delta$. For arbitrary two sampled data points $q_1$ and $q_2$ in the same group, the below relationship should hold that:
+\begin{comment}
 \begin{flalign}
 &\frac{| \frac {\sum_{v \in RkNN(q_1. U,I)} dist_{kNN}(v)}{|RkNN(q_1. U,I)|} - \frac{\sum_{v \in RkNN(q_2, U,I)} dist_{kNN}(v)}{|RkNN(q_2, U,I)|} |}{\max\{\frac {\sum_{v \in RkNN(q_1. U,I)} dist_{kNN}(v)}{|RkNN(q_1. U,I)|}, \frac {\sum_{v \in RkNN(q_2. U,I)} dist_{kNN}(v)}{|RkNN(q_2. U,I)|}\}} \IEEEnonumber \\
 &\leq \Delta \IEEEyesnumber
 \end{flalign}
-Then, the number of the groups formed can serve as the approximation of $M$. In this study, we set $\Delta$ to 10\% to strike a balance between preserving intra-group similarity and controlling the number of groups. This method for estimation of $M$ is motivated by the observation that data points within the same sub-space of $\mathcal{O}_I$ tend to exhibit similar average $dist_{kNN}$ values of their RkNN members, due to the similarity of the distribution of their nearby data points in $I$.
+\end{comment}
+\begin{flalign}
+&\frac{|\overline{d}(q_1)-\overline{d}(q_2)|}{\max\{\overline{d}(q_1), \overline{d}(q_2)\}}\leq \Delta \IEEEyesnumber
+\end{flalign}
+
+\noindent where
+\begin{flalign}
+\overline{d}(q)=\frac {\sum_{v \in \rknn(q, U,I)} \dknn(v)}{|\rknn(q, U,I)|} \IEEEyesnumber
+\end{flalign}
+
+Then, the number of the groups formed can serve as the approximation of $M$. In this study, we set $\Delta$ to 10\% to strike a balance between preserving intra-group similarity and controlling the number of groups. This method for estimation of $M$ is motivated by the observation that data points within the same subspace of $\mathcal{O}_I$ tend to exhibit similar average $\dknn$ values of their RkNN members, due to the similarity of the distribution of their nearby data points in $I$.
 
 
-\noindent\textbf{\textit{Step 2.}}
-For each sampled data point in each group, the $dist_{kNN}$ values of the data points visited at the leaf nodes of the \hdrtree part of the \dualtree during its RkNN search process are divided into different sets. For arbitrary two $dist_{kNN1}$ and $dist_{kNN2}$ values in the same set, the relationship below should hold that:
+\noindent\textit{Step 2.}
+For each sampled data point in each group, the $\dknn$ values of the data points visited at the leaf nodes of the \hdrtree part of the \dualtree during its RkNN search process are divided into different sets. For arbitrary two $dist_{kNN1}$ and $dist_{kNN2}$ values in the same set, the relationship below should hold that:
 \begin{flalign}
 \frac{|dist_{kNN1}-dist_{kNN2}|}{\max\{dist_{kNN1},dist_{kNN2}\}}\leq \Delta \IEEEyesnumber
 \end{flalign}
-where $\Delta$ is a small threshold ratio that controls the within-set variation of the $dist_{kNN}$ values under a low level. In this study, we set $\Delta$ as 10\%. For each sampled data point, the number of sets gained is recorded. Then, the mode of these set counts across all the sampled data points in the $i$-th group can serve as the approximation of the number $B_i$ of bound kernels of the $i$-th sub-space $\mathcal{O}^{i}_I$ of $\mathcal{O}_I$. 
+where $\Delta$ is a small threshold ratio that controls the within-set variation of the $\dknn$ values under a low level. In this study, we set $\Delta$ as 10\%. For each sampled data point, the number of sets gained is recorded. Then, the mode of these set counts across all the sampled data points in the $i$-th group can serve as the approximation of the number $B_i$ of bound kernels of the $i$-th subspace $\mathcal{O}^{i}_I$ of $\mathcal{O}_I$. 
 
 
 
-\noindent\textbf{2). Derive the weight values \bm{$p_m$} and the parameters \bm{$\sigma_m$} and \bm{$\mu_m$} of each sub-model.}
+\noindent\textbf{\textit{Weights and local parameters.}}
 Similar to the kNN search case, the sampled $dist^2(q,v)/b_p^2$ values collected during RkNN search are used together with the standard EM algorithm \cite{ng2012algorithm} to estimate the weight value $p_m$ and the parameters $\mu_m$ and $\sigma_m$ for each sub-model.
 
 
