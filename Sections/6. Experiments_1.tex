@@ -18,7 +18,7 @@ We compare the following methods.
     \item \textbf{\deltatree}~\cite{cui2003contorting}: an ablation that indexes only $I$; reverse kNN search over $U$ is not accelerated.
 \end{itemize}
 
-All evaluated methods return exact kNN join results. We therefore do not compare against approximate nearest-neighbor methods, whose recall-quality trade-offs are orthogonal to the exact maintenance problem studied here.
+All evaluated methods return exact kNN join results. We therefore do not compare against approximate kNN methods, whose recall-quality trade-offs are orthogonal to the exact maintenance problem studied here.
 
 \noindent\textbf{Datasets and hardware.}
 Table~\ref{tab:dataset} summarizes the eight real datasets used in the evaluation. They cover image, audio, and text features, with dimensionalities from 128 to 4096. All experiments were run on a server with two Intel Xeon Gold 6342 CPUs, 500 GB RAM, and Ubuntu 22.04.1 LTS.
