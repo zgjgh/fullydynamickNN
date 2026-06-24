@@ -2,6 +2,8 @@
 
 This section formalizes the exact fully dynamic kNN join problem and reviews the two index structures that serve as the main building blocks of \dualtree.
 
+\subsection{Definitions and PCA Preliminaries}\label{sec:background-preliminaries}
+
 Let $\mathcal{X}\subseteq\mathbb{R}^D$ be a $D$-dimensional vector space. Unless stated otherwise, $dist(\cdot,\cdot)$ denotes Euclidean distance, i.e., the $\ell_2$ norm.
 
 \begin{definition}[kNN search]\label{def:knns}
@@ -31,10 +33,6 @@ Given $U\subseteq\mathcal{X}$, $I\subseteq\mathcal{X}$, and $k$, the kNN join fr
 \end{equation}
 \end{definition}
 
-\noindent\textbf{Problem statement.}
-We study exact fully dynamic kNN join on high-dimensional data: exactly maintain $\knnjoin(U,I)$ efficiently as both $U$ and $I$ are updated, with $D$ large enough that full-dimensional distance computation is a heavy cost.
-
-\noindent\textbf{Principal Component Analysis.}
 Principal component analysis (PCA) is a standard dimensionality-reduction technique~\cite{wold1987principal,chakrabarti2000local,abdi2010principal,vidal2016principal}. We use PCA for exact pruning: projected distances in a prefix of principal components provide lower bounds on full-dimensional Euclidean distances. Let $PC(i)$ denote the $i$-th principal component, and let $\cup_{i=1}^{d}PC(i)$ denote the $d$-dimensional subspace spanned by the leading $d$ components. For a point $u$, $u_{\cup_{i=1}^{d}PC(i)}$ denotes its projection into this subspace.
 
 \begin{lemma}[Contractive distance property of PCA]\label{lm:pca_decrease_dist}\label{thm:distance_pca}
@@ -50,7 +48,12 @@ dist(a,b).
 
 This monotonicity follows from Euclidean distance being a sum of nonnegative squared coordinate differences; adding projected dimensions cannot decrease the partial sum. A proof of this property was also given in the earlier work~\cite{ukey2023efficient}. In our setting, this fact is the correctness basis for all reduced-space pruning steps used later in the paper, including the cluster-level pruning in \deltatree and \hdrtree and the point-wise pruning stage introduced in Section~\ref{sec:pruning}.
 
-\noindent\textbf{\hdrtree and \deltatree.}
+\subsection{Problem Statement}\label{sec:problem-statement}
+
+We study exact fully dynamic kNN join on high-dimensional data: exactly maintain $\knnjoin(U,I)$ efficiently as both $U$ and $I$ are updated, with $D$ large enough that full-dimensional distance computation is a heavy cost.
+
+\subsection{Hierarchical Index Building Blocks}\label{sec:index-building-blocks}
+
 \deltatree~\cite{cui2003contorting} and \hdrtree~\cite{yang2014continuous} are two closely related high-dimensional hierarchical indexes. They share a similar top-down organization and rely on reduced-space pruning, but they are designed for different search tasks. This combination of hierarchical clustering, dimensionality reduction, and exact leaf-level verification is precisely what makes them effective building blocks for exact search in high-dimensional spaces. \deltatree indexes the reference set $I$ and accelerates kNN search, whereas \hdrtree indexes the query set $U$ and accelerates RkNN search. In our setting, this means \deltatree supports the kNN computations needed to create or repair join rows, whereas \hdrtree supports the identification of affected queries when reference updates occur. We therefore describe their common structure first and then highlight their task-specific roles.
 
 \noindent\textbf{\textit{Structure.}}
