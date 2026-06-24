@@ -2,7 +2,7 @@
 
 This section formalizes the exact fully dynamic kNN join problem and reviews the two index structures that serve as the main building blocks of \dualtree.
 
-\subsection{Definitions and PCA Preliminaries}\label{sec:background-preliminaries}
+\subsection{Definitions and PCA}\label{sec:background-preliminaries}
 
 Let $\mathcal{X}\subseteq\mathbb{R}^D$ be a $D$-dimensional vector space. Unless stated otherwise, $dist(\cdot,\cdot)$ denotes Euclidean distance, i.e., the $\ell_2$ norm.
 
@@ -52,7 +52,7 @@ This monotonicity follows from Euclidean distance being a sum of nonnegative squ
 
 We study exact fully dynamic kNN join on high-dimensional data: exactly maintain $\knnjoin(U,I)$ efficiently as both $U$ and $I$ are updated, with $D$ large enough that full-dimensional distance computation is a heavy cost.
 
-\subsection{Hierarchical Index Building Blocks}\label{sec:index-building-blocks}
+\subsection{Index Building Blocks}\label{sec:index-building-blocks}
 
 \deltatree~\cite{cui2003contorting} and \hdrtree~\cite{yang2014continuous} are two closely related high-dimensional hierarchical indexes. They share a similar top-down organization and rely on reduced-space pruning, but they are designed for different search tasks. This combination of hierarchical clustering, dimensionality reduction, and exact leaf-level verification is precisely what makes them effective building blocks for exact search in high-dimensional spaces. \deltatree indexes the reference set $I$ and accelerates kNN search, whereas \hdrtree indexes the query set $U$ and accelerates RkNN search. In our setting, this means \deltatree supports the kNN computations needed to create or repair join rows, whereas \hdrtree supports the identification of affected queries when reference updates occur. We therefore describe their common structure first and then highlight their task-specific roles.
 
