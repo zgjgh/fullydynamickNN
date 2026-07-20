@@ -21,18 +21,21 @@ For any $\delta>0$,
 \frac{\sum_{k=1}^{D}E(|Y_k|^{2+\delta})}
 {\sqrt{\sum_{k=1}^{D}Var(Y_k)}^{2+\delta}}
 \leq
-\left(
-\frac{45(\max_{1\leq k\leq D}\{\max\{\eta_{1k},\eta_{2k}\}\})^2}
-{\iota\sum_{k=1}^{D}(b_k-a_k)^2(4a_k^2+7a_kb_k+4b_k^2)}
-\right)^{\delta/2},
+\left(\frac{45\Gamma_D^2}{\iota H_D}\right)^{\delta/2},
 \label{equ:lemma_1_conclusion}
 \end{equation}
-where
+where $A_k=a_k^2+a_kb_k+b_k^2$ and
 \begin{align}
-\eta_{1k}&=\left|a_k^2-\frac{\kappa_2(a_k^2+a_kb_k+b_k^2)}{3}\right|,
+\eta_{1k}&=\left|a_k^2-\frac{\kappa_2 A_k}{3}\right|,
 \label{equ:exp_kappa_2_left}\\
-\eta_{2k}&=\left|b_k^2-\frac{\kappa_1(a_k^2+a_kb_k+b_k^2)}{3}\right|.
+\eta_{2k}&=\left|b_k^2-\frac{\kappa_1 A_k}{3}\right|,
 \label{equ:exp_kappa_1_right}
+\end{align}
+and
+\begin{align}
+R_k&=\max\{\eta_{1k},\eta_{2k}\},\quad
+\Gamma_D=\max_{1\leq k\leq D}R_k, \notag\\
+H_D&=\sum_{k=1}^{D}(b_k-a_k)^2(4a_k^2+7a_kb_k+4b_k^2). \notag
 \end{align}
 \begin{proof}
 Since $Y_k=Z_k^2-E(Z_k^2)$,
@@ -57,10 +60,7 @@ Using \eqref{equ:z_k_variance} and \eqref{equ:expectation_variance_appro}, the d
 \begin{equation}
 \left(\sum_{k=1}^{D}Var(Z_k^2)\right)^{\delta/2}
 \geq
-\left(
-\iota\sum_{k=1}^{D}
-\frac{(4a_k^2+7a_kb_k+4b_k^2)(b_k-a_k)^2}{45}
-\right)^{\delta/2}.
+\left(\frac{\iota H_D}{45}\right)^{\delta/2}.
 \label{equ:variance_two_plus_delta_moment}
 \end{equation}
 Moreover, for $a_k^2\leq y\leq b_k^2$, \eqref{equ:z_k_E} and
@@ -69,8 +69,8 @@ Moreover, for $a_k^2\leq y\leq b_k^2$, \eqref{equ:z_k_E} and
 |y-E(Z_k^2)|
 &\leq
 \max\left\{
-\left|b_k^2-\frac{\kappa_1(a_k^2+a_kb_k+b_k^2)}{3}\right|,
-\left|a_k^2-\frac{\kappa_2(a_k^2+a_kb_k+b_k^2)}{3}\right|
+\left|b_k^2-\frac{\kappa_1 A_k}{3}\right|,
+\left|a_k^2-\frac{\kappa_2 A_k}{3}\right|
 \right\}
 \label{equ:two_upperbound}\\
 &=\max\{\eta_{1k},\eta_{2k}\}.
@@ -80,11 +80,9 @@ Therefore,
 \begin{align}
 \sum_{k=1}^{D}E(|Z_k^2-E(Z_k^2)|^{2+\delta})
 &\leq
-\sum_{k=1}^{D}
-(\max\{\eta_{1k},\eta_{2k}\})^{\delta} Var(Z_k^2) \notag\\
+\sum_{k=1}^{D}R_k^\delta Var(Z_k^2) \notag\\
 &\leq
-\max_{1\leq k\leq D}
-\{(\max\{\eta_{1k},\eta_{2k}\})^{\delta}\}
+\Gamma_D^\delta
 \sum_{k=1}^{D}Var(Z_k^2).
 \label{equ:Z_k_square_two_delta_moment}
 \end{align}
@@ -295,14 +293,24 @@ Based on the observation that $|e^{-x}-1+x|\leq x^2/2$, and that $E(Y_k)=E(Z^2_k
 =&|1-\frac{Var(Y_k)t^2}{2s^2_D}-(e^{-\frac{Var(Y_k)t^2}{2s^2_D}}-1-\frac{Var(Y_k)t^2}{2s^2_D}\IEEEnonumber \\+&1\frac{Var(Y_k)t^2}{2s^2_D})| 
 \leq \frac{Var^2(Y_k)t^4}{8s^4_D} \IEEEyesnumber \label{equ:third_item_bound}
 \end{flalign}
-Based on inequality \ref{equ:characteristic_two_term}, \ref{equ:first_item_bound}, \ref{equ:second_item_bound}, and \ref{equ:third_item_bound}, the bound of the difference between the characteristic function of $S_D/s_D$ and standard Normal Distribution can be further examined following the inequality \ref{equ:characteristic_two_term} that: for an arbitrary positive value $\epsilon$, the subsequent relation can be derived:
-\begin{flalign}
-&|E(e^{it\cdot \frac{S_D}{s_D}})-e^{-\frac{t^2}{2}}|\leq \sum^D_{k=1}(\frac{Var^2(Y_k)t^4}{8s^4_D}+E(\frac{t^2Y^2_k}{s^2_D}))\IEEEyesnumber \label{equ:inequ_1}
-\end{flalign}
-And that:
-\begin{flalign}
-    &|E(e^{it\cdot \frac{S_D}{s_D}})-e^{-\frac{t^2}{2}}|\leq\sum^D_{k=1}(\frac{Var^2(Y_k)t^4}{8s^4_D}+E(\frac{|tY_k|^3}{6s^2_D})) \IEEEyesnumber \label{equ:inequ_2}
-\end{flalign}
+Based on inequality \ref{equ:characteristic_two_term}, \ref{equ:first_item_bound}, \ref{equ:second_item_bound}, and \ref{equ:third_item_bound}, let
+$\Delta(t)=|E(e^{it\cdot S_D/s_D})-e^{-t^2/2}|$. For an arbitrary positive value $\epsilon$, the subsequent relations can be derived:
+\begin{align}
+\Delta(t)
+&\leq
+\sum^D_{k=1}\left(
+\frac{Var^2(Y_k)t^4}{8s^4_D}
++E\!\left(\frac{t^2Y^2_k}{s^2_D}\right)
+\right),
+\label{equ:inequ_1}\\
+\Delta(t)
+&\leq
+\sum^D_{k=1}\left(
+\frac{Var^2(Y_k)t^4}{8s^4_D}
++E\!\left(\frac{|tY_k|^3}{6s^2_D}\right)
+\right).
+\label{equ:inequ_2}
+\end{align}
 Based on inequality \ref{equ:inequ_1} and \ref{equ:inequ_2}, the difference between the characteristic function of $S_D/s_D$ and Normal Distribution can be bounded by the inequality below under the setting that $\textbf{1}_{A}$ means the indicator function:
 \begin{comment}
 \begin{flalign}
@@ -334,10 +342,22 @@ After specifying the value of $\epsilon$, the first two terms in inequality \ref
     $\frac{t^2}{s^2_D}\sum^D_{k=1}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})$=0, when $\epsilon=(\frac{5}{4}\xi)^{\frac{1}{2}}$. 
     \begin{proof}
        because of lemma \ref{lm:Y_K_delta_moment_bound} and lemma \ref{lm:delta_moment},
-       \begin{flalign}
-&\frac{t^2}{s^2_D}\sum^D_{k=1}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})=\frac{t^2\sum^D_{k=1}\int_{|y|>\epsilon s_D}|y|^2f_{Y_k}(y)dy}{s^2_D} \IEEEnonumber \\
-&\leq \frac{t^2\sum^D_{k=1}E(|Y_k|^{2+\delta})}{\epsilon^\delta s^{2+\delta}_{D}}\leq t^2\cdot \frac{\xi^{\frac{\delta}{2}}}{(\frac{5}{4}\xi)^\frac{\delta}{2}}=t^2\cdot(\frac{4}{5})^\frac{\delta}{2}\IEEEyesnumber \label{equ:zero_1}
-\end{flalign}
+       \begin{align}
+&\frac{t^2}{s^2_D}
+\sum^D_{k=1}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D}) \notag\\
+&=
+\frac{t^2\sum^D_{k=1}
+\int_{|y|>\epsilon s_D}|y|^2f_{Y_k}(y)dy}{s^2_D} \notag\\
+&\leq
+\frac{t^2\sum^D_{k=1}E(|Y_k|^{2+\delta})}
+{\epsilon^\delta s^{2+\delta}_{D}}
+\leq
+t^2\cdot \frac{\xi^{\delta/2}}{(\frac{5}{4}\xi)^{\delta/2}}
+\notag\\
+&=
+t^2\cdot\left(\frac{4}{5}\right)^{\delta/2}.
+\label{equ:zero_1}
+\end{align}
 Because lemma \ref{lm:delta_moment} accepts assignment of any positive value to $\delta$, the development of inequality \ref{equ:zero_1} follows naturally that:
 \begin{comment}
 \begin{flalign}
