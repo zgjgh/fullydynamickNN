@@ -76,6 +76,9 @@ Moreover, for $a_k^2\leq y\leq b_k^2$, \eqref{equ:z_k_E} and
 &=\max\{\eta_{1k},\eta_{2k}\}.
 \label{two_uppbound_eta12}
 \end{align}
+Thus, on the support of $Z_k^2$, the factorization
+$|Z_k^2-E(Z_k^2)|^{2+\delta}=|Z_k^2-E(Z_k^2)|^2|Z_k^2-E(Z_k^2)|^\delta$
+gives $|Z_k^2-E(Z_k^2)|^{2+\delta}\leq R_k^\delta |Z_k^2-E(Z_k^2)|^2$.
 Therefore,
 \begin{align}
 \sum_{k=1}^{D}E(|Z_k^2-E(Z_k^2)|^{2+\delta})
@@ -329,7 +332,7 @@ Based on the observation that $\epsilon$ can enable inequality \ref{equ:need_to_
 \begin{flalign}
 \xi=\frac{45\times(\max_{1\leq k\leq D}\{\max\{\eta_{1k}, \eta_{2k}\}\})^2}{\iota\sum^D_{k=1}(b_k - a_k)^2(4a^2_k + 7a_kb_k + 4b^2_k)}\IEEEyesnumber \label{equ:xi}
 \end{flalign}
-,where $|a^2_k-\frac{\kappa_2(a^2_k+a_kb_k+b^2_k)}{3}|$ and $|b^2_k-\frac{\kappa_1(a^2_k+a_kb_k+b^2_k)}{3}|$ are assigned to $\eta_{1k}$ and $\eta_{2k}$, respectively.
+where $|a^2_k-\frac{\kappa_2(a^2_k+a_kb_k+b^2_k)}{3}|$ and $|b^2_k-\frac{\kappa_1(a^2_k+a_kb_k+b^2_k)}{3}|$ are assigned to $\eta_{1k}$ and $\eta_{2k}$, respectively. Equivalently, with the notation of Lemma~\ref{lm:Y_K_delta_moment_bound}, $\xi=45\Gamma_D^2/(\iota H_D)$.
 \begin{comment}
 \begin{flalign}
 &\eta_{1k}=|a^2_k-\frac{\kappa_2(a^2_k+a_kb_k+b^2_k)}{3}|\IEEEyesnumber \label{equ:eta_1} \\
