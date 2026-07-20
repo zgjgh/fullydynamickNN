@@ -504,9 +504,7 @@ Therefore, the number of groups into which the sampled points are divided can be
 
 
 \noindent\textbf{\textit{Weight values and local parameters.}}
-After determining $M$ and $B_i$, the following approach is applied to estimate the weight and parameters of each sub-model, which follows a Normal Distribution. The observed $Z$ values encountered during the kNN search process for each sampled data point (which are collected in the sampling process but are not used in the estimation of $M$ and $B_i$) are utilized to infer the weight and parameters of each sub-model.
-
-Because the density $f_Z$ is modeled as a Gaussian mixture, we apply the standard EM algorithm \cite{ng2012algorithm} to infer the corresponding mixture weights and Gaussian parameters. Here, EM serves only as a standard parameter-estimation routine for the mixture model, so its update equations are omitted.
+After determining $M$ and $B_i$, the observed $Z$ values from the kNN search traces, which are collected during sampling but not used to estimate $M$ and $B_i$, are used to fit the Gaussian mixture model for $f_Z$. We apply the standard EM algorithm \cite{ng2012algorithm} to estimate the mixture weights $p_m$ and Gaussian parameters $\mu_m$ and $\sigma_m$.
 
 \noindent\textbf{Parameters for RkNN search.}
 In the RkNN search scenario, the query point $q$ belongs to $I$, and the visited point $v$ at a leaf node of the \hdrtree\ part of \dualtree belongs to $U$. The pruning bound $b_p$ is the $\dknn$ value of the visited point (refer to the RkNN search algorithm on \hdrtree~\cite{yang2014continuous} for details), and $\mathcal{O}_I$ denotes the smallest $D$-dimensional space containing all data points in $I$ during the update process. 
