@@ -435,56 +435,37 @@ $\lim_{D\to\infty}\xi=0$.
 By Assumptions 1 and 2, $\kappa_1$, $\kappa_2$, and $\iota$ are constants, while $a_k$ and $b_k$ are uniformly bounded. Hence $\eta_{1k}$ and $\eta_{2k}$ are bounded, and the numerator of \eqref{equ:xi} is bounded. The denominator of \eqref{equ:xi} is the accumulated variance-scale term over the $D$ dimensions and tends to infinity as $D$ grows. Thus, $\xi$ is a bounded numerator divided by a divergent denominator, so $\lim_{D\to\infty}\xi=0$.
 \end{proof}
 \end{lemma}
-\begin{comment}
-Given that the current study is conducted in a high-dimensional space where 
-$D$ is large, Lemma~\ref{lm:xi_zero} implies that $\xi$ is asymptotically close to zero. Consequently, it can be concluded that the difference $|E( e^{it \cdot \frac{S_D}{s_D}}) - e^{-t^2/2}|$ between the characteristic function of $S_D/s_D$ and that of $\mathcal{N}(0,1)$ remains uniformly small and can be regarded as negligible for all $t$ within a considerably extensive range.
-
-In accordance with assumption 1, $Z_k$ has a finite support, as a result, $S_D/s_D$, which is a second-degree polynomial of $Z_k$ also has a finite support. Therefore, the probability density function $f_{\frac{s_D}{S_D}}(y)$ of $\frac{S_D}{s_D}$ is absolutely integrable on the real number set $R$. According to Riemann–Lebesgue Theorem \cite{bohner2003riemann}, the characteristic function $E(e^{it\cdot \frac{S_D}{s_D}})$ of $\frac{S_D}{s_D}$ is equal to $0$ when $t$ tends to be $\infty$ that
-\begin{flalign}
-\lim_{t\to\infty}E(e^{it\cdot \frac{S_D}{s_D}})=0 \IEEEyesnumber \label{equ:l_r_limit}
-\end{flalign}
-According to assumption 1 that the probability density function $f_{Z_k}(y)$ of $Z_k$ has a compact support and is infinitely differentiable in real number set, therefore, the probability density function $f_{Y_k}(y)$ of $Y_k=Z^2_k-E(Z^2_k)$ also has a compact support and is infinitely differentiable in $R$. Due to the nature of independence between $Y_i$ and $Y_j$, the density probability function $f_{\frac{S_D}{s_D}}(x)$ of $S_D/s_D$ follows a convolution form of $f_{Y_k}(y)$. In conclusion, $f_{\frac{S_D}{s_D}}$ is also infinitely differentiable in $R$. Therefore, by invoking the definition of the characteristic function in Theorem~\ref{thm:thm_characteristic_function} and applying integration by parts repeatedly, the following derivation for the characteristic function of 
-$\frac{S_D}{s_D}$ can be obtained that:
-\begin{flalign}
-   &|E(e^{-it\cdot\frac{S_D}{s_D}})|=|\int^{+\infty}_{-\infty}e^{-itx}f_{\frac{S_D}{s_D}}(y)dy|\IEEEnonumber\\
-   &=|\frac{\int^{+\infty}_{-\infty}e^{-itx}\frac{d^{l}f_{\frac{S_D}{s_D}}(y)}{(dy)^{l}}dy}{(it)^l}|\leq \frac{|\int^{+\infty}_{-\infty}\frac{d^{l}f_{\frac{S_D}{s_D}}(y)}{(dy)^{l}}dy|}{|t|^l} \IEEEyesnumber \label{equ:integration_bound} 
-\end{flalign}
-Note that $f_{\frac{S_D}{s_D}}(y)$ has a compact support, therefore, $\frac{d^{l}f_{\frac{S_D}{s_D}}(y)}{(dy)^{l}}dy$ also has a compact support, thus is integrable over $R$ and $|\int^{+\infty}_{-\infty}\frac{d^{l}f_{\frac{S_D}{s_D}}(y)}{(dy)^{l}}dy|$ is a finite value. Hence, when $t$ gets larger, the $E(e^{-it\cdot \frac{S_D}{s_D}})$ decays to zero at a rate that exceeds any polynomial in 
-$t$ of arbitrarily large degree. Therefore, when $t$ gets larger, $|E(e^{-it\cdot\frac{S_D}{s_D}})|$ becomes negligibly small. By the same reasoning, the characteristic function $e^{-\frac{t^2}{2}}$ of the standard normal distribution $\mathcal{N}(0,1)$ also decays rapidly for large value of $t$, quickly becoming negligible. In conclusion, the magnitude of the difference between the characteristic function $ E(e^{-it\cdot\frac{S_D}{s_D}})$ of $\frac{S_D}{s_D}$ and the characteristic function $e^{-t^2/2}$ of the standard normal distribution $\mathcal{N}(0,1)$ becomes negligibly small when a large value is assigned to $|t|$.
-
-Based on the analysis above, a conclusion can be drawn that, the difference $|E(e^{-it\cdot{\frac{S_D}{s_D}}}) - e^{-t^2/2}|$ is negligibly small for almost all $t$ in $R$.
-
-Based on Esseen smoothing inequality \cite{borda2021berry} and that $|E(e^{-it\cdot{\frac{S_D}{s_D}}}) - e^{-t^2/2}|$ is negligibly small for almost all $t$ in $R$, a conclusion can be drawn that the difference between the cumulative distribution function of $S_D/s_D$ and that of $\mathcal{N}(0,1)$ is also negligibly small over $R$. which implies that:
-\begin{flalign}
-    \frac{S_D}{s_D} \sim \mathcal{N}(0,1) \quad approximate
-\end{flalign}
-\end{comment}
-
-Following the detailed evaluation of the difference between the characteristic functions of $S_D/s_D$ and $\mathcal{N}(0,1)$, analysis can be reverted to Esseen's inequality so that the upper bound on the discrepancy between the two cumulative distribution functions of can be assessed. 
-
-\begin{lemma}
-    According to Esseen 's inequality, the upper bound of the absolute difference between the cumulative distribution functions of $S_D/s_D$ and $\mathcal{N}(0,1)$ approaches $0$ when the dimensionality $D$ tends to be positive infinity, namely 
-\begin{flalign}
-\lim_{D\rightarrow+\infty}\sup_{x\in\mathbb{R}} \left| F_{\frac{S_D}{s_D}}(x)-F_{\mathcal{N}(0,1)}(x)\right|=0 
-\end{flalign}
-\label{thm:lim_sup}
+The characteristic-function bound in \eqref{equ:new_bound}, together with Lemma~\ref{lm:xi_zero}, can now be transferred to the distribution functions through Esseen's inequality.
+\begin{lemma}[CDF convergence]\label{thm:lim_sup}
+\[
+\lim_{D\to\infty}\sup_{x\in\mathbb{R}}
+\left|F_{S_D/s_D}(x)-F_{\mathcal{N}(0,1)}(x)\right|=0 .
+\]
 \end{lemma}
 \begin{proof}
-    According to Esseen's inequality and inequality \ref{equ:new_bound}, the following deduction can be performed that:
-    \begin{flalign}
-        &\sup_{x\in\mathbb{R}} \left| F_{\frac{S_D}{s_D}}(x)-F_{\mathcal{N}(0,1)}(x)\right| 
-\;\IEEEnonumber\\
-\leq&\; \frac{1}{\pi}\int_{-T}^{T} 
-\left| \frac{E(e^{it\cdot\frac{S_D}{s_D}})-e^{-\frac{t^2}{2}}}{t} \right| \, dt \;+\; \frac{C}{T}\IEEEnonumber\\
-\leq&\frac{1}{\pi}\int^{T}_{-T}\frac{5}{4}\xi|t|^3+(\frac{5}{4}\xi)^{\frac{1}{2}}t^2\,dt+\frac{C}{T}\IEEEnonumber\\
-=&\frac{2}{\pi}\cdot(\frac{5\xi T^4}{16}+\frac{\sqrt{5\xi}T^3}{6})+\frac{C}{T}\label{equ:sup}
-    \end{flalign}
-    For an arbitrary positive value $\varsigma$, $\frac{C}{T}$ can be fixed at $\frac{\varsigma}{2}$ under the assignment of $\frac{2C}{\varsigma}$ to $T$. And according to lemma \ref{lm:xi_zero}, there must exist a dimensionality $D(\frac{\varsigma}{2})$ that enables $\frac{2}{\pi}\cdot (\frac{5\xi T^4}{16}+\frac{\sqrt{5\xi}T^3}{6})<\frac{\varsigma}{2}$ for any dimensionality $D'>D(\frac{\varsigma}{2})$. Therefore, for any positive value $\varsigma$, there must exist a dimensionality that enables the upper bound of the absolute difference between the cumulative distribution functions of $\frac{S_D}{s_D}$ and $\mathcal{N}(0,1)$ to be smaller than $\varsigma$ for any dimensionality that is larger than it. In conclusion, 
-    \begin{flalign}    \lim_{D\rightarrow+\infty}\sup_{x\in\mathbb{R}} \left| F_{\frac{S_D}{s_D}}(x)-F_{\mathcal{N}(0,1)}(x)\right|=0.   
-    \end{flalign}
-    
+For any $T>0$, Esseen's inequality and \eqref{equ:new_bound} give
+\begin{align}
+&\sup_{x\in\mathbb{R}}
+\left|F_{S_D/s_D}(x)-F_{\mathcal{N}(0,1)}(x)\right| \notag\\
+&\leq
+\frac{1}{\pi}\int_{-T}^{T}
+\left|\frac{E(e^{itS_D/s_D})-e^{-t^2/2}}{t}\right|dt
++\frac{C}{T} \notag\\
+&\leq
+\frac{1}{\pi}\int_{-T}^{T}
+\left(\frac{5}{4}\xi |t|^3
++\left(\frac{5}{4}\xi\right)^{1/2}t^2\right)dt
++\frac{C}{T} \notag\\
+&=
+\frac{2}{\pi}\left(
+\frac{5\xi T^4}{16}
++\frac{\sqrt{5\xi}T^3}{6}\right)
++\frac{C}{T}.
+\label{equ:sup}
+\end{align}
+For any $\varsigma>0$, choose $T>2C/\varsigma$. For this fixed $T$, Lemma~\ref{lm:xi_zero} makes the $\xi$-dependent term in \eqref{equ:sup} smaller than $\varsigma/2$ for all sufficiently large $D$. Hence the supremum is eventually below $\varsigma$, proving the limit.
 \end{proof}
-Based on lemma \ref{thm:lim_sup} and the high-dimensional context of this work where the dimensionality is a large value, a conclusion can be drawn that the upper bound of the absolute difference between the cumulative distribution function of $S_D/s_D$ and the cumulative distribution function of the standard normal distribution $\mathcal{N}(0,1)$ can be very close to $0$, as a result, the distribution of $S_D/s_D$ is very similar to that of $\mathcal{N}(0,1)$. Therefore, expression \ref{equ:proof_final}, which is equivalent to lemma \ref{thm:normal_distribution_local}, is proved. Therefore, lemma \ref{thm:normal_distribution_local} is proved.
+Lemma~\ref{thm:lim_sup} establishes the normal approximation in \eqref{equ:proof_final} for large $D$. Since \eqref{equ:proof_final} is equivalent to Lemma~\ref{thm:normal_distribution_local}, Lemma~\ref{thm:normal_distribution_local} is proved.
 
 \section*{Appendix A.3: Parameter Estimation}
  At the beginning of the update, we employ a sampling-based method to determine the parameters in the probability density function $f_{dist^2(q,v)/b_{p}^2}$ of $dist^2(q,v)/b_{p}^2$ throughout the update process. Since the data distribution evolves slowly during the update process, it is reasonable to assume that the data in $U\cup I$ at the beginning of the phase remains representative of the entire period. Thus, estimating the parameters of $f_{dist^2(q,v)/b^2_{p}}$ based on the initial state of the update is reasonable.
