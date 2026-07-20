@@ -472,7 +472,7 @@ Lemma~\ref{thm:lim_sup} establishes the normal approximation in \eqref{equ:proof
 
 As discussed earlier, the optimal pruning dimensionality is computed from the probability distribution of $dist^2(q,v)/b_{p}^2$ and applies to both the kNN search process and the RkNN search process on \dualtree. This appendix describes how the parameters of $f_{dist^2(q,v)/b_{p}^2}$ are estimated in the two cases.
 
-\noindent\textbf{Parameters for kNN search.} \textit{Sampling.}
+\noindent\textbf{Parameters for kNN search.}
 In the kNN search scenario, the query point $q$ belongs to $U$, and the visited point $v$ at a leaf node of the \deltatree part of \dualtree belongs to $I$. The pruning bound $b_p$ is the distance from $q$ to the farthest point in its current candidate kNN list (refer to the exact kNN search algorithm on \deltatree~\cite{cui2003contorting} for details), and $\mathcal{O}_U$ denotes the smallest $D$-dimensional space containing all data points in $U$ during the update process. 
 
 To estimate the parameters of the probability density function $f_{dist^2(q,v)/b^2_p}$ of $dist^2(q,v)/b^2_p$, an appropriate proportion of the data points are sampled from each leaf node of the \hdrtree part of the \dualtree where the data points in $U$ are stored. In this paper, we find that 10\% provides a good balance between diversity and efficiency in practice. Then, three quantities are collected from such sample data points:
@@ -520,7 +520,7 @@ After determining $M$ and $B_i$, the following approach is applied to estimate t
 
 Because $F_{dist^2(q,v)/b_{p}^2}$ follows a mixed Normal Distribution, we apply the standard EM algorithm \cite{ng2012algorithm} to infer the corresponding mixture weights and Gaussian parameters. Here, EM serves only as a standard parameter-estimation routine for the mixture model, so its update equations are omitted.
 
-\noindent\textbf{Parameters for RkNN search.} \textit{Sampling.}
+\noindent\textbf{Parameters for RkNN search.}
 In the RkNN search scenario, the query point $q$ belongs to $I$, and the visited point $v$ at a leaf node of the \hdrtree\ part of \dualtree belongs to $U$. The pruning bound $b_p$ is the $\dknn$ value of the visited point (refer to the RkNN search algorithm on \hdrtree~\cite{yang2014continuous} for details), and $\mathcal{O}_I$ denotes the smallest $D$-dimensional space containing all data points in $I$ during the update process. 
 
 To estimate the parameters of $f_{dist^2(q,v)/b^2_p}$ during RkNN search, an appropriate proportion of the data points are sampled from each leaf node of the \deltatree part of the \dualtree where the data points in $I$ are stored. In this paper, we find that 10\% provides a good balance between diversity and efficiency in practice. Then, two quantities are collected from such sample data points:
