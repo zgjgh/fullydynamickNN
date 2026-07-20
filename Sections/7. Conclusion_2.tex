@@ -468,9 +468,9 @@ For any $\varsigma>0$, choose $T>2C/\varsigma$. For this fixed $T$, Lemma~\ref{l
 Lemma~\ref{thm:lim_sup} establishes the normal approximation in \eqref{equ:proof_final} for large $D$. Since \eqref{equ:proof_final} is equivalent to Lemma~\ref{thm:normal_distribution_local}, Lemma~\ref{thm:normal_distribution_local} is proved.
 
 \section*{Appendix A.3: Parameter Estimation}
-At the beginning of the update, we employ a sampling-based method to determine the parameters in the probability density function $f_{dist^2(q,v)/b_{p}^2}$ of $dist^2(q,v)/b_{p}^2$ throughout the update process. Write $Z=dist^2(q,v)/b_p^2$. Since the data distribution evolves slowly during the update process, it is reasonable to assume that the data in $U\cup I$ at the beginning of the phase remains representative of the entire period. Thus, estimating the parameters of $f_Z$ based on the initial state of the update is reasonable.
+At the beginning of an update phase, we employ a sampling-based method to estimate the parameters of the density of $Z=dist^2(q,v)/b_p^2$. Since the data distribution evolves slowly during the update process, it is reasonable to assume that the data in $U\cup I$ at the beginning of the phase remains representative of the entire period. Thus, estimating the parameters of $f_Z$ from the initial state of the phase is reasonable.
 
-As discussed earlier, the optimal pruning dimensionality is computed from the probability distribution of $dist^2(q,v)/b_{p}^2$ and applies to both the kNN search process and the RkNN search process on \dualtree. This appendix describes how the parameters of $f_{dist^2(q,v)/b_{p}^2}$ are estimated in the two cases.
+As discussed earlier, the optimal pruning dimensionality depends on the distribution of $Z$. The kNN and RkNN search processes induce different samples of $Z$, because their search origins, visited points, and pruning bounds are different. Therefore, this appendix estimates the parameters of the corresponding $f_Z$ separately for the kNN and RkNN cases.
 
 \noindent\textbf{Parameters for kNN search.}
 In the kNN search scenario, the query point $q$ belongs to $U$, and the visited point $v$ at a leaf node of the \deltatree part of \dualtree belongs to $I$. The pruning bound $b_p$ is the distance from $q$ to the farthest point in its current candidate kNN list (refer to the exact kNN search algorithm on \deltatree~\cite{cui2003contorting} for details), and $\mathcal{O}_U$ denotes the smallest $D$-dimensional space containing all data points in $U$ during the update process. To estimate the parameters of $f_Z$, an appropriate proportion of data points is sampled from each leaf node of the \hdrtree part of \dualtree where the data points in $U$ are stored. In this paper, we find that 10\% provides a good balance between diversity and efficiency in practice. For each sampled point, the kNN search process records three quantities: the $\dknn$ value of the sampled point, the number of distinct $b_p$ values encountered during the search, and the observed $Z$ values.
@@ -504,21 +504,21 @@ Therefore, the number of groups into which the sampled points are divided can be
 
 
 \noindent\textbf{\textit{Weight values and local parameters.}}
-After determining $M$ and $B_i$, the following approach is applied to estimate the weight and parameters of each sub-model, which follows a Normal Distribution. The values of $dist^2(q, v)/b_{p}^2$ encountered during the kNN search process for each sampled data point (which are collected in the sampling process but are not used in the estimation of $M$ and $B_i$) are utilized to infer the weight and parameters of each sub-model.
+After determining $M$ and $B_i$, the following approach is applied to estimate the weight and parameters of each sub-model, which follows a Normal Distribution. The observed $Z$ values encountered during the kNN search process for each sampled data point (which are collected in the sampling process but are not used in the estimation of $M$ and $B_i$) are utilized to infer the weight and parameters of each sub-model.
 
-Because $F_{dist^2(q,v)/b_{p}^2}$ follows a mixed Normal Distribution, we apply the standard EM algorithm \cite{ng2012algorithm} to infer the corresponding mixture weights and Gaussian parameters. Here, EM serves only as a standard parameter-estimation routine for the mixture model, so its update equations are omitted.
+Because the density $f_Z$ is modeled as a Gaussian mixture, we apply the standard EM algorithm \cite{ng2012algorithm} to infer the corresponding mixture weights and Gaussian parameters. Here, EM serves only as a standard parameter-estimation routine for the mixture model, so its update equations are omitted.
 
 \noindent\textbf{Parameters for RkNN search.}
 In the RkNN search scenario, the query point $q$ belongs to $I$, and the visited point $v$ at a leaf node of the \hdrtree\ part of \dualtree belongs to $U$. The pruning bound $b_p$ is the $\dknn$ value of the visited point (refer to the RkNN search algorithm on \hdrtree~\cite{yang2014continuous} for details), and $\mathcal{O}_I$ denotes the smallest $D$-dimensional space containing all data points in $I$ during the update process. 
 
-To estimate the parameters of $f_{dist^2(q,v)/b^2_p}$ during RkNN search, an appropriate proportion of the data points are sampled from each leaf node of the \deltatree part of the \dualtree where the data points in $I$ are stored. In this paper, we find that 10\% provides a good balance between diversity and efficiency in practice. Then, two quantities are collected from such sample data points:
+To estimate the parameters of the RkNN-side $f_Z$, an appropriate proportion of the data points are sampled from each leaf node of the \deltatree part of the \dualtree where the data points in $I$ are stored. In this paper, we find that 10\% provides a good balance between diversity and efficiency in practice. Then, two quantities are collected from such sample data points:
 \begin{itemize}
     \item The $\dknn$ values of the visited data points at the leaf node of the \hdrtree part of the \dualtree of each sampled data point.
-    \item The $dist^2(q,v)/b_{p}^2$ values occurring in the RkNN search process for each sampled data point.  
+    \item The $Z$ values occurring in the RkNN search process for each sampled data point.  
 \end{itemize}
 
 
-Similar to the kNN search case, the number $M$ of subspaces $\mathcal{O}_I$ can be partitioned into and the approximate number $B_i$ of bound kernels of each $\mathcal{O}^i_I$ are determined first, followed by the derivation of the weights and parameters of each sub-model of $f_{dist^2(q,v)/b^2_p}$.
+Similar to the kNN search case, the number $M$ of subspaces $\mathcal{O}_I$ can be partitioned into and the approximate number $B_i$ of bound kernels of each $\mathcal{O}^i_I$ are determined first, followed by the derivation of the weights and parameters of each sub-model of the RkNN-side $f_Z$.
 
 \noindent\textbf{\textit{Estimating \bm{$M$} and \bm{$B_i$}.}}
 Two steps can be applied to determine $M$ and $B_i$.
@@ -553,7 +553,7 @@ where $\Delta$ is a small threshold ratio that controls the within-set variation
 
 
 \noindent\textbf{\textit{Weights and local parameters.}}
-Similar to the kNN search case, the sampled $dist^2(q,v)/b_p^2$ values collected during RkNN search are used together with the standard EM algorithm \cite{ng2012algorithm} to estimate the weight value $p_m$ and the parameters $\mu_m$ and $\sigma_m$ for each sub-model.
+Similar to the kNN search case, the sampled $Z$ values collected during RkNN search are used together with the standard EM algorithm \cite{ng2012algorithm} to estimate the weight value $p_m$ and the parameters $\mu_m$ and $\sigma_m$ for each sub-model.
 
 
 
