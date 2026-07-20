@@ -94,18 +94,30 @@ and \eqref{equ:Z_k_square_two_delta_moment} yields \eqref{equ:lemma_1_conclusion
 \end{proof}
 \end{lemma}
 
-\begin{lemma}[Tail-moment bound]
-For a series of random variables $\{Y_k\}$, $1\leq k \leq D$, and two arbitrary positive value $\delta$ and $\epsilon$, let $s_D=\sqrt{\sum^D_{k=1}Var^2(Y_k)}$, if $E(Y_k)=0$ and $Y_k$ has $2+\delta$-th moment, then:
-\begin{flalign}
-&\frac{\sum^D_{k=1}\int_{|x|>\epsilon s_D}|x|^2f_{Y_k}(x)dx}{s^2_D} \leq\frac{\sum^D_{k=1}E(|Y_k|^{2+\delta})}{\epsilon^{\delta}s^{2+\delta}_D} \IEEEyesnumber \label{equ:delta_moment}
-\end{flalign}
+\begin{lemma}[Tail-moment bound]\label{lm:delta_moment}
+Let $\{Y_k\}_{k=1}^{D}$ have zero means and finite $(2+\delta)$-th
+moments for some $\delta>0$. For any $\epsilon>0$ and any scaling
+constant $s_D>0$,
+define
+$T_\epsilon=\sum_{k=1}^{D}\int_{|x|>\epsilon s_D}|x|^2f_{Y_k}(x)dx$.
+Then
+\begin{equation}
+\frac{T_\epsilon}{s_D^2}
+\leq
+\frac{\sum_{k=1}^{D}E(|Y_k|^{2+\delta})}{\epsilon^\delta s_D^{2+\delta}} .
+\label{equ:delta_moment}
+\end{equation}
 \begin{proof}
-    \begin{flalign}    &\frac{\sum^D_{k=1}\int_{|x|>\epsilon s_D}|x|^2f_{Y_k}(x)dx}{s^2_D}\leq\IEEEnonumber \\
- &\frac{\sum^D_{k=1}\int_{|x|>\epsilon s_D}|x|^{2+\delta}f_{Y_k}(x)dx}{\epsilon^{\delta}s^{2+\delta}_D}\leq  \IEEEnonumber \\
-&\frac{\sum^D_{k=1}\int_{\infty}|x|^{2+\delta}f_{Y_{k}}(x)dx}{\epsilon^{\delta}s^{2+\delta}_D}=\frac{\sum^D_{k=1}E(|Y_k|^{2+\delta})}{\epsilon^{\delta}s^{2+\delta}_D}
-    \end{flalign}
+On the event $|x|>\epsilon s_D$, we have
+$|x|^2\leq |x|^{2+\delta}/(\epsilon s_D)^\delta$. Hence
+\begin{equation}
+\frac{T_\epsilon}{s_D^2}
+\leq
+\frac{\sum_{k=1}^{D}\int_{\mathbb{R}}|x|^{2+\delta}f_{Y_k}(x)dx}
+{\epsilon^\delta s_D^{2+\delta}},
+\end{equation}
+which is \eqref{equ:delta_moment}.
 \end{proof}
-\label{lm:delta_moment}
 \end{lemma}
 
 \begin{lemma}[Taylor remainder bound]\label{lm:min}
@@ -129,14 +141,10 @@ For any complex values $w_k$ and $h_k$ with $|w_k|\leq 1$ and $|h_k|\leq 1$,
 \end{lemma}
 
 \noindent\textbf{Characteristic functions.}
-For a random variable $Y$, its characteristic function is
-\[
-\psi_Y(t)=E(e^{itY}),
-\]
-where $E$ denotes the expected value and $i$ is the imaginary unit. In particular, the characteristic function of the standard normal distribution $\mathcal{N}(0,1)$ is
-\[
-\psi_{\mathcal{N}(0,1)}(t)=e^{-t^2/2}
-\]
+For a random variable $Y$, write its characteristic function as
+$\psi_Y(t)=E(e^{itY})$, where $E$ denotes expectation and $i$ is the
+imaginary unit. For the standard normal distribution $\mathcal{N}(0,1)$,
+$\psi_{\mathcal{N}(0,1)}(t)=e^{-t^2/2}$
 \cite{durrett2019probability, teicher1978probability, chung2000course}.
 
 The auxiliary bounds and standard identities above are used in the proof of Lemma~\ref{thm:normal_distribution_local}. The proof is given in the next part of the appendix.
