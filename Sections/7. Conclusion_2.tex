@@ -539,10 +539,7 @@ For each sampled data point in each group, the $\dknn$ values of the data points
 \end{flalign}
 where $\Delta$ is a small threshold ratio that controls the within-set variation of the $\dknn$ values under a low level; this study uses $\Delta=10\%$. For each sampled data point, the number of sets gained is recorded. Then, the mode of these set counts across all the sampled data points in the $i$-th group can serve as the approximation of the number $B_i$ of bound kernels of the $i$-th subspace $\mathcal{O}^{i}_I$ of $\mathcal{O}_I$. 
 
-
-
-\noindent\textbf{\textit{Weights and local parameters.}}
-Similar to the kNN search case, the sampled $Z$ values collected during RkNN search are used together with the standard EM algorithm \cite{ng2012algorithm} to estimate the weight value $p_m$ and the parameters $\mu_m$ and $\sigma_m$ for each sub-model.
+Finally, as in the kNN search case, the sampled RkNN-side $Z$ values are fitted by the standard EM algorithm \cite{ng2012algorithm} to estimate the mixture weights $p_m$ and Gaussian parameters $\mu_m$ and $\sigma_m$.
 
 
 
