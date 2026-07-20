@@ -284,76 +284,89 @@ $Z(t)$ and $Y(t)$, respectively. Then, for any $T>0$, we have
 where $C>0$ is an absolute constant independent of $Y$, $Z$ and $T$.
 \end{lemma}
 
-To analyze the upper bound of the difference between the cumulative distribution functions of $S_D/s_D$ and the standard normal distribution $\mathcal{N}(0,1)$ based on the Esseen's inequality, the central task is to evaluate the difference between the characteristic functions of $S_D/s_D$ and $\mathcal{N}(0,1)$. According to Lemma~\ref{lm:complex_product_bound} and that $Cov(Y_i, Y_j)\approx0$, which is discussed in the deduction of equality \ref{equ:independent}, the following deduction can be done:
-\begin{flalign}
-&|E(e^{it\cdot \frac{S_D}{s_D}})-e^{-\frac{t^2}{2}}|\IEEEnonumber \\
- =&|\prod^{D}_{k=1}E(e^{it\cdot \frac{Y_k}{s_D}})-\prod ^{D}_{k=1}e^{-\frac{Var(Y_k)t^2}{2s^2_D}}| \IEEEnonumber \\
-\leq&\sum^{D}_{k=1}|E(e^{it\cdot \frac{Y_k}{s_D}})-e^{-\frac{Var(Y_k)t^2}{2s^2_D}}| \IEEEnonumber \\
-=& \sum^D_{k=1}(|E(e^{it\cdot\frac{Y_k}{s_D}})-E(1+\frac{Y_kt}{s_D}-\frac{Y^2_kt^2}{2s^2_D})|\IEEEnonumber \\ &+|E(1+\frac{Y_{k}t}{s_D}-\frac{Y^2_kt^2}{2s^2_D})-e^{-\frac{Var(Y_k)t^2}{2s^2_D}}|) \IEEEyesnumber \label{equ:characteristic_two_term}
-\end{flalign}
-According to the Jensen inequality \cite{mcshane1937jensen}, the convexity of norm, and lemma \ref{lm:min}, the first item in the sum function of inequality \ref{equ:characteristic_two_term} can be further analyzed as below:
-
-\begin{comment}
-\begin{flalign}
-&|E(e^{it\cdot\frac{Y_k}{s_D}})-E(1+\frac{Y_kt}{s_D}-\frac{Y^2_kt^2}{2s^2_D})|\IEEEnonumber \\
-\leq &E|e^{it\cdot\frac{Y_k}{s_D}}-(1+\frac{Y_kt}{s_D}-\frac{Y^2_kt^2}{2s^2_D})| \IEEEnonumber \\
-\leq &E(\frac{|tY_k|^3}{6s^3_D}) \IEEEyesnumber \label{equ:first_item_bound}
-\end{flalign}
-\end{comment}
-
-\begin{flalign}
-&|E(e^{it\cdot\frac{Y_k}{s_D}})-E(1+\frac{Y_kt}{s_D}-\frac{Y^2_kt^2}{2s^2_D})|\leq E|e^{it\cdot\frac{Y_k}{s_D}}-\IEEEnonumber\\
-&(1+\frac{Y_kt}{s_D}-\frac{Y^2_kt^2}{2s^2_D})| \leq E(\frac{|tY_k|^3}{6s^3_D}) \IEEEyesnumber \label{equ:first_item_bound}
-\end{flalign}
-
-
-By the same reasoning, we have:
-\begin{flalign}
-&|E(e^{it\cdot\frac{Y_k}{s_D}})-E(1+\frac{Y_kt}{s_D}-\frac{Y^2_kt^2}{2s^2_D})|\leq E(\frac{t^2Y^2_k}{2s^2_D}) \IEEEyesnumber \label{equ:second_item_bound}
-\end{flalign}
-Based on the observation that $|e^{-x}-1+x|\leq x^2/2$, and that $E(Y_k)=E(Z^2_k-E(Z^2_k))=0$, the second item in the sum function of inequality \ref{equ:characteristic_two_term} can be further analyzed as followings:
-\begin{flalign}
-&|E(1+\frac{Y_{k}t}{s_D}-\frac{Y^2_kt^2}{2s^2_D})-e^{-\frac{Var(Y_k)t^2}{2s^2_D}}|\IEEEnonumber \\
-=&|1-\frac{Var(Y_k)t^2}{2s^2_D}-(e^{-\frac{Var(Y_k)t^2}{2s^2_D}}-1-\frac{Var(Y_k)t^2}{2s^2_D}\IEEEnonumber \\+&1\frac{Var(Y_k)t^2}{2s^2_D})| 
-\leq \frac{Var^2(Y_k)t^4}{8s^4_D} \IEEEyesnumber \label{equ:third_item_bound}
-\end{flalign}
-Based on inequality \ref{equ:characteristic_two_term}, \ref{equ:first_item_bound}, \ref{equ:second_item_bound}, and \ref{equ:third_item_bound}, let
-$\Delta(t)=|E(e^{it\cdot S_D/s_D})-e^{-t^2/2}|$. For an arbitrary positive value $\epsilon$, the subsequent relations can be derived:
+Esseen's inequality reduces the comparison between $S_D/s_D$ and $\mathcal{N}(0,1)$ to a characteristic-function bound. For this derivation, write
+\[
+\begin{aligned}
+\Delta(t)&=\left|E(e^{itS_D/s_D})-e^{-t^2/2}\right|,\\
+A_k(t)&=E(e^{itY_k/s_D}),\\
+B_k(t)&=e^{-Var(Y_k)t^2/(2s_D^2)},\\
+Q_k(t)&=1+\frac{Y_kt}{s_D}-\frac{Y_k^2t^2}{2s_D^2}.
+\end{aligned}
+\]
+Using the approximate decorrelation in equality \ref{equ:independent}, $\Delta(t)=|\prod_{k=1}^{D}A_k(t)-\prod_{k=1}^{D}B_k(t)|$. Lemma~\ref{lm:complex_product_bound} then splits the gap as
+\begin{equation}
+\begin{aligned}
+\Delta(t)
+&\leq \sum_{k=1}^{D}|A_k(t)-B_k(t)|\\
+&\leq \sum_{k=1}^{D}|A_k(t)-E(Q_k(t))|\\
+&\quad +\sum_{k=1}^{D}|E(Q_k(t))-B_k(t)|.
+\end{aligned}
+\label{equ:characteristic_two_term}
+\end{equation}
+Jensen's inequality \cite{mcshane1937jensen}, convexity of the norm, and Lemma~\ref{lm:min} give two bounds for the first term:
+\begin{align}
+|A_k(t)-E(Q_k(t))|
+&\leq E|e^{itY_k/s_D}-Q_k(t)| \notag\\
+&\leq E\!\left(\frac{|tY_k|^3}{6s_D^3}\right),
+\label{equ:first_item_bound}\\
+|A_k(t)-E(Q_k(t))|
+&\leq E\!\left(\frac{t^2Y_k^2}{2s_D^2}\right).
+\label{equ:second_item_bound}
+\end{align}
+For the second term, let $x_k=Var(Y_k)t^2/(2s_D^2)$. Since $E(Y_k)=E(Z_k^2-E(Z_k^2))=0$, we have $E(Q_k(t))=1-x_k$. Together with $|e^{-x}-1+x|\leq x^2/2$, this gives
+\begin{equation}
+|E(Q_k(t))-B_k(t)|
+=|1-x_k-e^{-x_k}|
+\leq \frac{Var^2(Y_k)t^4}{8s_D^4}.
+\label{equ:third_item_bound}
+\end{equation}
+Combining inequalities \ref{equ:characteristic_two_term}--\ref{equ:third_item_bound}, for any $\epsilon>0$ we have
 \begin{align}
 \Delta(t)
 &\leq
-\sum^D_{k=1}\left(
-\frac{Var^2(Y_k)t^4}{8s^4_D}
-+E\!\left(\frac{t^2Y^2_k}{s^2_D}\right)
+\sum_{k=1}^{D}\left(
+\frac{Var^2(Y_k)t^4}{8s_D^4}
++E\!\left(\frac{t^2Y_k^2}{s_D^2}\right)
 \right),
 \label{equ:inequ_1}\\
 \Delta(t)
 &\leq
-\sum^D_{k=1}\left(
-\frac{Var^2(Y_k)t^4}{8s^4_D}
-+E\!\left(\frac{|tY_k|^3}{6s^2_D}\right)
+\sum_{k=1}^{D}\left(
+\frac{Var^2(Y_k)t^4}{8s_D^4}
++E\!\left(\frac{|tY_k|^3}{6s_D^2}\right)
 \right).
 \label{equ:inequ_2}
 \end{align}
-Based on inequality \ref{equ:inequ_1} and \ref{equ:inequ_2}, the difference between the characteristic function of $S_D/s_D$ and Normal Distribution can be bounded by the inequality below under the setting that $\textbf{1}_{A}$ means the indicator function:
-\begin{comment}
-\begin{flalign}
-    &|E(e^{it\cdot \frac{S_D}{s_D}})-e^{-\frac{t^2}{2}}|\IEEEnonumber \\
-    \leq &\sum^{D}_{k=1}(\frac{t^2}{s^2_D}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})+\frac{|t|^3\epsilon}{6s^2_D}E(Y_k^2\textbf{1}_{|Y_k|\leq \epsilon s_D})\IEEEnonumber \\ &+\frac{Var^2(Y_k)t^4}{8s^4_D}) \IEEEnonumber \\
-    \leq &\frac{t^2}{s^2_D}\sum^D_{k=1}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})+t^4\max_{1\leq k\leq D}\frac{Var(Y_k)}{s^2_D}+|t|^3\epsilon\IEEEyesnumber \label{equ:need_to_analyze} 
-\end{flalign}
-\end{comment}
-\begin{flalign}
-    &|E(e^{it\cdot \frac{S_D}{s_D}})-e^{-\frac{t^2}{2}}|\IEEEnonumber \\
-    \leq &\sum^{D}_{k=1}(\frac{t^2}{s^2_D}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})+\frac{|t|^3\epsilon}{6s^2_D}E(Y_k^2\textbf{1}_{|Y_k|\leq \epsilon s_D})\IEEEnonumber \\ &+\frac{Var^2(Y_k)t^4}{8s^4_D}) 
-    \leq \frac{t^2}{s^2_D}\sum^D_{k=1}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})+\IEEEnonumber \\
-    &t^4\max_{1\leq k\leq D}\frac{Var(Y_k)}{s^2_D}+|t|^3\epsilon\IEEEyesnumber \label{equ:need_to_analyze} 
-\end{flalign}
-Based on the observation that $\epsilon$ can enable inequality \ref{equ:need_to_analyze} to hold for any given positive value, $\epsilon$ can be set to be equal to $(\frac{5}{4}\xi)^\frac{1}{2}$ without loss of generality that:
-\begin{flalign}
-\xi=\frac{45\times(\max_{1\leq k\leq D}\{\max\{\eta_{1k}, \eta_{2k}\}\})^2}{\iota\sum^D_{k=1}(b_k - a_k)^2(4a^2_k + 7a_kb_k + 4b^2_k)}\IEEEyesnumber \label{equ:xi}
-\end{flalign}
-where $|a^2_k-\frac{\kappa_2(a^2_k+a_kb_k+b^2_k)}{3}|$ and $|b^2_k-\frac{\kappa_1(a^2_k+a_kb_k+b^2_k)}{3}|$ are assigned to $\eta_{1k}$ and $\eta_{2k}$, respectively. Equivalently, with the notation of Lemma~\ref{lm:Y_K_delta_moment_bound}, $\xi=45\Gamma_D^2/(\iota H_D)$.
+We then split the $Y_k^2$ contribution at the threshold $\epsilon s_D$. Writing $\mathbf{1}_{A}$ for the indicator of event $A$, inequalities \ref{equ:inequ_1} and \ref{equ:inequ_2} imply
+\begin{equation}
+\begin{aligned}
+\Delta(t)
+&\leq \sum_{k=1}^{D}\Bigg(
+\frac{t^2}{s_D^2}E(Y_k^2\mathbf{1}_{|Y_k|>\epsilon s_D})\\
+&\quad +\frac{|t|^3\epsilon}{6s_D^2}
+E(Y_k^2\mathbf{1}_{|Y_k|\leq\epsilon s_D})
++\frac{Var^2(Y_k)t^4}{8s_D^4}\Bigg)\\
+&\leq
+\frac{t^2}{s_D^2}
+\sum_{k=1}^{D}E(Y_k^2\mathbf{1}_{|Y_k|>\epsilon s_D})\\
+&\quad +t^4\max_{1\leq k\leq D}\frac{Var(Y_k)}{s_D^2}
++|t|^3\epsilon .
+\end{aligned}
+\label{equ:need_to_analyze}
+\end{equation}
+Since $\epsilon$ is arbitrary in inequality \ref{equ:need_to_analyze}, set $\epsilon=(5\xi/4)^{1/2}$, where
+\begin{equation}
+\begin{aligned}
+\xi
+&=
+\frac{45\left(\max_{1\leq k\leq D}
+\{\max\{\eta_{1k},\eta_{2k}\}\}\right)^2}
+{\iota\sum_{k=1}^{D}(b_k-a_k)^2
+(4a_k^2+7a_kb_k+4b_k^2)} .
+\end{aligned}
+\label{equ:xi}
+\end{equation}
+Here, $|a^2_k-\kappa_2(a^2_k+a_kb_k+b^2_k)/3|$ and $|b^2_k-\kappa_1(a^2_k+a_kb_k+b^2_k)/3|$ are assigned to $\eta_{1k}$ and $\eta_{2k}$, respectively. Equivalently, with the notation of Lemma~\ref{lm:Y_K_delta_moment_bound}, $\xi=45\Gamma_D^2/(\iota H_D)$.
 \begin{comment}
 \begin{flalign}
 &\eta_{1k}=|a^2_k-\frac{\kappa_2(a^2_k+a_kb_k+b^2_k)}{3}|\IEEEyesnumber \label{equ:eta_1} \\
