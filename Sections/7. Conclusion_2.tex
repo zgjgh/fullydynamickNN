@@ -150,23 +150,32 @@ $\psi_{\mathcal{N}(0,1)}(t)=e^{-t^2/2}$
 
 The auxiliary bounds and standard identities above are used in the proof of Lemma~\ref{thm:normal_distribution_local}. The proof is given in the next part of the appendix.
 \section*{Appendix A.2: Proof of Lemma \ref{thm:normal_distribution_local}}
-What needs to be proved is that the proposition below holds approximately:
-\begin{flalign}
-dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}})/b_{p}^2(q_{\mathcal{O}^i},j) \sim \mathcal{N}(\mu,\,\sigma^2) \IEEEyesnumber  \label{equ:normal_distribution_1}
-\end{flalign}
-In the proposition above, $q_{\mathcal{O}^i}$ represents an arbitrary data point in the $i$-th subspace of $\mathcal{O}$, $v^{j}_{q_{\mathcal{O}^i}}$ represents a random data point visited at the leaf nodes of \dualtree encountering the $j$-th pruning bound or bound kernel of $q_{\mathcal{O}^i}$, and $b_p(q_{\mathcal{O}^i},j)$ represents the $j$-th pruning bound or bound kernel value of $q_{\mathcal{O}^i}$. Note that although $q_{\mathcal{O}^i}$ is an arbitrary data point in $O^{i}$, it is treated as a fixed point when constructing the random variable $dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}})/b_{p}^2(q_{\mathcal{O}^i},j)$. Therefore, $b_p(q_{\mathcal{O}^i},j)$, the $j$-th pruning bound or bound kernel value of $q_{\mathcal{O}^i}$, which is considered as a fixed point, is also considered as a constant value. Consequentely, Consequently, it suffices to prove the following normalized form:
-\begin{flalign}
-dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}}) \sim \mathcal{N}(\mu,\,\sigma^2), \quad \text{approximately} \IEEEyesnumber \label{equ:normal_distribution_2}
-\end{flalign}
-
-Owing to the definition of Euclidean distance and the fact that a full-dimensional PCA transformation preserves pairwise Euclidean distances \cite{ukey2023efficient}, the random variable $dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}})$ in expression~\ref{equ:normal_distribution_2} can be equivalently expressed as follows:
-
-\begin{flalign}
+We need to prove the local normal approximation
+\begin{equation}
+\frac{dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}})}
+{b_{p}^2(q_{\mathcal{O}^i},j)}
+\sim \mathcal{N}(\mu,\,\sigma^2),\quad \text{approximately}.
+\label{equ:normal_distribution_1}
+\end{equation}
+Here $q_{\mathcal{O}^i}$ is fixed in the $i$-th subspace of $\mathcal{O}$,
+$v^{j}_{q_{\mathcal{O}^i}}$ is a random leaf-level point that encounters
+the $j$-th pruning bound, and $b_p(q_{\mathcal{O}^i},j)$ is therefore a
+constant. Thus, it suffices to prove
+\begin{equation}
 dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}})
-=\sum^{D_{PC}}_{k_{PC}=1} (q_{\mathcal{O}^i}[k_{PC}]-v^{j}_{q_{\mathcal{O}^i}}[k_{PC}])^2 
+\sim \mathcal{N}(\mu,\,\sigma^2),\quad \text{approximately}.
+\label{equ:normal_distribution_2}
+\end{equation}
+
+Because a full-dimensional PCA transformation preserves Euclidean distance
+\cite{ukey2023efficient}, let
+$Z_k=\lvert q_{\mathcal{O}^i}[k]-v^{j}_{q_{\mathcal{O}^i}}[k]\rvert$ on the
+$k$-th principal component. Then
+\begin{equation}
+dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}})
+=\sum_{k=1}^{D}Z_k^2 .
 \label{equ:euclidean_distance}
-\end{flalign}
-where $k_{PC}$ and $D_{PC}$ respectively represents the $k$-th and $D$-th (last) principal component dimension. For notational simplicity in what follows, we use $Z_k$ to denote $|q_{\mathcal{O}^i}[k_{PC}]-v^{j}_{q_{\mathcal{O}^i}}[k_{PC}]|$.
+\end{equation}
 
 \begin{comment}
 According to the definition of $Z_{k}$ and the formula \ref{equ:euclidean_distance}, the equivalence below holds that:
@@ -177,10 +186,14 @@ According to the definition of $Z_{k}$ and the formula \ref{equ:euclidean_distan
 \end{flalign}
 \end{comment}
 
-According to the definition of PCA \cite{mackiewicz1993principal}, the data mapped to the principal component dimensions has little correlation. As a result, $Cov(Z^2_i, Z^2_j)$ ($1\leq i,j\leq D$) can be considered approximately as 0 because the series of random variables $\{Z^2_{k}\}$ is generated on the principal components. Therefore,
-\begin{flalign}
-Var(\frac{\sum^D_{k=1}Z^2_k}{\sqrt{\sum^{D}_{k=1}Var(Z^2_k)}})\approx1 \IEEEyesnumber \label{equ:independent}
-\end{flalign}
+According to the definition of PCA \cite{mackiewicz1993principal}, data
+mapped to the principal components has little correlation. We therefore
+take $Cov(Z_i^2,Z_j^2)\approx0$ for $i\neq j$, and obtain
+\begin{equation}
+Var\!\left(\frac{\sum_{k=1}^{D}Z_k^2}
+{\sqrt{\sum_{k=1}^{D}Var(Z_k^2)}}\right)\approx1 .
+\label{equ:independent}
+\end{equation}
 
 \begin{comment}
 As a result, the subsequent equivalence can be derived that:
@@ -191,19 +204,16 @@ As a result, the subsequent equivalence can be derived that:
 \end{flalign}
 \end{comment}
 
-To simplify the reminder of the paper, the following notations are introduced that:
-\begin{enumerate}
-    \item $Y_k$=$Z^2_k-E(Z^2_k)$
-    \item $S_D=\sum^D_{k=1}Y_k$
-    \item $s_D=\sqrt{\sum^D_{k=1}Var(Y_k)}$ 
-\end{enumerate}
-It is deserved to be noticed that $\{Y_k\}$ is generated by translating $\{Z^2_k\}$, as a result, $Var(Y_k)=Var(Z^2_k)$.
-Based on the notations above, the definition of $Z_k$, and the expression \ref{equ:normal_distribution_2}, \ref{equ:euclidean_distance}, and \ref{equ:independent}, the proposition needing to be proved is equivalent to the followings:
-\begin{flalign}
-\frac{S_D}{s_D}\sim \mathcal{N}(0,1), \quad \text{approximately}
-\label{equ:proof_final} 
-\end{flalign}
-In the preceding discussion, we established the final simplified form which can be referred to in expression \ref{equ:proof_final} of the proposition to be proved. In the remainder of the discussion, two basic assumptions for the proof will be given.
+Define $Y_k=Z_k^2-E(Z_k^2)$, $S_D=\sum_{k=1}^{D}Y_k$, and
+$s_D=\sqrt{\sum_{k=1}^{D}Var(Y_k)}$. Since translating $Z_k^2$ does not
+change its variance, $Var(Y_k)=Var(Z_k^2)$. Therefore, using
+\eqref{equ:normal_distribution_2}, \eqref{equ:euclidean_distance}, and
+\eqref{equ:independent}, the remaining target is
+\begin{equation}
+\frac{S_D}{s_D}\sim \mathcal{N}(0,1),\quad \text{approximately}.
+\label{equ:proof_final}
+\end{equation}
+Two assumptions are used in the proof of \eqref{equ:proof_final}.
 
 In formula \ref{equ:euclidean_distance}, $v^{j}_{q_{\mathcal{O}_i}}$ is a random data point among the data points visited at the leaf nodes of the \dualtree encountering the pruning bound or bound kernel of the same $j$-th index in the search process of $q_{\mathcal{O}_i}$. All of those visited data points pass the filtering process on the non-leaf levels of the \dualtree and encounter the pruning bound or bound kernel of the same index. Consequently, those data points are located closely to each other. For such densely distributed points, it is reasonable to consider that their distances to the query point along each principal component are also distributed densely in a narrow range. Data densely distributed within a narrow interval can be reasonably approximated as uniformly distributed \cite{gning2010mixture, reiss1981uniform, chasani2022uu}. Therefore, it is justifiable to assume that the distances from the visited data points to the query point along each $k$-th principal component follow a probability distribution that is similar to that of $Z'_k \sim \mathcal{U}(a_k, b_k)$, in the sense that their distributional difference is bounded. Formally, the assumption states that the probability density function $f_{Z_k}(y)$ — corresponding to the distances between the query point and the visited data points at the leaf nodes with the same pruning bound index on the \(k\)-th principal component — vanishes, when $y\notin [a_k, b_k]$. This behavior is identical to that of the uniform distribution $\mathcal{U}(a_k, b_k)$. Furthermore, the behavior of $f_{Z_k}(y)$ over the interval $[a_k, b_k]$ is sufficiently close to that of $\mathcal{U}(a_k, b_k)$ to ensure that the ratios between the expectation and variance of $Z_k^2$ and $(Z'_k)^2$ remain bounded by $\kappa_1$, $\kappa_2$, and $\iota$. Consistent with $\mathcal{U}(a_k,b_k)$, $f_{Z_k}(y)$ is infinitely differentiable over the interval $(a_k,b_k)$. We express the assumption above in the following mathematical form.
 \begin{comment}
@@ -211,12 +221,14 @@ Moreover, extensive statistical studies \cite{rosenblat1956remarks, chen2000prob
 \end{comment}
 
 \noindent \textbf{\textit{Assumption 1}}.
-\begin{enumerate}
-    \item
-$f_{Z_k}(y)=0$, $y\notin[a_k,b_k]$  
-    \item 
-$\kappa_1 \leq \frac{E(Z^2_k)}{E((Z'_k)^2)}\leq \kappa_2$,  $0<\iota\leq \frac{Var(Z^2_k)}{Var((Z'_k)^2)}$ 
-\end{enumerate}
+\begin{equation}
+\begin{aligned}
+f_{Z_k}(y)&=0,\quad y\notin[a_k,b_k],\\
+\kappa_1 \leq \frac{E(Z_k^2)}{E((Z'_k)^2)}
+&\leq \kappa_2,\quad
+0<\iota\leq \frac{Var(Z_k^2)}{Var((Z'_k)^2)} .
+\end{aligned}
+\end{equation}
 
 \begin{comment}
 \item 
@@ -226,12 +238,12 @@ $\kappa_1 \leq \frac{E(Z^2_k)}{E((Z'_k)^2)}\leq \kappa_2$,  $0<\iota\leq \frac{V
 Within practical application, as the dimensionality of vectors increases, since the data on the newly introduced dimensions originate from real-world industrial or scientific contexts, their numerical ranges do not expand indefinitely as dimensionality increases. Accordingly, in this study, it is assumed that the upper $b_k$ and lower bound $a_k$ of the support of $Z_k$ are bounded. The assumption above can be expressed in mathematical form as follows:
 
 \noindent \textbf{\textit{Assumption 2}}.
-\begin{flalign}
-0\leq b^{l}_{a_{k}}\leq a_k\leq b^{u}_{a_{k}} \IEEEyesnumber \\
-0\leq b^{l}_{b_{k}}\leq b_k\leq b^{u}_{b_{k}} \IEEEyesnumber 
-\end{flalign}
+\begin{equation}
+0\leq b^{l}_{a_k}\leq a_k\leq b^{u}_{a_k},\qquad
+0\leq b^{l}_{b_k}\leq b_k\leq b^{u}_{b_k}.
+\end{equation}
 
-In the preceding discussion, we established the final simplified form which can be referred to in expression \ref{equ:proof_final} of the proposition to be proved and introduced two basic assumptions for its proof. We now proceed to provide a proof for proposition stated in expression \ref{equ:proof_final}.
+We now prove \eqref{equ:proof_final} under these two assumptions.
 
 \begin{comment}
 PRELIMINARY 1: $\int^{+\infty}_{-\infty}x^{2+\delta}f_{Y_k}(x)dx$ exists even when $\delta$ is a large positive value, we set the upper bound of $\delta$ ensuring the convergence of the above integral as $\delta_M$. When $\delta \leq \delta_M$:
