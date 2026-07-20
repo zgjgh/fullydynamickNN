@@ -109,7 +109,10 @@ Then
 \end{equation}
 \begin{proof}
 On the event $|x|>\epsilon s_D$, we have
-$|x|^2\leq |x|^{2+\delta}/(\epsilon s_D)^\delta$. Hence
+$|x|^\delta/(\epsilon s_D)^\delta>1$, and hence
+$|x|^2\leq |x|^{2+\delta}/(\epsilon s_D)^\delta$. Multiplying by
+$f_{Y_k}(x)$, integrating over the tail region, and then enlarging the
+integration domain to $\mathbb{R}$ gives
 \begin{equation}
 \frac{T_\epsilon}{s_D^2}
 \leq
