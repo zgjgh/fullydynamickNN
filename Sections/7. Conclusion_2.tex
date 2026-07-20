@@ -487,7 +487,7 @@ Divide the sampled data points into groups, where the $\dknn$ values within each
 \frac{|\dknn(q_1,I)-\dknn(q_2,I)|}{\max{(\dknn(q_1,I),\dknn(q_2,I))}}\leq \Delta  \IEEEyesnumber
 \label{equ:group_difference}
 \end{flalign}
-where $q_1$ and $q_2$ are arbitrary two data points in a group. The number of groups formed serves as an approximation for $M$. In this study, we set $\Delta$ to 10\% to strike a balance between preserving intra-group similarity and controlling the number of groups.
+where $q_1$ and $q_2$ are arbitrary two data points in a group. The number of groups formed serves as an approximation for $M$. The threshold ratio $\Delta$ can be specified as needed; this paper uses 10\%.
 
 \noindent\textit{Step 2.}
 For the $i$-th group ($1\leq i\leq M$), count the number of $b_p$ values encountered during the kNN search of each data point in it, and then use the mode of these counts as an approximation of $B_i$.
@@ -507,13 +507,9 @@ Therefore, the number of groups into which the sampled points are divided can be
 After determining $M$ and $B_i$, the observed $Z$ values from the kNN search traces, which are collected during sampling but not used to estimate $M$ and $B_i$, are used to fit the Gaussian mixture model for $f_Z$. We apply the standard EM algorithm \cite{ng2012algorithm} to estimate the mixture weights $p_m$ and Gaussian parameters $\mu_m$ and $\sigma_m$.
 
 \noindent\textbf{Parameters for RkNN search.}
-In the RkNN search scenario, the query point $q$ belongs to $I$, and the visited point $v$ at a leaf node of the \hdrtree\ part of \dualtree belongs to $U$. The pruning bound $b_p$ is the $\dknn$ value of the visited point (refer to the RkNN search algorithm on \hdrtree~\cite{yang2014continuous} for details), and $\mathcal{O}_I$ denotes the smallest $D$-dimensional space containing all data points in $I$ during the update process. 
+In the RkNN search case, $q\in I$ and a leaf-level visited point $v\in U$ comes from the \hdrtree\ part of \dualtree. The pruning bound $b_p$ is $\dknn(v,I)$, and $\mathcal{O}_I$ denotes the smallest $D$-dimensional space containing $I$ during the update process. 
 
-To estimate the parameters of the RkNN-side $f_Z$, an appropriate proportion of the data points are sampled from each leaf node of the \deltatree part of the \dualtree where the data points in $I$ are stored. In this paper, we find that 10\% provides a good balance between diversity and efficiency in practice. Then, two quantities are collected from such sample data points:
-\begin{itemize}
-    \item The $\dknn$ values of the visited data points at the leaf node of the \hdrtree part of the \dualtree of each sampled data point.
-    \item The $Z$ values occurring in the RkNN search process for each sampled data point.  
-\end{itemize}
+To estimate the parameters of the RkNN-side $f_Z$, a specified proportion of the data points is sampled from each leaf node of the \deltatree part of \dualtree, where the points in $I$ are stored; this paper uses 10\%. For each sampled point, the RkNN search process records the $\dknn$ values of the visited leaf-level query points in the \hdrtree part of \dualtree and the observed $Z$ values.
 
 
 Similar to the kNN search case, the number $M$ of subspaces $\mathcal{O}_I$ can be partitioned into and the approximate number $B_i$ of bound kernels of each $\mathcal{O}^i_I$ are determined first, followed by the derivation of the weights and parameters of each sub-model of the RkNN-side $f_Z$.
