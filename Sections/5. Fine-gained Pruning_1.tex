@@ -11,7 +11,7 @@ The non-leaf pruning on \dualtree remains essential: it removes large unpromisin
 
 This residual effect comes from the cluster-level lower-bound tests used at non-leaf nodes. In both \deltatree and \hdrtree, the quantity $dist_{PC}(center(C_j), q)-radius_{PC}(C_j)$ is a lower bound, in the PCA space of the current tree level, on the distance between the search-originating point $q$ and every point in cluster $C_j$~\cite{cui2003contorting,yang2014continuous}. In the \deltatree part, this lower bound is compared with the current kNN pruning threshold $dist_{prune}$; in the \hdrtree part, it is compared with the cluster-side threshold $\dmknn(C_j)$. These tests are effective for deciding whether a cluster may still contain useful candidates, but once a cluster is retained, all of its member points survive to deeper levels.
 
-As a result, a retained cluster can still contain point-level false positives. This happens when the point determining $radius_{PC}(C_j)$ lies on the far side of the search-originating point: the lower bound for the cluster is then pulled down, so the cluster-level test remains correct but conservative. The cluster as a whole must be kept, even though many other points inside it are already beyond the pruning threshold and need not survive to the leaf level. Figure \ref{fig:knn_error} and Figure \ref{fig:rknn_error} illustrate this effect for kNN search and RkNN search, respectively.
+As a result, a retained cluster can still contain point-level false positives. This happens when the point determining $radius_{PC}(C_j)$ lies on the far side of the search-originating point: the lower bound for the cluster is then pulled down, so the cluster-level test remains correct but conservative. The cluster as a whole must be kept, even though many other points inside it are already beyond the pruning threshold and need not survive to the leaf level. Figure \ref{fig:knn_error} illustrates this effect for kNN search. The same phenomenon also appears in RkNN search on the \hdrtree, where an oversized cluster radius can keep a cluster below the $\dmknn(C_j)$ threshold even though individual query points in the cluster could be rejected by point-to-point checking.
 
 \begin{figure}[t]
     
@@ -21,26 +21,12 @@ As a result, a retained cluster can still contain point-level false positives. T
     \label{fig:knn_error}
 \end{figure}
 
-\begin{figure}[t]
-    \centering
-    \hspace*{0.15cm}    
-    \includegraphics[width=0.4\textwidth]{Images/rknn_error_26.pdf}
-    \caption{Retention of remote data points that should have been pruned in the RkNN search process on \dualtree.}
-    \label{fig:rknn_error}
-\end{figure}
-
-
 \begin{example}[False positive error in kNN search]
 In Figure \ref{fig:knn_error}, a cluster $C_j$ at a non-leaf node in the \deltatree part of \dualtree is visited during kNN search for query point $u_q$. The cluster is retained because the lower-bound test $dist_{PC}(center(C_j), u_q)-radius_{PC}(C_j)<dist_{prune}$ holds. The far-side point $i_r$ determines the large value of $radius_{PC}(C_j)$ and keeps this lower bound below $dist_{prune}$. Nevertheless, every point in $C_j$ is actually farther from $u_q$ than $dist_{prune}$, so the cluster survives only because the test is applied to the cluster as a whole rather than to its member points.  
 \label{example:false positive error in kNN Search}
 \end{example}
 
-\begin{example}[False positive error in RkNN search]
-In Figure \ref{fig:rknn_error}, a cluster $C_j$ at a non-leaf node in the \hdrtree part of \dualtree is visited during RkNN search for query point $i_q$. The cluster is retained because the lower-bound test $dist_{PC}(center(C_j), i_q)-radius_{PC}(C_j)<\dmknn(C_j)$ holds. The far-side point $u_r$ determines the large value of $radius_{PC}(C_j)$ and keeps this lower bound below $\dmknn(C_j)$. Nevertheless, for every data point $u\in C_j$, the distance from $i_q$ to $u$ still exceeds $\dmknn(C_j)$, so no point in the cluster should survive once point-to-point checking is performed.  
-\label{example:false positive error in RkNN Search}
-\end{example}
-
-The false-positive errors in Example \ref{example:false positive error in kNN Search} and Example \ref{example:false positive error in RkNN Search} arise because the points $i_r$ and $u_r$, which respectively determine the large cluster radii, are positioned on the far side relative to the query points $u_q$ and $i_q$. This spatial misalignment keeps the cluster-level lower bound loose, so the test remains correct while still leaving member points that can be pruned once point-to-point distances are examined.
+The false-positive error in Example \ref{example:false positive error in kNN Search} arises because the point $i_r$, which determines the large cluster radius, is positioned on the far side relative to the query point $u_q$. The RkNN case follows the same mechanism: the radius-defining query point in an \hdrtree cluster may loosen the cluster-level bound with respect to $\dmknn(C_j)$. This spatial misalignment keeps the cluster-level lower bound correct but loose, leaving member points that can be pruned once point-to-point distances are examined.
 
 In short, non-leaf pruning on \dualtree is effective but intentionally conservative. It narrows the search space substantially, yet it can still leave a nontrivial number of point-level false positives at the leaf nodes. This motivates an additional pruning step at the leaf level, applicable to both the \hdrtree and \deltatree parts of \dualtree, based on low-dimensional point-to-point distance computation. The remaining question is then no longer whether such pruning is correct, but how many dimensions should be used so that the extra pruning power outweighs the cost of the added distance computations.
 
