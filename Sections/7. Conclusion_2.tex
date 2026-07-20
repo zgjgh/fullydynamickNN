@@ -529,7 +529,7 @@ Two steps can be applied to determine $M$ and $B_i$.
 \overline{d}(q)=\frac {\sum_{v \in \rknn(q, U,I)} \dknn(v,I)}{|\rknn(q, U,I)|} \IEEEyesnumber
 \end{flalign}
 
-Then, the number of the groups formed can serve as the approximation of $M$. In this study, we set $\Delta$ to 10\% to strike a balance between preserving intra-group similarity and controlling the number of groups. This method for estimation of $M$ is motivated by the observation that data points within the same subspace of $\mathcal{O}_I$ tend to exhibit similar average $\dknn$ values of their RkNN members, due to the similarity of the distribution of their nearby data points in $I$.
+Then, the number of the groups formed can serve as the approximation of $M$. The threshold ratio $\Delta$ can be specified according to the desired grouping granularity; this study uses $\Delta=10\%$. This method for estimation of $M$ is motivated by the observation that data points within the same subspace of $\mathcal{O}_I$ tend to exhibit similar average $\dknn$ values of their RkNN members, due to the similarity of the distribution of their nearby data points in $I$.
 
 
 \noindent\textit{Step 2.}
@@ -537,7 +537,7 @@ For each sampled data point in each group, the $\dknn$ values of the data points
 \begin{flalign}
 \frac{|\dknn(v_1,I)-\dknn(v_2,I)|}{\max\{\dknn(v_1,I),\dknn(v_2,I)\}}\leq \Delta \IEEEyesnumber
 \end{flalign}
-where $\Delta$ is a small threshold ratio that controls the within-set variation of the $\dknn$ values under a low level. In this study, we set $\Delta$ as 10\%. For each sampled data point, the number of sets gained is recorded. Then, the mode of these set counts across all the sampled data points in the $i$-th group can serve as the approximation of the number $B_i$ of bound kernels of the $i$-th subspace $\mathcal{O}^{i}_I$ of $\mathcal{O}_I$. 
+where $\Delta$ is a small threshold ratio that controls the within-set variation of the $\dknn$ values under a low level; this study uses $\Delta=10\%$. For each sampled data point, the number of sets gained is recorded. Then, the mode of these set counts across all the sampled data points in the $i$-th group can serve as the approximation of the number $B_i$ of bound kernels of the $i$-th subspace $\mathcal{O}^{i}_I$ of $\mathcal{O}_I$. 
 
 
 
