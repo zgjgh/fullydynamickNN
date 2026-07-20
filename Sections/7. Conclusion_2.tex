@@ -285,20 +285,21 @@ where $C>0$ is an absolute constant independent of $Y$, $Z$ and $T$.
 \end{lemma}
 
 Esseen's inequality reduces the comparison between $S_D/s_D$ and $\mathcal{N}(0,1)$ to a characteristic-function bound. For this derivation, write
-\[
+\begin{equation}
 \begin{aligned}
 \Delta(t)&=\left|E(e^{itS_D/s_D})-e^{-t^2/2}\right|,\\
 A_k(t)&=E(e^{itY_k/s_D}),\\
 B_k(t)&=e^{-Var(Y_k)t^2/(2s_D^2)},\\
 Q_k(t)&=1+\frac{Y_kt}{s_D}-\frac{Y_k^2t^2}{2s_D^2}.
 \end{aligned}
-\]
+\label{equ:characteristic_notation}
+\end{equation}
 Using the approximate decorrelation in equality \ref{equ:independent}, $\Delta(t)=|\prod_{k=1}^{D}A_k(t)-\prod_{k=1}^{D}B_k(t)|$. Lemma~\ref{lm:complex_product_bound} then splits the gap as
 \begin{equation}
 \begin{aligned}
 \Delta(t)
-&\leq \sum_{k=1}^{D}|A_k(t)-B_k(t)|\\
-&\leq \sum_{k=1}^{D}|A_k(t)-E(Q_k(t))|\\
+&\leq \sum_{k=1}^{D}|A_k(t)-B_k(t)| \leq {}\\
+&\sum_{k=1}^{D}|A_k(t)-E(Q_k(t))|\\
 &\quad +\sum_{k=1}^{D}|E(Q_k(t))-B_k(t)|.
 \end{aligned}
 \label{equ:characteristic_two_term}
