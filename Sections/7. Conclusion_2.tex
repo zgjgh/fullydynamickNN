@@ -1,0 +1,546 @@
+\section{Conclusion}\label{sec:conclusion}
+We presented \dualtree, an exact dual-index framework for fully dynamic high-dimensional kNN joins. By maintaining complementary indexes over the query and reference sets, \dualtree accelerates both forward kNN search and reverse kNN localization, avoiding the asymmetric bottlenecks of one-sided dynamic join methods. We further introduced a leaf-level fine-grained pruning stage and a cost-aware dimensionality-selection model that balances pruning power against projection overhead. Experiments on eight real datasets show that the dual-index architecture consistently improves over adapted baselines, while the pruning model provides additional gains and selects near-optimal pruning dimensions in practice.
+\appendix
+\section*{Appendix A.1: Preliminaries for proof of lemma \ref{thm:normal_distribution_local}}
+This part of the appendix collects the auxiliary bounds and standard identities used in the proof of Lemma~\ref{thm:normal_distribution_local}.
+\begin{lemma}[Lyapunov-type moment bound]\label{lm:Y_K_delta_moment_bound}
+For random variables $\{Z_k\}$, $\{Z'_k\}$, and $\{Y_k\}$, $1\leq k\leq D$, let
+$Z'_k\sim\mathcal{U}(a_k,b_k)$ with $0\leq a_k\leq b_k$, and let
+$Y_k=Z_k^2-E(Z_k^2)$. Assume that
+\begin{align}
+f_{Z_k}(x)&=0,\quad x\notin[a_k,b_k], \label{equ:pdf_not_in_ab}\\
+\kappa_1 \leq
+\frac{E(Z_k^2)}{E((Z'_k)^2)}
+&\leq \kappa_2,\quad
+0<\iota\leq
+\frac{Var(Z_k^2)}{Var((Z'_k)^2)} .
+\label{equ:expectation_variance_appro}
+\end{align}
+For any $\delta>0$,
+\begin{equation}
+\frac{\sum_{k=1}^{D}E(|Y_k|^{2+\delta})}
+{\sqrt{\sum_{k=1}^{D}Var(Y_k)}^{2+\delta}}
+\leq
+\left(
+\frac{45(\max_{1\leq k\leq D}\{\max\{\eta_{1k},\eta_{2k}\}\})^2}
+{\iota\sum_{k=1}^{D}(b_k-a_k)^2(4a_k^2+7a_kb_k+4b_k^2)}
+\right)^{\delta/2},
+\label{equ:lemma_1_conclusion}
+\end{equation}
+where
+\begin{align}
+\eta_{1k}&=\left|a_k^2-\frac{\kappa_2(a_k^2+a_kb_k+b_k^2)}{3}\right|,
+\label{equ:exp_kappa_2_left}\\
+\eta_{2k}&=\left|b_k^2-\frac{\kappa_1(a_k^2+a_kb_k+b_k^2)}{3}\right|.
+\label{equ:exp_kappa_1_right}
+\end{align}
+\begin{proof}
+Since $Y_k=Z_k^2-E(Z_k^2)$,
+\begin{equation}
+\frac{\sum_{k=1}^{D}E(|Y_k|^{2+\delta})}
+{\sqrt{\sum_{k=1}^{D}Var(Y_k)}^{2+\delta}}
+=
+\frac{\sum_{k=1}^{D}E(|Z_k^2-E(Z_k^2)|^{2+\delta})}
+{\sqrt{\sum_{k=1}^{D}Var(Z_k^2)}^{2+\delta}} .
+\label{equ:Y_k_TO_Z_k}
+\end{equation}
+For the uniform proxy $Z'_k$, direct integration over $[a_k^2,b_k^2]$ gives
+\begin{align}
+E((Z'_k)^2)
+&=\frac{a_k^2+a_kb_k+b_k^2}{3},
+\label{equ:z_k_E}\\
+Var((Z'_k)^2)
+&=\frac{(4a_k^2+7a_kb_k+4b_k^2)(b_k-a_k)^2}{45}.
+\label{equ:z_k_variance}
+\end{align}
+Using \eqref{equ:z_k_variance} and \eqref{equ:expectation_variance_appro}, the denominator satisfies
+\begin{equation}
+\left(\sum_{k=1}^{D}Var(Z_k^2)\right)^{\delta/2}
+\geq
+\left(
+\iota\sum_{k=1}^{D}
+\frac{(4a_k^2+7a_kb_k+4b_k^2)(b_k-a_k)^2}{45}
+\right)^{\delta/2}.
+\label{equ:variance_two_plus_delta_moment}
+\end{equation}
+Moreover, for $a_k^2\leq y\leq b_k^2$, \eqref{equ:z_k_E} and
+\eqref{equ:expectation_variance_appro} imply
+\begin{align}
+|y-E(Z_k^2)|
+&\leq
+\max\left\{
+\left|b_k^2-\frac{\kappa_1(a_k^2+a_kb_k+b_k^2)}{3}\right|,
+\left|a_k^2-\frac{\kappa_2(a_k^2+a_kb_k+b_k^2)}{3}\right|
+\right\}
+\label{equ:two_upperbound}\\
+&=\max\{\eta_{1k},\eta_{2k}\}.
+\label{two_uppbound_eta12}
+\end{align}
+Therefore,
+\begin{align}
+\sum_{k=1}^{D}E(|Z_k^2-E(Z_k^2)|^{2+\delta})
+&\leq
+\sum_{k=1}^{D}
+(\max\{\eta_{1k},\eta_{2k}\})^{\delta} Var(Z_k^2) \notag\\
+&\leq
+\max_{1\leq k\leq D}
+\{(\max\{\eta_{1k},\eta_{2k}\})^{\delta}\}
+\sum_{k=1}^{D}Var(Z_k^2).
+\label{equ:Z_k_square_two_delta_moment}
+\end{align}
+Combining \eqref{equ:Y_k_TO_Z_k}, \eqref{equ:variance_two_plus_delta_moment},
+and \eqref{equ:Z_k_square_two_delta_moment} yields \eqref{equ:lemma_1_conclusion}.
+\end{proof}
+\end{lemma}
+
+\begin{lemma}[Tail-moment bound]
+For a series of random variables $\{Y_k\}$, $1\leq k \leq D$, and two arbitrary positive value $\delta$ and $\epsilon$, let $s_D=\sqrt{\sum^D_{k=1}Var^2(Y_k)}$, if $E(Y_k)=0$ and $Y_k$ has $2+\delta$-th moment, then:
+\begin{flalign}
+&\frac{\sum^D_{k=1}\int_{|x|>\epsilon s_D}|x|^2f_{Y_k}(x)dx}{s^2_D} \leq\frac{\sum^D_{k=1}E(|Y_k|^{2+\delta})}{\epsilon^{\delta}s^{2+\delta}_D} \IEEEyesnumber \label{equ:delta_moment}
+\end{flalign}
+\begin{proof}
+    \begin{flalign}    &\frac{\sum^D_{k=1}\int_{|x|>\epsilon s_D}|x|^2f_{Y_k}(x)dx}{s^2_D}\leq\IEEEnonumber \\
+ &\frac{\sum^D_{k=1}\int_{|x|>\epsilon s_D}|x|^{2+\delta}f_{Y_k}(x)dx}{\epsilon^{\delta}s^{2+\delta}_D}\leq  \IEEEnonumber \\
+&\frac{\sum^D_{k=1}\int_{\infty}|x|^{2+\delta}f_{Y_{k}}(x)dx}{\epsilon^{\delta}s^{2+\delta}_D}=\frac{\sum^D_{k=1}E(|Y_k|^{2+\delta})}{\epsilon^{\delta}s^{2+\delta}_D}
+    \end{flalign}
+\end{proof}
+\label{lm:delta_moment}
+\end{lemma}
+
+\begin{lemma}[Taylor remainder bound]\label{lm:min}
+For any real value $y$ and integer $N\geq 1$, the following bounds hold:
+\begin{align}
+\left|e^{iy}-\sum^{N}_{n=0}\frac{(iy)^{n}}{n!}\right|
+&\leq \frac{|y|^{N+1}}{(N+1)!}, \label{equ:min_11} \\
+\left|e^{iy}-\sum^{N}_{n=0}\frac{(iy)^{n}}{n!}\right|
+&\leq \frac{2|y|^{N}}{N!}. \label{equ:min_12}
+\end{align}
+These bounds follow from the integral remainder form of Taylor's expansion for $e^{iy}$, together with $|e^{ix}|=1$ and $|e^{ix}-1|\leq2$ \cite{durrett2019probability, teicher1978probability, chung2000course}.
+\end{lemma}
+
+\begin{lemma}[Product-difference bound]\label{lm:complex_product_bound}
+For any complex values $w_k$ and $h_k$ with $|w_k|\leq 1$ and $|h_k|\leq 1$,
+\begin{equation}
+\left| \prod_{k=1}^{D} w_k - \prod_{k=1}^{D} h_k \right|
+\leq \sum_{k=1}^{D} |h_k - w_k| .
+\label{equ:complex_value_multiply_sum}
+\end{equation}
+\end{lemma}
+
+\noindent\textbf{Characteristic functions.}
+For a random variable $Y$, its characteristic function is
+\[
+\psi_Y(t)=E(e^{itY}),
+\]
+where $E$ denotes the expected value and $i$ is the imaginary unit. In particular, the characteristic function of the standard normal distribution $\mathcal{N}(0,1)$ is
+\[
+\psi_{\mathcal{N}(0,1)}(t)=e^{-t^2/2}
+\]
+\cite{durrett2019probability, teicher1978probability, chung2000course}.
+
+The auxiliary bounds and standard identities above are used in the proof of Lemma~\ref{thm:normal_distribution_local}. The proof is given in the next part of the appendix.
+\section*{Appendix A.2: Proof of Lemma \ref{thm:normal_distribution_local}}
+What needs to be proved is that the proposition below holds approximately:
+\begin{flalign}
+dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}})/b_{p}^2(q_{\mathcal{O}^i},j) \sim \mathcal{N}(\mu,\,\sigma^2) \IEEEyesnumber  \label{equ:normal_distribution_1}
+\end{flalign}
+In the proposition above, $q_{\mathcal{O}^i}$ represents an arbitrary data point in the $i$-th subspace of $\mathcal{O}$, $v^{j}_{q_{\mathcal{O}^i}}$ represents a random data point visited at the leaf nodes of \dualtree encountering the $j$-th pruning bound or bound kernel of $q_{\mathcal{O}^i}$, and $b_p(q_{\mathcal{O}^i},j)$ represents the $j$-th pruning bound or bound kernel value of $q_{\mathcal{O}^i}$. Note that although $q_{\mathcal{O}^i}$ is an arbitrary data point in $O^{i}$, it is treated as a fixed point when constructing the random variable $dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}})/b_{p}^2(q_{\mathcal{O}^i},j)$. Therefore, $b_p(q_{\mathcal{O}^i},j)$, the $j$-th pruning bound or bound kernel value of $q_{\mathcal{O}^i}$, which is considered as a fixed point, is also considered as a constant value. Consequentely, Consequently, it suffices to prove the following normalized form:
+\begin{flalign}
+dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}}) \sim \mathcal{N}(\mu,\,\sigma^2), \quad \text{approximately} \IEEEyesnumber \label{equ:normal_distribution_2}
+\end{flalign}
+
+Owing to the definition of Euclidean distance and the fact that a full-dimensional PCA transformation preserves pairwise Euclidean distances \cite{ukey2023efficient}, the random variable $dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}})$ in expression~\ref{equ:normal_distribution_2} can be equivalently expressed as follows:
+
+\begin{flalign}
+dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}})
+=\sum^{D_{PC}}_{k_{PC}=1} (q_{\mathcal{O}^i}[k_{PC}]-v^{j}_{q_{\mathcal{O}^i}}[k_{PC}])^2 
+\label{equ:euclidean_distance}
+\end{flalign}
+where $k_{PC}$ and $D_{PC}$ respectively represents the $k$-th and $D$-th (last) principal component dimension. For notational simplicity in what follows, we use $Z_k$ to denote $|q_{\mathcal{O}^i}[k_{PC}]-v^{j}_{q_{\mathcal{O}^i}}[k_{PC}]|$.
+
+\begin{comment}
+According to the definition of $Z_{k}$ and the formula \ref{equ:euclidean_distance}, the equivalence below holds that:
+\begin{flalign}
+&dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}}) \sim \mathcal{N}(\mu,\,\sigma^2), \quad \text{approximately} \IEEEnonumber \\ \Leftrightarrow &
+\sum^D_{k=1}Z^2_k \sim \mathcal{N}(\mu, \sigma^2), \quad \text{approximately} \IEEEyesnumber
+\label{equ:zk_normal}
+\end{flalign}
+\end{comment}
+
+According to the definition of PCA \cite{mackiewicz1993principal}, the data mapped to the principal component dimensions has little correlation. As a result, $Cov(Z^2_i, Z^2_j)$ ($1\leq i,j\leq D$) can be considered approximately as 0 because the series of random variables $\{Z^2_{k}\}$ is generated on the principal components. Therefore,
+\begin{flalign}
+Var(\frac{\sum^D_{k=1}Z^2_k}{\sqrt{\sum^{D}_{k=1}Var(Z^2_k)}})\approx1 \IEEEyesnumber \label{equ:independent}
+\end{flalign}
+
+\begin{comment}
+As a result, the subsequent equivalence can be derived that:
+\begin{flalign}
+&\sum^D_{k=1}Z^2_k \sim \mathcal{N}(\mu, \sigma^2), \quad \text{approximately} \IEEEnonumber \\
+\Leftrightarrow & \frac{\sum^D_{k=1}(Z^2_k-E(Z^2_k))}{\sqrt{\sum^{D}_{k=1}Var(Z^2_k)}}\sim \mathcal{N}(0,1), \quad \text{approximately} \IEEEyesnumber
+\label{equ:zk_normalized_normal}
+\end{flalign}
+\end{comment}
+
+To simplify the reminder of the paper, the following notations are introduced that:
+\begin{enumerate}
+    \item $Y_k$=$Z^2_k-E(Z^2_k)$
+    \item $S_D=\sum^D_{k=1}Y_k$
+    \item $s_D=\sqrt{\sum^D_{k=1}Var(Y_k)}$ 
+\end{enumerate}
+It is deserved to be noticed that $\{Y_k\}$ is generated by translating $\{Z^2_k\}$, as a result, $Var(Y_k)=Var(Z^2_k)$.
+Based on the notations above, the definition of $Z_k$, and the expression \ref{equ:normal_distribution_2}, \ref{equ:euclidean_distance}, and \ref{equ:independent}, the proposition needing to be proved is equivalent to the followings:
+\begin{flalign}
+\frac{S_D}{s_D}\sim \mathcal{N}(0,1), \quad \text{approximately}
+\label{equ:proof_final} 
+\end{flalign}
+In the preceding discussion, we established the final simplified form which can be referred to in expression \ref{equ:proof_final} of the proposition to be proved. In the remainder of the discussion, two basic assumptions for the proof will be given.
+
+In formula \ref{equ:euclidean_distance}, $v^{j}_{q_{\mathcal{O}_i}}$ is a random data point among the data points visited at the leaf nodes of the \dualtree encountering the pruning bound or bound kernel of the same $j$-th index in the search process of $q_{\mathcal{O}_i}$. All of those visited data points pass the filtering process on the non-leaf levels of the \dualtree and encounter the pruning bound or bound kernel of the same index. Consequently, those data points are located closely to each other. For such densely distributed points, it is reasonable to consider that their distances to the query point along each principal component are also distributed densely in a narrow range. Data densely distributed within a narrow interval can be reasonably approximated as uniformly distributed \cite{gning2010mixture, reiss1981uniform, chasani2022uu}. Therefore, it is justifiable to assume that the distances from the visited data points to the query point along each $k$-th principal component follow a probability distribution that is similar to that of $Z'_k \sim \mathcal{U}(a_k, b_k)$, in the sense that their distributional difference is bounded. Formally, the assumption states that the probability density function $f_{Z_k}(y)$ — corresponding to the distances between the query point and the visited data points at the leaf nodes with the same pruning bound index on the \(k\)-th principal component — vanishes, when $y\notin [a_k, b_k]$. This behavior is identical to that of the uniform distribution $\mathcal{U}(a_k, b_k)$. Furthermore, the behavior of $f_{Z_k}(y)$ over the interval $[a_k, b_k]$ is sufficiently close to that of $\mathcal{U}(a_k, b_k)$ to ensure that the ratios between the expectation and variance of $Z_k^2$ and $(Z'_k)^2$ remain bounded by $\kappa_1$, $\kappa_2$, and $\iota$. Consistent with $\mathcal{U}(a_k,b_k)$, $f_{Z_k}(y)$ is infinitely differentiable over the interval $(a_k,b_k)$. We express the assumption above in the following mathematical form.
+\begin{comment}
+Moreover, extensive statistical studies \cite{rosenblat1956remarks, chen2000probability, silverman2018density, schetzen2006volterra} indicate that the real world data, even when approximately uniform over the bulk of their support, typically exhibit a \emph{smooth taper} rather than an abrupt cutoff at the density boundaries. Accordingly, we assume that $Z_k$ is \( C^\infty \)-smooth at the endpoints $a_k$ and $b_k$ of its support $[a_k,b_k]$.
+\end{comment}
+
+\noindent \textbf{\textit{Assumption 1}}.
+\begin{enumerate}
+    \item
+$f_{Z_k}(y)=0$, $y\notin[a_k,b_k]$  
+    \item 
+$\kappa_1 \leq \frac{E(Z^2_k)}{E((Z'_k)^2)}\leq \kappa_2$,  $0<\iota\leq \frac{Var(Z^2_k)}{Var((Z'_k)^2)}$ 
+\end{enumerate}
+
+\begin{comment}
+\item 
+    $\exists$ $\frac{d^{\infty}f_{Z_k}(y)}{dy^{\infty}}$, $y \in [a_k,b_k]$
+\end{comment}
+
+Within practical application, as the dimensionality of vectors increases, since the data on the newly introduced dimensions originate from real-world industrial or scientific contexts, their numerical ranges do not expand indefinitely as dimensionality increases. Accordingly, in this study, it is assumed that the upper $b_k$ and lower bound $a_k$ of the support of $Z_k$ are bounded. The assumption above can be expressed in mathematical form as follows:
+
+\noindent \textbf{\textit{Assumption 2}}.
+\begin{flalign}
+0\leq b^{l}_{a_{k}}\leq a_k\leq b^{u}_{a_{k}} \IEEEyesnumber \\
+0\leq b^{l}_{b_{k}}\leq b_k\leq b^{u}_{b_{k}} \IEEEyesnumber 
+\end{flalign}
+
+In the preceding discussion, we established the final simplified form which can be referred to in expression \ref{equ:proof_final} of the proposition to be proved and introduced two basic assumptions for its proof. We now proceed to provide a proof for proposition stated in expression \ref{equ:proof_final}.
+
+\begin{comment}
+PRELIMINARY 1: $\int^{+\infty}_{-\infty}x^{2+\delta}f_{Y_k}(x)dx$ exists even when $\delta$ is a large positive value, we set the upper bound of $\delta$ ensuring the convergence of the above integral as $\delta_M$. When $\delta \leq \delta_M$:
+
+
+
+
+\begin{flalign}
+&\frac{1}{s^{2+\delta}_{D}}\sum^{D}_{k=1}\int^{+\infty}_{-\infty}x^{2+\delta}f_{Y_k}(x)dx \IEEEnonumber \\
+&=\frac{\zeta \sum^{D}_{k=1}\int^{a_k(\zeta)}_{-a_k(\zeta)}x^{2+\delta}f_{Y_k}(x)dx}{(\sum^{D}_{k=1}\int^{+\infty}_{-\infty}x^2f_{Y_k}(x)dx)^{1+\frac{\delta}{2}}} \IEEEnonumber \\
+&\leq \zeta^{2}\cdot(\frac{ (a_{\lambda}(\zeta))^{2}}{\sum^{D}_{k=1}\int^{+\infty}_{-\infty}x^2f_{Y_k}(x)dx})^{\delta} \IEEEnonumber \\
+&\leq \zeta^{2}\cdot(\frac{\frac{(a_{\lambda}(\zeta))^{2}}{\int^{+\infty}_{-\infty}x^2f_{Y_\lambda}(x)dx}\cdot \int^{+\infty}_{-\infty}x^2f_{Y_\lambda}(x)dx}{\sum^{D}_{k=1}\int^{+\infty}_{-\infty}x^2f_{Y_k}(x)dx})^{\delta} \IEEEyesnumber 
+\end{flalign}
+\end{comment}
+
+
+\begin{comment}
+&\leq (\frac{\frac{\max (a_k)^{2}}{\min \int^{+\infty}_{-\infty}x^2f_{Y_k}(x)dx}\cdot \zeta \int^{+\infty}_{-\infty}x^2f_{Y_\lambda}(x)dx\cdot }{\sum^{D}_{k=1}\int^{+\infty}_{-\infty}x^2f_{Y_k}(x)dx})^{\delta} \IEEEyesnumber 
+\end{comment}
+
+\begin{comment}
+where $\zeta$ is an arbitrary value that $\zeta \geq 1$, and $a_k$ is a positive value that satisfies the condition that $\zeta\int^{a_k(\zeta)}_{-a_k(\zeta)}x^2f_{Y_k}(x)dx=\int^{+\infty}_{-\infty}x^2f_{Y_k}(x)dx$. And $\lambda=\arg\max_{1\leq k\leq D} a_k(\zeta)$. 
+\end{comment}
+
+
+\begin{comment}
+and $\max a_k$ is the cell bound of $a_k$ when $1\leq k<+\infty$, and $\min \int^{+\infty}_{-\infty}x^2f_{Y_k}(x)dx$ is the floor bound of $\int^{+\infty}_{-\infty}x^2f_{Y_k}(x)dx$ when $1\leq k< +\infty$
+\end{comment}
+We use the Esseen inequality \cite{korolev2012improvement, korolev2010upper} as the main framework of the proof.
+\begin{lemma}[Esseen's inequality]
+Let $Z$ and $Y$ be two arbitrary random variables with distribution functions $F_{Z}(x)$ and $F_{Y}(x)$, and with characteristic functions
+$Z(t)$ and $Y(t)$, respectively. Then, for any $T>0$, we have
+\[
+\sup_{x\in\mathbb{R}} |F_{Z}(x)-F_{Y}(x)| 
+\;\leq\; \frac{1}{\pi}\int_{-T}^{T} 
+\left| \frac{Z(t)-Y(t)}{t} \right| \, dt \;+\; \frac{C}{T},
+\]
+where $C>0$ is an absolute constant independent of $Y$, $Z$ and $T$.
+\end{lemma}
+
+To analyze the upper bound of the difference between the cumulative distribution functions of $S_D/s_D$ and the standard normal distribution $\mathcal{N}(0,1)$ based on the Esseen's inequality, the central task is to evaluate the difference between the characteristic functions of $S_D/s_D$ and $\mathcal{N}(0,1)$. According to Lemma~\ref{lm:complex_product_bound} and that $Cov(Y_i, Y_j)\approx0$, which is discussed in the deduction of equality \ref{equ:independent}, the following deduction can be done:
+\begin{flalign}
+&|E(e^{it\cdot \frac{S_D}{s_D}})-e^{-\frac{t^2}{2}}|\IEEEnonumber \\
+ =&|\prod^{D}_{k=1}E(e^{it\cdot \frac{Y_k}{s_D}})-\prod ^{D}_{k=1}e^{-\frac{Var(Y_k)t^2}{2s^2_D}}| \IEEEnonumber \\
+\leq&\sum^{D}_{k=1}|E(e^{it\cdot \frac{Y_k}{s_D}})-e^{-\frac{Var(Y_k)t^2}{2s^2_D}}| \IEEEnonumber \\
+=& \sum^D_{k=1}(|E(e^{it\cdot\frac{Y_k}{s_D}})-E(1+\frac{Y_kt}{s_D}-\frac{Y^2_kt^2}{2s^2_D})|\IEEEnonumber \\ &+|E(1+\frac{Y_{k}t}{s_D}-\frac{Y^2_kt^2}{2s^2_D})-e^{-\frac{Var(Y_k)t^2}{2s^2_D}}|) \IEEEyesnumber \label{equ:characteristic_two_term}
+\end{flalign}
+According to the Jensen inequality \cite{mcshane1937jensen}, the convexity of norm, and lemma \ref{lm:min}, the first item in the sum function of inequality \ref{equ:characteristic_two_term} can be further analyzed as below:
+
+\begin{comment}
+\begin{flalign}
+&|E(e^{it\cdot\frac{Y_k}{s_D}})-E(1+\frac{Y_kt}{s_D}-\frac{Y^2_kt^2}{2s^2_D})|\IEEEnonumber \\
+\leq &E|e^{it\cdot\frac{Y_k}{s_D}}-(1+\frac{Y_kt}{s_D}-\frac{Y^2_kt^2}{2s^2_D})| \IEEEnonumber \\
+\leq &E(\frac{|tY_k|^3}{6s^3_D}) \IEEEyesnumber \label{equ:first_item_bound}
+\end{flalign}
+\end{comment}
+
+\begin{flalign}
+&|E(e^{it\cdot\frac{Y_k}{s_D}})-E(1+\frac{Y_kt}{s_D}-\frac{Y^2_kt^2}{2s^2_D})|\leq E|e^{it\cdot\frac{Y_k}{s_D}}-\IEEEnonumber\\
+&(1+\frac{Y_kt}{s_D}-\frac{Y^2_kt^2}{2s^2_D})| \leq E(\frac{|tY_k|^3}{6s^3_D}) \IEEEyesnumber \label{equ:first_item_bound}
+\end{flalign}
+
+
+By the same reasoning, we have:
+\begin{flalign}
+&|E(e^{it\cdot\frac{Y_k}{s_D}})-E(1+\frac{Y_kt}{s_D}-\frac{Y^2_kt^2}{2s^2_D})|\leq E(\frac{t^2Y^2_k}{2s^2_D}) \IEEEyesnumber \label{equ:second_item_bound}
+\end{flalign}
+Based on the observation that $|e^{-x}-1+x|\leq x^2/2$, and that $E(Y_k)=E(Z^2_k-E(Z^2_k))=0$, the second item in the sum function of inequality \ref{equ:characteristic_two_term} can be further analyzed as followings:
+\begin{flalign}
+&|E(1+\frac{Y_{k}t}{s_D}-\frac{Y^2_kt^2}{2s^2_D})-e^{-\frac{Var(Y_k)t^2}{2s^2_D}}|\IEEEnonumber \\
+=&|1-\frac{Var(Y_k)t^2}{2s^2_D}-(e^{-\frac{Var(Y_k)t^2}{2s^2_D}}-1-\frac{Var(Y_k)t^2}{2s^2_D}\IEEEnonumber \\+&1\frac{Var(Y_k)t^2}{2s^2_D})| 
+\leq \frac{Var^2(Y_k)t^4}{8s^4_D} \IEEEyesnumber \label{equ:third_item_bound}
+\end{flalign}
+Based on inequality \ref{equ:characteristic_two_term}, \ref{equ:first_item_bound}, \ref{equ:second_item_bound}, and \ref{equ:third_item_bound}, the bound of the difference between the characteristic function of $S_D/s_D$ and standard Normal Distribution can be further examined following the inequality \ref{equ:characteristic_two_term} that: for an arbitrary positive value $\epsilon$, the subsequent relation can be derived:
+\begin{flalign}
+&|E(e^{it\cdot \frac{S_D}{s_D}})-e^{-\frac{t^2}{2}}|\leq \sum^D_{k=1}(\frac{Var^2(Y_k)t^4}{8s^4_D}+E(\frac{t^2Y^2_k}{s^2_D}))\IEEEyesnumber \label{equ:inequ_1}
+\end{flalign}
+And that:
+\begin{flalign}
+    &|E(e^{it\cdot \frac{S_D}{s_D}})-e^{-\frac{t^2}{2}}|\leq\sum^D_{k=1}(\frac{Var^2(Y_k)t^4}{8s^4_D}+E(\frac{|tY_k|^3}{6s^2_D})) \IEEEyesnumber \label{equ:inequ_2}
+\end{flalign}
+Based on inequality \ref{equ:inequ_1} and \ref{equ:inequ_2}, the difference between the characteristic function of $S_D/s_D$ and Normal Distribution can be bounded by the inequality below under the setting that $\textbf{1}_{A}$ means the indicator function:
+\begin{comment}
+\begin{flalign}
+    &|E(e^{it\cdot \frac{S_D}{s_D}})-e^{-\frac{t^2}{2}}|\IEEEnonumber \\
+    \leq &\sum^{D}_{k=1}(\frac{t^2}{s^2_D}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})+\frac{|t|^3\epsilon}{6s^2_D}E(Y_k^2\textbf{1}_{|Y_k|\leq \epsilon s_D})\IEEEnonumber \\ &+\frac{Var^2(Y_k)t^4}{8s^4_D}) \IEEEnonumber \\
+    \leq &\frac{t^2}{s^2_D}\sum^D_{k=1}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})+t^4\max_{1\leq k\leq D}\frac{Var(Y_k)}{s^2_D}+|t|^3\epsilon\IEEEyesnumber \label{equ:need_to_analyze} 
+\end{flalign}
+\end{comment}
+\begin{flalign}
+    &|E(e^{it\cdot \frac{S_D}{s_D}})-e^{-\frac{t^2}{2}}|\IEEEnonumber \\
+    \leq &\sum^{D}_{k=1}(\frac{t^2}{s^2_D}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})+\frac{|t|^3\epsilon}{6s^2_D}E(Y_k^2\textbf{1}_{|Y_k|\leq \epsilon s_D})\IEEEnonumber \\ &+\frac{Var^2(Y_k)t^4}{8s^4_D}) 
+    \leq \frac{t^2}{s^2_D}\sum^D_{k=1}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})+\IEEEnonumber \\
+    &t^4\max_{1\leq k\leq D}\frac{Var(Y_k)}{s^2_D}+|t|^3\epsilon\IEEEyesnumber \label{equ:need_to_analyze} 
+\end{flalign}
+Based on the observation that $\epsilon$ can enable inequality \ref{equ:need_to_analyze} to hold for any given positive value, $\epsilon$ can be set to be equal to $(\frac{5}{4}\xi)^\frac{1}{2}$ without loss of generality that:
+\begin{flalign}
+\xi=\frac{45\times(\max_{1\leq k\leq D}\{\max\{\eta_{1k}, \eta_{2k}\}\})^2}{\iota\sum^D_{k=1}(b_k - a_k)^2(4a^2_k + 7a_kb_k + 4b^2_k)}\IEEEyesnumber \label{equ:xi}
+\end{flalign}
+,where $|a^2_k-\frac{\kappa_2(a^2_k+a_kb_k+b^2_k)}{3}|$ and $|b^2_k-\frac{\kappa_1(a^2_k+a_kb_k+b^2_k)}{3}|$ are assigned to $\eta_{1k}$ and $\eta_{2k}$, respectively.
+\begin{comment}
+\begin{flalign}
+&\eta_{1k}=|a^2_k-\frac{\kappa_2(a^2_k+a_kb_k+b^2_k)}{3}|\IEEEyesnumber \label{equ:eta_1} \\
+    &\eta_{2k}=|b^2_k-\frac{\kappa_1(a^2_k+a_kb_k+b^2_k)}{3}|\IEEEyesnumber \label{equ:eta_2}
+\end{flalign}
+\end{comment}
+
+After specifying the value of $\epsilon$, the first two terms in inequality \ref{equ:need_to_analyze} can be examined to deepen the analysis of $|E(e^{it\cdot \frac{S_D}{s_D}})-e^{-\frac{t^2}{2}}|$. For the first term, because of lemma \ref{lm:Y_K_delta_moment_bound} and lemma \ref{lm:delta_moment}, the following lemma can be developed that:
+\begin{lemma}
+    $\frac{t^2}{s^2_D}\sum^D_{k=1}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})$=0, when $\epsilon=(\frac{5}{4}\xi)^{\frac{1}{2}}$. 
+    \begin{proof}
+       because of lemma \ref{lm:Y_K_delta_moment_bound} and lemma \ref{lm:delta_moment},
+       \begin{flalign}
+&\frac{t^2}{s^2_D}\sum^D_{k=1}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})=\frac{t^2\sum^D_{k=1}\int_{|y|>\epsilon s_D}|y|^2f_{Y_k}(y)dy}{s^2_D} \IEEEnonumber \\
+&\leq \frac{t^2\sum^D_{k=1}E(|Y_k|^{2+\delta})}{\epsilon^\delta s^{2+\delta}_{D}}\leq t^2\cdot \frac{\xi^{\frac{\delta}{2}}}{(\frac{5}{4}\xi)^\frac{\delta}{2}}=t^2\cdot(\frac{4}{5})^\frac{\delta}{2}\IEEEyesnumber \label{equ:zero_1}
+\end{flalign}
+Because lemma \ref{lm:delta_moment} accepts assignment of any positive value to $\delta$, the development of inequality \ref{equ:zero_1} follows naturally that:
+\begin{comment}
+\begin{flalign}
+&0\leq \frac{\sum^D_{k=1}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})}{s^2_D}\leq \lim_{\delta \to +\infty}(\frac{4}{5})^{\delta}=0 \IEEEnonumber \\
+\Rightarrow &\frac{\sum^D_{k=1}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})}{s^2_D}=0\IEEEnonumber\\
+\Rightarrow&\frac{t^2\sum^D_{k=1}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})}{s^2_D}=0 \IEEEyesnumber \label{equ:first_term}
+\end{flalign}
+\end{comment}
+\begin{flalign}
+&0\leq \frac{\sum^D_{k=1}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})}{s^2_D}\leq \lim_{\delta \to +\infty}(\frac{4}{5})^{\frac{\delta}{2}}=0 \IEEEnonumber \\
+\Rightarrow&\frac{t^2\sum^D_{k=1}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})}{s^2_D}=0 \IEEEyesnumber \label{equ:first_term}
+\end{flalign}
+    \end{proof}
+    \label{lm:first_item}
+\end{lemma}
+For the second term in inequality \ref{equ:need_to_analyze}, the following lemma can be derived:
+\begin{lemma}
+$t^4\max_{1\leq k\leq D}\frac{Var(Y_k)}{s^2_D}\leq\frac{5}{4}\xi t^4$
+\begin{proof}
+ \begin{flalign}
+&t^4\max_{1\leq k\leq D}\frac{Var(Y_k)}{s^2_D}\IEEEnonumber \\
+=& t^4(\frac{\int_{|y|\leq\epsilon s_D}y^2f_{Y_{\arg\max_{1\leq k\leq D}Var(Y_k)}(y)dy}}{s^2_D}\IEEEnonumber \\
+&+\frac{\int_{|y|\geq\epsilon s_D}y^2f_{Y_{\arg\max_{1\leq k\leq D}Var(Y_k)}(y)dy}}{s^2_D})\IEEEnonumber \\
+\leq&t^4(\epsilon^2+\frac{\int_{|y|\geq\epsilon s_D}y^2f_{Y_{\arg\max_{1\leq k\leq D}Var(Y_k)}(y)dy}}{s^2_D})\IEEEnonumber\\
+\leq&t^4(\epsilon^2+\frac{\sum^D_{k=1}E(Y^2_k\textbf{1}_{|Y_k|>\epsilon s_D})}{s^2_D}) \IEEEnonumber \\
+=&t^4\epsilon^2=\frac{5}{4}\xi t^4\IEEEyesnumber \label{equ:sec_term}
+\end{flalign}   
+\end{proof}
+\label{lm:sec_term}
+\end{lemma}
+
+Lemma \ref{lm:first_item}, lemma \ref{lm:sec_term}, and the assignment of $(\frac{5}{4}\xi)^{\frac{1}{2}}$ to $\epsilon$ implies:
+\begin{flalign}
+    |E(e^{it\cdot \frac{S_D}{s_D}})-e^{-\frac{t^2}{2}}|\leq \frac{5}{4}\xi t^4+(\frac{5}{4}\xi)^{\frac{1}{2}}|t|^3 \IEEEyesnumber \label{equ:new_bound}
+\end{flalign}
+The deduction above presents an upper bound of the absolute difference between the characteristic functions of $S_D/s_D$ and $\mathcal{N}(0,1)$, to further analyze this obtained bound deeper, we study the value $\xi$.
+\begin{lemma}   $\lim_{D\to\infty}\xi=0$
+    \begin{proof}
+        Because of assumption 1 that $\kappa_1$ and $\kappa_2$ are two constant values and assumption 2 that $a_k$ and $b_k$ are bounded by $[b^l_{a_k}, b^u_{a_k}]$ and $[b^l_{b_k}, b^u_{b_k}]$, then, $\eta_{1k}$ , which is equal to $|a^2_k-\frac{\kappa_2(a^2_k+a_kb_k+b^2_k)}{3}|$ according to its definition, and $\eta_{2k}$, which is equal to $|b^2_k-\frac{\kappa_1(a^2_k+a_kb_k+b^2_k)}{3}|$ according to its definition, are bounded. Therefore, $45\times(\max_{1\leq k\leq D}\{\max\{\eta_{1k}, \eta_{2k}\}\})^2$ is bounded.
+       
+       By the similar reasoning, because of assumption 1 that $\iota$ is a constant values and assumption 2 that $a_k$ and $b_k$ are bounded by $[b^l_{a_k}, b^u_{a_k}]$ and $[b^l_{b_k}, b^u_{b_k}]$, then, $\iota\sum^D_{k=1}(b_k - a_k)^2(4a^2_k + 7a_kb_k + 4b^2_k)$ is equal to infinity when $D$ tend to be infinity.
+
+       Consequently, according to the definition of $\xi$ stated in expression \ref{equ:xi}, we have
+       \begin{flalign}
+           \lim_{D\to\infty}\xi=\frac{45(\max_{1\leq k\leq D}\{\max\{\eta_{1k}, \eta_{2k}\}\})^2}{\iota\sum^D_{k=1}(b_k - a_k)^2(4a^2_k + 7a_kb_k + 4b^2_k)}=0 \IEEEnonumber
+       \end{flalign}
+    \end{proof}
+    \label{lm:xi_zero}
+\end{lemma}
+\begin{comment}
+Given that the current study is conducted in a high-dimensional space where 
+$D$ is large, Lemma~\ref{lm:xi_zero} implies that $\xi$ is asymptotically close to zero. Consequently, it can be concluded that the difference $|E( e^{it \cdot \frac{S_D}{s_D}}) - e^{-t^2/2}|$ between the characteristic function of $S_D/s_D$ and that of $\mathcal{N}(0,1)$ remains uniformly small and can be regarded as negligible for all $t$ within a considerably extensive range.
+
+In accordance with assumption 1, $Z_k$ has a finite support, as a result, $S_D/s_D$, which is a second-degree polynomial of $Z_k$ also has a finite support. Therefore, the probability density function $f_{\frac{s_D}{S_D}}(y)$ of $\frac{S_D}{s_D}$ is absolutely integrable on the real number set $R$. According to Riemann–Lebesgue Theorem \cite{bohner2003riemann}, the characteristic function $E(e^{it\cdot \frac{S_D}{s_D}})$ of $\frac{S_D}{s_D}$ is equal to $0$ when $t$ tends to be $\infty$ that
+\begin{flalign}
+\lim_{t\to\infty}E(e^{it\cdot \frac{S_D}{s_D}})=0 \IEEEyesnumber \label{equ:l_r_limit}
+\end{flalign}
+According to assumption 1 that the probability density function $f_{Z_k}(y)$ of $Z_k$ has a compact support and is infinitely differentiable in real number set, therefore, the probability density function $f_{Y_k}(y)$ of $Y_k=Z^2_k-E(Z^2_k)$ also has a compact support and is infinitely differentiable in $R$. Due to the nature of independence between $Y_i$ and $Y_j$, the density probability function $f_{\frac{S_D}{s_D}}(x)$ of $S_D/s_D$ follows a convolution form of $f_{Y_k}(y)$. In conclusion, $f_{\frac{S_D}{s_D}}$ is also infinitely differentiable in $R$. Therefore, by invoking the definition of the characteristic function in Theorem~\ref{thm:thm_characteristic_function} and applying integration by parts repeatedly, the following derivation for the characteristic function of 
+$\frac{S_D}{s_D}$ can be obtained that:
+\begin{flalign}
+   &|E(e^{-it\cdot\frac{S_D}{s_D}})|=|\int^{+\infty}_{-\infty}e^{-itx}f_{\frac{S_D}{s_D}}(y)dy|\IEEEnonumber\\
+   &=|\frac{\int^{+\infty}_{-\infty}e^{-itx}\frac{d^{l}f_{\frac{S_D}{s_D}}(y)}{(dy)^{l}}dy}{(it)^l}|\leq \frac{|\int^{+\infty}_{-\infty}\frac{d^{l}f_{\frac{S_D}{s_D}}(y)}{(dy)^{l}}dy|}{|t|^l} \IEEEyesnumber \label{equ:integration_bound} 
+\end{flalign}
+Note that $f_{\frac{S_D}{s_D}}(y)$ has a compact support, therefore, $\frac{d^{l}f_{\frac{S_D}{s_D}}(y)}{(dy)^{l}}dy$ also has a compact support, thus is integrable over $R$ and $|\int^{+\infty}_{-\infty}\frac{d^{l}f_{\frac{S_D}{s_D}}(y)}{(dy)^{l}}dy|$ is a finite value. Hence, when $t$ gets larger, the $E(e^{-it\cdot \frac{S_D}{s_D}})$ decays to zero at a rate that exceeds any polynomial in 
+$t$ of arbitrarily large degree. Therefore, when $t$ gets larger, $|E(e^{-it\cdot\frac{S_D}{s_D}})|$ becomes negligibly small. By the same reasoning, the characteristic function $e^{-\frac{t^2}{2}}$ of the standard normal distribution $\mathcal{N}(0,1)$ also decays rapidly for large value of $t$, quickly becoming negligible. In conclusion, the magnitude of the difference between the characteristic function $ E(e^{-it\cdot\frac{S_D}{s_D}})$ of $\frac{S_D}{s_D}$ and the characteristic function $e^{-t^2/2}$ of the standard normal distribution $\mathcal{N}(0,1)$ becomes negligibly small when a large value is assigned to $|t|$.
+
+Based on the analysis above, a conclusion can be drawn that, the difference $|E(e^{-it\cdot{\frac{S_D}{s_D}}}) - e^{-t^2/2}|$ is negligibly small for almost all $t$ in $R$.
+
+Based on Esseen smoothing inequality \cite{borda2021berry} and that $|E(e^{-it\cdot{\frac{S_D}{s_D}}}) - e^{-t^2/2}|$ is negligibly small for almost all $t$ in $R$, a conclusion can be drawn that the difference between the cumulative distribution function of $S_D/s_D$ and that of $\mathcal{N}(0,1)$ is also negligibly small over $R$. which implies that:
+\begin{flalign}
+    \frac{S_D}{s_D} \sim \mathcal{N}(0,1) \quad approximate
+\end{flalign}
+\end{comment}
+
+Following the detailed evaluation of the difference between the characteristic functions of $S_D/s_D$ and $\mathcal{N}(0,1)$, analysis can be reverted to Esseen's inequality so that the upper bound on the discrepancy between the two cumulative distribution functions of can be assessed. 
+
+\begin{lemma}
+    According to Esseen 's inequality, the upper bound of the absolute difference between the cumulative distribution functions of $S_D/s_D$ and $\mathcal{N}(0,1)$ approaches $0$ when the dimensionality $D$ tends to be positive infinity, namely 
+\begin{flalign}
+\lim_{D\rightarrow+\infty}\sup_{x\in\mathbb{R}} \left| F_{\frac{S_D}{s_D}}(x)-F_{\mathcal{N}(0,1)}(x)\right|=0 
+\end{flalign}
+\label{thm:lim_sup}
+\end{lemma}
+\begin{proof}
+    According to Esseen's inequality and inequality \ref{equ:new_bound}, the following deduction can be performed that:
+    \begin{flalign}
+        &\sup_{x\in\mathbb{R}} \left| F_{\frac{S_D}{s_D}}(x)-F_{\mathcal{N}(0,1)}(x)\right| 
+\;\IEEEnonumber\\
+\leq&\; \frac{1}{\pi}\int_{-T}^{T} 
+\left| \frac{E(e^{it\cdot\frac{S_D}{s_D}})-e^{-\frac{t^2}{2}}}{t} \right| \, dt \;+\; \frac{C}{T}\IEEEnonumber\\
+\leq&\frac{1}{\pi}\int^{T}_{-T}\frac{5}{4}\xi|t|^3+(\frac{5}{4}\xi)^{\frac{1}{2}}t^2\,dt+\frac{C}{T}\IEEEnonumber\\
+=&\frac{2}{\pi}\cdot(\frac{5\xi T^4}{16}+\frac{\sqrt{5\xi}T^3}{6})+\frac{C}{T}\label{equ:sup}
+    \end{flalign}
+    For an arbitrary positive value $\varsigma$, $\frac{C}{T}$ can be fixed at $\frac{\varsigma}{2}$ under the assignment of $\frac{2C}{\varsigma}$ to $T$. And according to lemma \ref{lm:xi_zero}, there must exist a dimensionality $D(\frac{\varsigma}{2})$ that enables $\frac{2}{\pi}\cdot (\frac{5\xi T^4}{16}+\frac{\sqrt{5\xi}T^3}{6})<\frac{\varsigma}{2}$ for any dimensionality $D'>D(\frac{\varsigma}{2})$. Therefore, for any positive value $\varsigma$, there must exist a dimensionality that enables the upper bound of the absolute difference between the cumulative distribution functions of $\frac{S_D}{s_D}$ and $\mathcal{N}(0,1)$ to be smaller than $\varsigma$ for any dimensionality that is larger than it. In conclusion, 
+    \begin{flalign}    \lim_{D\rightarrow+\infty}\sup_{x\in\mathbb{R}} \left| F_{\frac{S_D}{s_D}}(x)-F_{\mathcal{N}(0,1)}(x)\right|=0.   
+    \end{flalign}
+    
+\end{proof}
+Based on lemma \ref{thm:lim_sup} and the high-dimensional context of this work where the dimensionality is a large value, a conclusion can be drawn that the upper bound of the absolute difference between the cumulative distribution function of $S_D/s_D$ and the cumulative distribution function of the standard normal distribution $\mathcal{N}(0,1)$ can be very close to $0$, as a result, the distribution of $S_D/s_D$ is very similar to that of $\mathcal{N}(0,1)$. Therefore, expression \ref{equ:proof_final}, which is equivalent to lemma \ref{thm:normal_distribution_local}, is proved. Therefore, lemma \ref{thm:normal_distribution_local} is proved.
+
+\section*{Appendix A.3: Parameter Estimation}
+ At the beginning of the update, we employ a sampling-based method to determine the parameters in the probability density function $f_{dist^2(q,v)/b_{p}^2}$ of $dist^2(q,v)/b_{p}^2$ throughout the update process. Since the data distribution evolves slowly during the update process, it is reasonable to assume that the data in $U\cup I$ at the beginning of the phase remains representative of the entire period. Thus, estimating the parameters of $f_{dist^2(q,v)/b^2_{p}}$ based on the initial state of the update is reasonable.
+
+As discussed earlier, the optimal pruning dimensionality is computed from the probability distribution of $dist^2(q,v)/b_{p}^2$ and applies to both the kNN search process and the RkNN search process on \dualtree. This appendix describes how the parameters of $f_{dist^2(q,v)/b_{p}^2}$ are estimated in the two cases.
+
+\noindent\textbf{Parameters for kNN search.}
+In the kNN search scenario, the query point $q$ belongs to $U$, and the visited point $v$ at a leaf node of the \deltatree part of \dualtree belongs to $I$. The pruning bound $b_p$ is the distance from $q$ to the farthest point in its current candidate kNN list (refer to the exact kNN search algorithm on \deltatree~\cite{cui2003contorting} for details), and $\mathcal{O}_U$ denotes the smallest $D$-dimensional space containing all data points in $U$ during the update process. 
+
+To estimate the parameters of the probability density function $f_{dist^2(q,v)/b^2_p}$ of $dist^2(q,v)/b^2_p$, an appropriate proportion of the data points are sampled from each leaf node of the \hdrtree part of the \dualtree where the data points in $U$ are stored. In this paper, we find that 10\% provides a good balance between diversity and efficiency in practice. Then, three quantities are collected from such sample data points:
+\begin{itemize}
+    \item The $\dknn$ values of the sampled data points.
+    \item The number of distinct $b_p$ values encountered during the kNN search process for each sampled data point.
+    \item The $dist^2(q,v)/b_{p}^2$ values occurring in the kNN search process for each sampled data point.  
+\end{itemize}
+
+After the sampling stage, two procedures are implemented to estimate the parameters in $f_{dist^2(q,v)/b^2_p}$.
+
+
+The first task is to determine $M$ and $B_i$, $1\leq i\leq M$. $M$ represents the number of parts into which $\mathcal{O}_U$ can be partitioned. $B_i$ is the number of $b_p$ values encountered in the kNN search process of an arbitrary query point within $\mathcal{O}^i_U$. 
+
+The second task is to derive the weight values $p_m$ and the parameters $\sigma_m$ and $\mu_m$ of each sub-model of $f_{dist^2(q,v)/b^2_p}$, which is modeled as a Gaussian mixture. 
+
+\noindent\textbf{\textit{Determine \bm{$M$} and \bm{$B_i$}.}} Two steps can be applied to determine $M$ and $B_i$.
+
+
+
+\noindent\textit{Step 1.}
+Divide the sampled data points into groups, where the $\dknn$ values within each group vary by no more than a small threshold ratio $\Delta$ that:
+\begin{flalign}
+\frac{|\dknn(q_1,I)-\dknn(q_2,I)|}{\max{(\dknn(q_1,I),\dknn(q_2,I))}}\leq \Delta  \IEEEyesnumber
+\label{equ:group_difference}
+\end{flalign}
+where $q_1$ and $q_2$ are arbitrary two data points in a group. The number of groups formed serves as an approximation for $M$. In this study, we set $\Delta$ to 10\% to strike a balance between preserving intra-group similarity and controlling the number of groups.
+
+\noindent\textit{Step 2.}
+For the $i$-th group ($1\leq i\leq M$), count the number of $b_p$ values encountered during the kNN search of each data point in it, and then use the mode of these counts as an approximation of $B_i$.
+
+
+
+
+
+As the sampling process draws data points from all the leaf nodes of the \hdrtree part of the \dualtree, the resulting sample can be assumed to be globally representative, that is, these collected points can be considered distributed across all the $\mathcal{O}^i_U$ ($1\leq i \leq M$) subspaces. 
+
+Since data points within the same subspace $\mathcal{O}^{i}_{U}$ ($1\leq i\leq M$) of $\mathcal{O}_U$ share the same number of distinct $b_p$ values and exhibit similar probability distributions of the distance to the visited data points under the $b_p$ value with the same index, the distribution of nearby points within $I$ of the data points in the same subspace should be highly similar. As a result, data points sampled from the same subspace tend to have very close $\dknn$ values and are thus likely to fall into the same group. In contrast, the distribution of the data points in $I$ near data points from different subspaces are not similar, making it unlikely for data points in different subspaces to have comparable $\dknn$ values, and hence unlikely to be assigned to the same group. Consequently, the groups that the sampled data points are divided into according to the similarity of their $\dknn$ values tend to align approximately one-to-one with the subspaces of $\mathcal{O}_U$.
+
+Therefore, the number of groups into which the sampled points are divided can be used to estimate $M$, which is the number of subspaces $\mathcal{O}_U$ can be partitioned into, and the mode of the numbers of $b_p$ values during the kNN search process of the data points in the $i$-th group can be used to estimate $B_i$.
+
+
+\noindent\textbf{\textit{Weight values and local parameters.}}
+After determining $M$ and $B_i$, the following approach is applied to estimate the weight and parameters of each sub-model, which follows a Normal Distribution. The values of $dist^2(q, v)/b_{p}^2$ encountered during the kNN search process for each sampled data point (which are collected in the sampling process but are not used in the estimation of $M$ and $B_i$) are utilized to infer the weight and parameters of each sub-model.
+
+Because $F_{dist^2(q,v)/b_{p}^2}$ follows a mixed Normal Distribution, we apply the standard EM algorithm \cite{ng2012algorithm} to infer the corresponding mixture weights and Gaussian parameters. Here, EM serves only as a standard parameter-estimation routine for the mixture model, so its update equations are omitted.
+
+\noindent\textbf{Parameters for RkNN search.}
+In the RkNN search scenario, the query point $q$ belongs to $I$, and the visited point $v$ at a leaf node of the \hdrtree\ part of \dualtree belongs to $U$. The pruning bound $b_p$ is the $\dknn$ value of the visited point (refer to the RkNN search algorithm on \hdrtree~\cite{yang2014continuous} for details), and $\mathcal{O}_I$ denotes the smallest $D$-dimensional space containing all data points in $I$ during the update process. 
+
+To estimate the parameters of $f_{dist^2(q,v)/b^2_p}$ during RkNN search, an appropriate proportion of the data points are sampled from each leaf node of the \deltatree part of the \dualtree where the data points in $I$ are stored. In this paper, we find that 10\% provides a good balance between diversity and efficiency in practice. Then, two quantities are collected from such sample data points:
+\begin{itemize}
+    \item The $\dknn$ values of the visited data points at the leaf node of the \hdrtree part of the \dualtree of each sampled data point.
+    \item The $dist^2(q,v)/b_{p}^2$ values occurring in the RkNN search process for each sampled data point.  
+\end{itemize}
+
+
+Similar to the kNN search case, the number $M$ of subspaces $\mathcal{O}_I$ can be partitioned into and the approximate number $B_i$ of bound kernels of each $\mathcal{O}^i_I$ are determined first, followed by the derivation of the weights and parameters of each sub-model of $f_{dist^2(q,v)/b^2_p}$.
+
+\noindent\textbf{\textit{Determine \bm{$M$} and \bm{$B_i$}.}}
+Two steps can be applied to determine $M$ and $B_i$.
+
+
+\noindent \textit{Step 1.} For each sampled data point, compute the average value of the $\dknn$ values of all the RkNN members of it. Then, divide the sampled data points into groups, where the average $\dknn$ values of the RkNN members of the sampled data points within the same group should vary by no more than a small threshold ratio $\Delta$. For arbitrary two sampled data points $q_1$ and $q_2$ in the same group, the below relationship should hold that:
+\begin{comment}
+\begin{flalign}
+&\frac{| \frac {\sum_{v \in RkNN(q_1. U,I)} dist_{kNN}(v)}{|RkNN(q_1. U,I)|} - \frac{\sum_{v \in RkNN(q_2, U,I)} dist_{kNN}(v)}{|RkNN(q_2, U,I)|} |}{\max\{\frac {\sum_{v \in RkNN(q_1. U,I)} dist_{kNN}(v)}{|RkNN(q_1. U,I)|}, \frac {\sum_{v \in RkNN(q_2. U,I)} dist_{kNN}(v)}{|RkNN(q_2. U,I)|}\}} \IEEEnonumber \\
+&\leq \Delta \IEEEyesnumber
+\end{flalign}
+\end{comment}
+\begin{flalign}
+&\frac{|\overline{d}(q_1)-\overline{d}(q_2)|}{\max\{\overline{d}(q_1), \overline{d}(q_2)\}}\leq \Delta \IEEEyesnumber
+\end{flalign}
+
+\noindent where
+\begin{flalign}
+\overline{d}(q)=\frac {\sum_{v \in \rknn(q, U,I)} \dknn(v,I)}{|\rknn(q, U,I)|} \IEEEyesnumber
+\end{flalign}
+
+Then, the number of the groups formed can serve as the approximation of $M$. In this study, we set $\Delta$ to 10\% to strike a balance between preserving intra-group similarity and controlling the number of groups. This method for estimation of $M$ is motivated by the observation that data points within the same subspace of $\mathcal{O}_I$ tend to exhibit similar average $\dknn$ values of their RkNN members, due to the similarity of the distribution of their nearby data points in $I$.
+
+
+\noindent\textit{Step 2.}
+For each sampled data point in each group, the $\dknn$ values of the data points visited at the leaf nodes of the \hdrtree part of the \dualtree during its RkNN search process are divided into different sets. For any two visited points $v_1$ and $v_2$ whose kNN distances are assigned to the same set, the relationship below should hold that:
+\begin{flalign}
+\frac{|\dknn(v_1,I)-\dknn(v_2,I)|}{\max\{\dknn(v_1,I),\dknn(v_2,I)\}}\leq \Delta \IEEEyesnumber
+\end{flalign}
+where $\Delta$ is a small threshold ratio that controls the within-set variation of the $\dknn$ values under a low level. In this study, we set $\Delta$ as 10\%. For each sampled data point, the number of sets gained is recorded. Then, the mode of these set counts across all the sampled data points in the $i$-th group can serve as the approximation of the number $B_i$ of bound kernels of the $i$-th subspace $\mathcal{O}^{i}_I$ of $\mathcal{O}_I$. 
+
+
+
+\noindent\textbf{\textit{Weights and local parameters.}}
+Similar to the kNN search case, the sampled $dist^2(q,v)/b_p^2$ values collected during RkNN search are used together with the standard EM algorithm \cite{ng2012algorithm} to estimate the weight value $p_m$ and the parameters $\mu_m$ and $\sigma_m$ for each sub-model.
+
+
+
+
+
+
+
