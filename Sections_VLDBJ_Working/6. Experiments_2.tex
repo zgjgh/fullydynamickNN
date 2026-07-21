@@ -1,0 +1,229 @@
+\section{Performance Evaluation}\label{sec:exp}
+
+We evaluate \dualtree and its pruning variants on fully dynamic high-dimensional kNN join workloads. The experiments are designed to answer five questions: whether the dual-index architecture outperforms leading exact baselines under fully dynamic updates, whether fine-grained pruning adds measurable benefit beyond the base architecture, whether the construction and model-fitting overhead of the proposed structures is acceptable, whether the proposed dimensionality-selection models choose near-optimal pruning dimensions, and whether the local distance distributions are approximately Gaussian as the cost model predicts.
+
+\subsection{Experimental Setup}
+
+\noindent\textbf{Methods.}
+We compare the following methods.
+
+\begin{itemize}
+    \item \textbf{\dualtree}: the proposed dual-index framework without the leaf-level fine-grained pruning stage.
+    \item \textbf{\dualtreeopt}: \dualtree with fine-grained pruning, using the mixture-model dimensionality selection from Section~\ref{sec:pruning}, which selects a near-optimal pruning dimensionality by explicitly minimizing the expected-cost model.
+    \item \textbf{\dualtreefast}: \dualtree with fine-grained pruning, using the simplified log-linear selection from Equation~\ref{equ:simppd}, which computes the near-optimal pruning dimensionality much faster.
+    \item \textbf{iDistance}~\cite{jagadish2005idistance}: an adapted high-dimensional index baseline that accelerates only kNN search.
+    \item \textbf{Spheretree}~\cite{yu2010high}: an adapted high-dimensional baseline that accelerates only reverse kNN search.
+    \item \textbf{\hdrtree}~\cite{yang2014continuous}: an ablation that indexes only $U$; forward kNN search over $I$ is not accelerated.
+    \item \textbf{\deltatree}~\cite{cui2003contorting}: an ablation that indexes only $I$; reverse kNN search over $U$ is not accelerated.
+    \item \textbf{FAISS}~\cite{douze2026faiss}: exact brute-force search using the flat index of FAISS. Algorithmically it performs full scans; its acceleration comes entirely from implementation-level optimization of the distance kernels, including vectorized and hardware-efficient execution.
+    \item \textbf{nanoflann}~\cite{blanco2014nanoflann}: exact brute-force search implemented with nanoflann in its brute-force mode. Like FAISS, it performs full scans and relies on an efficient C++ implementation rather than algorithmic pruning.
+\end{itemize}
+
+All evaluated methods return exact kNN join results; note that FAISS and nanoflann obtain their efficiency from implementation-level optimization of brute-force scans rather than from algorithmic pruning. We do not compare against approximate kNN methods, whose recall-quality trade-offs are orthogonal to the exact maintenance problem studied here.
+
+\noindent\textbf{Datasets and hardware.}
+Table~\ref{tab:dataset} summarizes the eight real datasets used in the evaluation. They cover image, audio, and text features, with dimensionalities from 128 to 4096. All experiments were run on a server with two Intel Xeon Gold 6342 CPUs, 500 GB RAM, and Ubuntu 22.04.1 LTS.
+
+\begin{table}[t]
+\centering
+\caption{Dataset summary.}
+\label{tab:dataset}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lrrl@{}}
+\toprule
+\textbf{Dataset} & \textbf{Records} & \textbf{Dims} & \textbf{Type}\\
+\midrule
+NUS-WIDE & 260,000 & 128 & Image\\
+Fashion-MNIST & 60,000 & 784 & Image\\
+Audio & 53,000 & 192 & Audio\\
+CIFAR & 50,000 & 512 & Image\\
+Trevi & 100,000 & 4096 & Image\\
+Sun & 79,000 & 512 & Image\\
+Enron & 95,000 & 1369 & Text\\
+Million Song & 1,000,000 & 420 & Audio\\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+\noindent\textbf{Evaluation protocol.}
+Let $S$ denote the size of a dataset; all workload sizes in this section are stated as fractions of $S$, and in every experiment the split of a dataset into initial sets and update batches is drawn uniformly at random. The concrete workload composition of each experiment is described in its own subsection. Unless a parameter is explicitly varied, the number of neighbors $k$ of the kNN join is fixed to 10. The influence of the structural hyperparameters of the tree indexes, such as the fanout and the leaf-capacity threshold, has been discussed thoroughly in the original papers of \hdrtree~\cite{yang2014continuous} and \deltatree~\cite{cui2003contorting}; all tree structures in our evaluation therefore use their best-performing configurations. Unless otherwise stated, reported values are given to two decimal places, while the normality diagnostics are reported to three decimal places because of their smaller numerical scale.
+
+\subsection{Performance Across Datasets}\label{subsec:exp-overall}
+
+To emulate a fully dynamic scenario that covers all update types, we evaluate a mixed workload that interleaves the three update types requiring search: starting from $|U|=0.25S$ and $|I|=0.25S$, it first inserts $0.25S$ new queries, then inserts $0.25S$ new references against the enlarged query set of $0.5S$, and finally deletes $0.25S$ references from the enlarged reference set of $0.5S$. Query deletions are excluded because deleting a query merely removes its row from the materialized join table and triggers no search or repair. To assess the generality of the proposed methods, we run this workload on all eight datasets; Table~\ref{tab:generality-results} reports the total maintenance time.
+
+\dualtreeopt is the fastest method on every dataset: relative to the strongest baseline on each dataset, it achieves an average speedup of 1.88$\times$, up to 2.65$\times$ on Trevi, whose 4096-dimensional features make full-dimensional verification especially expensive. \dualtreefast stays within 2.4\%--15.3\% of \dualtreeopt. The gap reflects the trade-off between the two selection models: the mixture model of \dualtreeopt predicts the optimal pruning dimensionality more accurately, whereas the simplified selection of \dualtreefast costs almost nothing to fit (Section~\ref{subsec:exp-overhead}). Both pruning variants clearly outperform the base \dualtree---\dualtreefast alone is 20.6\%--41.3\% faster---which isolates the benefit of the leaf-level point-wise low-dimensional pruning introduced in Section~\ref{sec:pruning}.
+
+The gap between \dualtree and the two single-index ablations isolates the value of indexing both sides. A fully dynamic stream exercises both search primitives: query insertions and the row-repair step of reference deletions rely on kNN search, while reference insertions and deletions rely on RkNN localization. \dualtree accelerates both directions, whereas \deltatree accelerates only kNN search and \hdrtree only RkNN search; consequently, \dualtree is 1.06$\times$--1.47$\times$ faster than \deltatree and 1.29$\times$--6.45$\times$ faster than \hdrtree across the eight datasets.
+
+The ablations also lead the adapted baselines with the same specialization: \deltatree beats iDistance by 1.13$\times$--5.42$\times$ through its more effective PCA-based reduction, and \hdrtree, with one more reduction stage than Spheretree, is faster on five datasets and within 5\% on the rest. Among the brute-force baselines, FAISS is the strongest baseline on CIFAR yet 5.7$\times$ slower than \dualtreeopt on Enron, and nanoflann trails \dualtreeopt by 3.2$\times$--23.1$\times$ throughout.
+
+\begin{table*}[t]
+\centering
+\caption{Mixed-workload runtime across the eight datasets (s).}
+\label{tab:generality-results}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrrrrrr@{}}
+\toprule
+\textbf{Method} & \textbf{CIFAR} & \textbf{Audio} & \textbf{M-Song} & \textbf{Sun} & \textbf{Trevi} & \textbf{F-MNIST} & \textbf{Enron} & \textbf{NUS-WIDE}\\
+\midrule
+\dualtreeopt    & \textbf{500.93} & \textbf{100.12} & \textbf{3373.62} & \textbf{626.73} & \textbf{3716.20} & \textbf{244.81} & \textbf{3687.18} & \textbf{799.63} \\
+\dualtreefast   & 524.43 & 115.39 & 3453.65 & 672.59 & 4076.43 & 268.67 & 3799.68 & 875.89 \\
+\dualtree       & 700.59 & 170.48 & 5159.88 & 945.89 & 6944.15 & 371.71 & 4786.23 & 1222.92 \\
+\midrule
+\deltatree      & 785.36 & 181.52 & 5606.05 & 1123.55 & 9851.38 & 545.18 & 5387.99 & 1518.80 \\
+\hdrtree        & 900.36 & 358.41 & 15288.94 & 2475.45 & 19482.77 & 1612.64 & 7473.36 & 7886.94 \\
+iDistance       & 887.21 & 287.13 & 13308.94 & 1862.75 & 16711.49 & 1074.78 & 6250.99 & 8237.23 \\
+Spheretree      & 858.72 & 356.85 & 15286.25 & 2587.64 & 22266.94 & 1784.84 & 8291.79 & 8707.05 \\
+FAISS           & 765.42 & 215.25 & 18325.51 & 1553.84 & 24407.34 & 2001.64 & 21113.37 & 4956.78 \\
+nanoflann       & 1606.84 & 454.07 & 50777.65 & 4187.83 & 58503.74 & 5666.44 & 52167.22 & 12363.78 \\
+\bottomrule
+\end{tabular}
+\vspace{0.2em}
+\begin{minipage}{0.97\textwidth}
+\footnotesize
+\emph{Note:} Mixed workload with initial sets of $0.25S$ and update batches of $0.25S$ per update type; $k=10$. M-Song = Million Song, F-MNIST = Fashion-MNIST. Best results are in bold.
+\end{minipage}
+\end{table*}
+
+\subsection{Construction Overhead}\label{subsec:exp-overhead}
+
+Table~\ref{tab:index-build} reports the one-time cost of building the two index structures of \dualtree and of fitting the two dimensionality-selection models. Both are measured on the initial data of the mixed workload in Section~\ref{subsec:exp-overall}, that is, on the initial $|U|=|I|=0.25S$.
+
+Three observations follow. First, index construction is cheap relative to update processing. We measure it against one mixed pass, that is, the total time \dualtreeopt takes to process the mixed workload of Section~\ref{subsec:exp-overall} once (its entry in Table~\ref{tab:generality-results}). On seven of the eight datasets, building both trees costs below 8\% of one mixed pass, and often below 1\%. The only exception is Trevi, where PCA and hierarchical clustering operate on 4096 dimensions; even there, construction amounts to about one fifth of one mixed pass. Second, fitting the mixture model used by \dualtreeopt is moderate in most cases: it stays below 250 seconds on five of the eight datasets and grows mainly with the number of points and the dimensionality, since the EM estimation then processes larger samples. Both index construction and model fitting run entirely offline before the update stream starts, and both can be repeated periodically when performance degrades. Neither step sits on the update path. Third, the two-point log-linear fit used by \dualtreefast costs at most 0.13 seconds on all datasets; its overhead is negligible.
+
+\begin{table}[t]
+\centering
+\caption{Construction and model-fitting time (s).}
+\label{tab:index-build}
+\footnotesize
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lrrr@{}}
+\toprule
+\textbf{Dataset} & \textbf{Build} & \textbf{Strict fit} & \textbf{Simpl.\ fit} \\
+\midrule
+CIFAR         & 1.21   & 21.58   & 0.007 \\
+Audio         & 0.47   & 70.26   & 0.003 \\
+Million Song  & 185.42 & 8090.24 & 0.126 \\
+Sun           & 1.85   & 248.83  & 0.021 \\
+Trevi         & 795.77 & 143.94  & 0.007 \\
+Fashion-MNIST & 18.38  & 38.86   & 0.004 \\
+Enron         & 108.58 & 9048.89 & 0.028 \\
+NUS-WIDE      & 22.94  & 2469.81 & 0.020 \\
+\bottomrule
+\end{tabular*}
+\vspace{0.2em}
+\begin{minipage}{\columnwidth}
+\footnotesize
+\emph{Note:} Index build covers both trees of \dualtree. Strict fit is the mixture-model estimation used by \dualtreeopt; simplified fit is the log-linear estimation used by \dualtreefast, reported to three decimal places due to its sub-second scale.
+\end{minipage}
+\end{table}
+
+\subsection{Parameter Sensitivity}\label{subsec:exp-sensitivity}
+
+The sensitivity study uses a parameterized version of the mixed workload. Let $X$ be the initial fraction and $Y$ the update fraction. Starting from $|U|=XS$ and $|I|=XS$, the workload first inserts $YS$ queries, then inserts $YS$ references against the enlarged query set of $(X+Y)S$, and finally deletes $YS$ randomly chosen references from the enlarged reference set. We vary one parameter at a time. For the initial set size, $X$ ranges over $1/11$ to $5/11$ with $Y=1/22$ and $k=10$. Fixing $Y=1/22$ in this experiment serves three purposes: the update amount can reach half of the initial set size at the smallest $X$, the initial size grows in equal steps, and at $X=5/11$ the query and reference sides together consume the entire dataset. For the update amount, $Y$ ranges over $0.05$ to $0.25$ with $X=0.25$ and $k=10$. For the number of neighbors, $k$ ranges over 5 to 25 with $X=Y=0.25$. Figure~\ref{fig:sensitivity} reports the results on Million Song, Trevi, Enron, and NUS-WIDE, which cover the largest cardinality, the highest dimensionality, text features, and the standard image benchmark, respectively.
+
+The relative ordering of the methods is stable across all twelve plots: \dualtreeopt is the fastest, followed by \dualtreefast, the base \dualtree, and \deltatree, while the remaining baselines lie well above them. Notably, even without leaf-level pruning, \dualtree already runs faster than every baseline at every parameter setting, leading the strongest baseline \deltatree by 1.09$\times$--1.98$\times$. This confirms the benefit of the dual-index architecture itself. Across the four datasets and all three parameters, \dualtreefast is 20.6\%--46.2\% faster than the base \dualtree, and \dualtreeopt adds a further 2.3\%--15.1\% on top of \dualtreefast. Even against the best-performing baseline, \dualtreeopt keeps a 1.7$\times$--7.3$\times$ advantage over the whole parameter space.
+
+The overall trends are as expected. Total time grows with the initial set size, because both the kNN and the RkNN search spaces become larger. It also grows with the update amount, because more query and reference updates mean more kNN and RkNN searches. Time also increases with $k$, for reasons on both search sides. For kNN search, a larger $k$ enlarges the temporary pruning radius and leaves more candidates maintained in the temporary kNN list to be sorted. For RkNN search, a larger $k$ increases the $\dknn$ values, so an updated reference affects more queries and the RkNN search paths become longer. More affected queries in turn trigger more kNN recomputations.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.242\textwidth]{Images/realgraph/sens_init_msong.pdf}\hfill
+    \includegraphics[width=0.242\textwidth]{Images/realgraph/sens_init_trevi.pdf}\hfill
+    \includegraphics[width=0.242\textwidth]{Images/realgraph/sens_init_enron.pdf}\hfill
+    \includegraphics[width=0.242\textwidth]{Images/realgraph/sens_init_nuswide.pdf}\\[2pt]
+    \includegraphics[width=0.242\textwidth]{Images/realgraph/sens_upd_msong.pdf}\hfill
+    \includegraphics[width=0.242\textwidth]{Images/realgraph/sens_upd_trevi.pdf}\hfill
+    \includegraphics[width=0.242\textwidth]{Images/realgraph/sens_upd_enron.pdf}\hfill
+    \includegraphics[width=0.242\textwidth]{Images/realgraph/sens_upd_nuswide.pdf}\\[2pt]
+    \includegraphics[width=0.242\textwidth]{Images/realgraph/sens_k_msong.pdf}\hfill
+    \includegraphics[width=0.242\textwidth]{Images/realgraph/sens_k_trevi.pdf}\hfill
+    \includegraphics[width=0.242\textwidth]{Images/realgraph/sens_k_enron.pdf}\hfill
+    \includegraphics[width=0.242\textwidth]{Images/realgraph/sens_k_nuswide.pdf}\\[4pt]
+    \includegraphics[width=0.9\textwidth]{Images/realgraph/sens_legend.pdf}
+    \vspace{0.15em}
+    \caption{Parameter sensitivity under the mixed workload on Million Song, Trevi, Enron, and NUS-WIDE (columns). Rows from top to bottom vary the initial set size, the update amount, and the number of neighbors $k$. The y-axis reports total runtime in seconds on a logarithmic scale.}
+    \label{fig:sensitivity}
+\end{figure*}
+
+\subsection{Cost VS Pruning Dimensionality}\label{subsec:exp-dimcurves}
+
+Figure~\ref{fig:dim-curves} plots the total maintenance time as a function of the pruning dimensionality $d$ on Million Song, Trevi, Enron, and NUS-WIDE under two one-sided insertion workloads. On the kNN side, $0.25S$ queries are inserted into an initial query set of $0.25S$ against a fixed reference set of $0.5S$; this workload exercises kNN search on the \deltatree side and is shown in the top row. On the RkNN side, $0.25S$ references are inserted into an initial reference set of $0.25S$ against a fixed query set of $0.5S$; this workload exercises RkNN search on the \hdrtree side and is shown in the bottom row.
+
+Every curve is U-shaped. At small $d$, adding principal components sharply improves pruning power because the leading components capture most of the variance; after the informative components are exhausted, the marginal pruning gain diminishes and the linear cost of the low-dimensional check dominates. The empirical optima lie at a small fraction of the full dimensionality: $d^{*}=13$ of 128 (10.2\%) on NUS-WIDE, 65 of 420 (15.5\%) on Million Song, 118--131 of 1369 (about 9\%) on Enron, and 121 of 4096 (3.0\%) on Trevi. The optimal fraction shrinks as $D$ grows, which is consistent with the distance-shrinkage model in Section~\ref{sec:pruning}: the higher the full dimensionality, the earlier the cumulative-variance curve flattens relative to $D$. Choosing $d$ poorly is costly at both ends. With $d$ close to $D$, the low-dimensional check degenerates into a second full-dimensional distance computation and the total time reaches 1.20$\times$--2.55$\times$ the optimum; with $d$ too small, too many false positives survive to full verification, costing up to 2.12$\times$ the optimum. Finally, the kNN-side and RkNN-side optima are consistent on every dataset (identical on three of the four, and 118 vs.\ 131 on Enron), and both curves are flat in a wide neighborhood around the optimum. This flatness is exactly what makes model-based dimension selection practical, as quantified next.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.242\textwidth]{Images/realgraph/dim_knn_msong.pdf}\hfill
+    \includegraphics[width=0.242\textwidth]{Images/realgraph/dim_knn_trevi.pdf}\hfill
+    \includegraphics[width=0.242\textwidth]{Images/realgraph/dim_knn_enron.pdf}\hfill
+    \includegraphics[width=0.242\textwidth]{Images/realgraph/dim_knn_nuswide.pdf}\\[2pt]
+    \includegraphics[width=0.242\textwidth]{Images/realgraph/dim_rknn_msong.pdf}\hfill
+    \includegraphics[width=0.242\textwidth]{Images/realgraph/dim_rknn_trevi.pdf}\hfill
+    \includegraphics[width=0.242\textwidth]{Images/realgraph/dim_rknn_enron.pdf}\hfill
+    \includegraphics[width=0.242\textwidth]{Images/realgraph/dim_rknn_nuswide.pdf}
+    \caption{Total runtime (s) as a function of the pruning dimensionality $d$ (log scale). Top row: query-insertion workload (kNN search); bottom row: reference-insertion workload (RkNN search).}
+    \label{fig:dim-curves}
+\end{figure*}
+
+\subsection{Validation of the Cost Model}\label{subsec:exp-model}
+
+\noindent\textbf{Prediction accuracy.}
+Table~\ref{tab:model-validation} compares the dimensions predicted by \dualtreeopt and \dualtreefast with the empirically best dimension on all eight datasets. \dualtreeopt is accurate in both search directions: its runtime error stays below 3.0\% in 15 of the 16 dataset--direction combinations, with a maximum of 5.0\% on the kNN side of Sun, and it reproduces the empirical optimum exactly on Enron in both directions. \dualtreefast shows larger dimensional error because it relies on a two-point log-linear fit, yet its runtime error remains below 6\% in 13 of the 16 combinations. This asymmetry confirms that the expected-cost model identifies dimensions near the flat bottom of the U-shaped cost curves in Figure~\ref{fig:dim-curves}: dimensional deviations of up to 30.8\% still translate into small time deviations because the local slope around the optimum is shallow. The main exception is Audio, where the simplified fit loses 19.4\% on the RkNN side and 59.4\% on the kNN side relative to the empirical optimum. On this dataset the leading principal components carry an unusually small share of the total variance, so the two-point extrapolation misplaces the predicted dimensionality, and the flat-bottom protection is weaker because the cost curve rises more quickly around the optimum. The mixture model of \dualtreeopt absorbs this case through its fitted local distributions, keeping the error at 0.4\% and 2.7\%. This contrast also delineates the practical division of labor between the two models: \dualtreefast is a near-free default, while \dualtreeopt justifies its offline fitting cost precisely on datasets whose variance spectra are flat.
+
+\begin{table}[t]
+\centering
+\caption{Cost-model prediction error on eight datasets (\%).}
+\label{tab:model-validation}
+\setlength{\tabcolsep}{2pt}
+\footnotesize
+\begin{tabularx}{\columnwidth}{@{}l *{4}{>{\centering\arraybackslash}X}@{}}
+\toprule
+& \multicolumn{2}{c}{\textbf{RkNN/\hdrtree}} & \multicolumn{2}{c}{\textbf{kNN/\deltatree}} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+\textbf{Dataset} & \makecell{opt \\ D/T} & \makecell{fast \\ D/T} & \makecell{opt \\ D/T} & \makecell{fast \\ D/T} \\
+\midrule
+NUS-WIDE    & 7.69/0.80 & 23.08/3.15 & 15.38/0.92 & 30.77/7.22 \\
+CIFAR       & 5.88/1.01 & 7.84/1.34 & 4.92/0.09 & 6.56/0.11 \\
+Sun         & 3.28/0.65 & 8.20/1.63 & 9.84/5.01 & 11.48/5.86 \\
+Audio       & 14.29/0.43 & 23.81/19.41 & 19.05/2.67 & 28.57/59.42 \\
+Enron       & 0.00/0.00 & 16.03/0.42 & 0.00/0.00 & 16.95/0.35 \\
+F-MNIST     & 4.00/0.17 & 6.00/0.26 & 7.81/0.15 & 9.38/0.19 \\
+Trevi       & 7.44/0.72 & 15.70/1.52 & 8.26/0.83 & 16.53/1.66 \\
+M-Song      & 9.23/2.89 & 13.85/4.17 & 7.70/0.49 & 15.39/1.08 \\
+\bottomrule
+\end{tabularx}
+\vspace{0.2em}
+\begin{minipage}{\columnwidth}
+\footnotesize
+\emph{Note:} D/T denotes dimensionality/runtime error relative to the empirical optimum. F-MNIST = Fashion-MNIST, M-Song = Million Song.
+\end{minipage}
+\end{table}
+
+\noindent\textbf{Normality diagnostic for local distance ratios.}
+To validate the Gaussian assumption used in the cost-aware dimensionality model, we measured skewness and excess kurtosis of the sampled local-distance distributions on the two one-sided insertion workloads defined in Section~\ref{subsec:exp-dimcurves}: the kNN-side statistics are collected from query insertions, and the RkNN-side statistics from reference insertions. These two moment statistics are standard diagnostics for departures from normality~\cite{dagostino1990powerful,decarlo1997kurtosis}. Table~\ref{tab:normality-diagnostic} reports the observed values on the eight datasets used in our evaluation. In all cases, the absolute skewness is below 0.5 and the absolute excess kurtosis is below 1.0, indicating mild asymmetry and moderate tails. These statistics empirically validate modeling the local distributions as approximately Gaussian in our setting.
+
+\begin{table}[t]
+\centering
+\caption{Normality diagnostic of sampled local distributions.}
+\label{tab:normality-diagnostic}
+\footnotesize
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lrrrr@{}}
+\toprule
+\textbf{Data} & \textbf{K-s} & \textbf{K-k} & \textbf{R-s} & \textbf{R-k} \\
+\midrule
+CIFAR          & -0.458 & -0.270 & -0.451 & -0.426 \\
+Audio          & -0.442 &  0.601 & -0.479 & -0.377 \\
+Sun            & -0.384 &  0.340 & -0.460 & -0.159 \\
+NUS-WIDE       & -0.448 &  0.955 & -0.443 & -0.030 \\
+Enron          & -0.362 & -0.417 & -0.352 & -0.645 \\
+F-MNIST        & -0.463 & -0.048 & -0.498 & -0.188 \\
+M-Song         & -0.483 &  0.110 & -0.451 & -0.220 \\
+Trevi          & -0.396 & -0.320 & -0.433 &  0.212 \\
+\bottomrule
+\end{tabular*}
+\vspace{0.2em}
+\begin{minipage}{\columnwidth}
+\footnotesize
+\emph{Note:} K/R denotes kNN/RkNN; s/k denotes skewness/excess kurtosis. F-MNIST = Fashion-MNIST, M-Song = Million Song.
+\end{minipage}
+\end{table}

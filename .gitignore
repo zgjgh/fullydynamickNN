@@ -31,6 +31,7 @@
 ~$*
 build/
 build_vldbj/
+build_vldbj_working/
 $outputDir/
 *.synctex
 *.synctex(busy)

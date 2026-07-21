@@ -1,0 +1,148 @@
+\section{A Dual-Index Framework}
+\label{sec:framework}
+
+We maintain a materialized kNN join table $\knnjoin(U,I)$, where each row stores a query point $u\in U$ and its current answer $\knn(u,I)$. A fully dynamic workload contains four update types: insertion into $U$, deletion from $U$, insertion into $I$, and deletion from $I$. The key challenge is that these updates induce two different maintenance paths. Updates to $U$ require computing or repairing rows through kNN search over the current reference set; in the following, we refer to this path as forward repair. Updates to $I$ require first locating the query rows whose answers may change and then repairing only those rows; we refer to this localization step as reverse localization. The framework presented in this section is organized around these two paths.
+
+\subsection{Dual Index}
+\label{subsec:framework-why-dual}
+
+The two maintenance paths rely on different maintained spatial relationships and therefore naturally attach to opposite sides of the join.
+
+Forward repair is carried out through kNN search over reference candidates. To accelerate it, the index must encode the spatial organization of the reference set $I$, because pruning is driven by lower bounds between a query point and candidate reference clusters. Reverse localization is carried out through RkNN search over the stored query side. To accelerate it, the index must encode the spatial organization of the query set together with the query-side kNN distances that determine whether an updated reference can enter or invalidate existing answers.
+
+This difference explains why a single-sided design is insufficient. An index built only on $I$ can accelerate forward repair, but when $I$ changes it still needs a scan over $U$ to find the affected rows. Conversely, an index built only on $U$ can accelerate reverse localization, but it still needs a scan over $I$ whenever a repaired row requires a fresh exact kNN computation. Each single-sided design therefore leaves one maintenance path effectively unindexed.
+
+For this reason, fully dynamic exact kNN join calls for two coordinated indexes: one attached to the reference side for kNN search in forward repair, and one attached to the query side for RkNN search in reverse localization.
+
+\subsection{\dualtree}
+\label{subsec:dualtree}
+
+\dualtree instantiates this idea with three maintained objects:
+\begin{enumerate}
+    \item the materialized join table $\knnjoin(U,I)$;
+    \item a \deltatree over the reference set $I$;
+    \item an \hdrtree over the query set $U$.
+\end{enumerate}
+
+\noindent\textbf{Materialized join table.}
+The join table stores the current answer row for each query point in $U$. Whenever an update changes the exact current answer of a query, the corresponding row must be repaired.
+
+\noindent\textbf{Reference-side component.}
+A \deltatree indexes the reference set $I$ and supports exact kNN search for forward repair under the current state of the reference space.
+
+\noindent\textbf{Query-side component.}
+The \hdrtree indexes the query set $U$ and supports RkNN search for reverse localization when a reference update may affect existing rows in the materialized join table.
+
+The underlying search procedures used on these two components follow the original exact kNN search on \deltatree and the original RkNN search on \hdrtree, which can be found in~\cite{cui2003contorting,yang2014continuous}.
+
+At any time, these three objects must remain synchronized: the join table must store the current exact answers, the \deltatree must reflect the current reference set, and the \hdrtree must reflect the current query set together with the query-side thresholds used for reverse localization. In particular, the pruning values stored in the two indexes, such as cluster radii and query-side maximum kNN distances, must remain current.
+
+\noindent\textbf{Dynamicizing \hdrtree.}
+The original \hdrtree is used with a static query side and a dynamic reference side. Our setting requires updates on $U$ itself. We therefore extend \hdrtree with query-side insertion and deletion routines and maintain the stored kNN distance of each query together with the join table. This gives the framework a query-side structure that remains current under insertions, deletions, and row refreshes.
+
+Later RkNN search on \hdrtree prunes subtrees according to the cluster radius together with the stored kNN-distance threshold under that subtree. To keep this pruning region tight, a new query is not inserted into an arbitrary child cluster. Instead, when descending the tree, we choose the child cluster that minimizes the post-insertion score $\eta(C,u)=radius^{new}_{PC}(C,u)+\max(\dmknn(C),d_u)$. Here, $radius^{new}_{PC}(C,u)$ is the resulting cluster radius in that level-specific PCA space after inserting $u$ into candidate cluster $C$, and $\max(\dmknn(C),d_u)$ is the resulting maximum stored kNN distance under that cluster. This quantity governs the pruning region of later RkNN search on \hdrtree, so the insertion policy is chosen to keep later affected-query search tight. In addition, each query maintains a direct pointer to its hosting leaf entry together with its ancestor path in \hdrtree. This allows later deletion of the query or refresh of its stored kNN distance to be carried out locally, without rediscovering the query location by scanning unrelated clusters.
+
+\begin{algorithm}[t]
+\caption{Update\_HDR\_Insert($u$)}
+\label{alg:UpdateHDRInsert}
+\KwData{New query point $u$ whose current kNN row has been computed}
+\KwResult{Updated \hdrtree}
+$d_u \leftarrow \dknn(u,I)$\;
+$node \leftarrow root_{HDR}$\;
+$P \leftarrow [\,]$\;
+\While{$node$ is not a leaf}{
+  $C^\star \leftarrow \arg\min_{C \in children(node)} \eta(C,u)$\;
+  update $radius_{PC}(C^\star)$ after inserting $u$\;
+  update $\dmknn(C^\star)$ after inserting $u$\;
+  append $C^\star$ to $P$\;
+  \If{$LeafOverflow(C^\star,u)$}{
+      grow subtree below $C^\star$\;
+  }
+  $node \leftarrow child(C^\star)$\;
+}
+insert $u$ into $node$\;
+store pointers from $u$ to $node$ and path $P$\;
+\end{algorithm}
+
+Algorithm~\ref{alg:UpdateHDRInsert} inserts the new query along the path that minimizes the future search region used in reverse localization. The radius and $\dmknn$ values are updated immediately on the selected path. If an overflow occurs below the selected cluster, a new lower level is grown; once the dimensionality ceiling is reached, that growth continues in the full-dimensional space.
+
+\begin{algorithm}[t]
+\caption{HDR\_Adjust($u$, mode)}
+\label{alg:UpdateHDRAdjust}
+\KwData{Affected $u$ and the maintenance mode in \{delete, refresh\}}
+\KwResult{Updated \hdrtree}
+\tcp*[l]{Use the direct pointers for $u$}
+locate the leaf and ancestor path $P$ for $u$\;
+\eIf{mode = delete}{
+    delete $u$ from the hosting leaf\;
+}{
+    refresh $dist_{kNN}$ of $u$\;
+}
+\ForEach{$C\in P$}{
+    recompute $\dmknn(C)$\;
+    tighten $radius_{PC}(C)$ if needed\;
+}
+\end{algorithm}
+
+Algorithm~\ref{alg:UpdateHDRAdjust} uses the direct pointers maintained for each query so that deletion of a query or refresh of its stored kNN distance only touches the hosting path of that query. This keeps query-side maintenance local and avoids scanning unrelated clusters to rediscover the affected query location.
+
+\subsection{Update Pipeline}
+\label{subsec:pipeline}
+
+We now describe how these three maintained objects are updated. The ordering in each case is determined by which object must already be current before the next maintenance step can be executed correctly.
+
+\noindent \textbf{Case 1: insertion into $U$.}
+When a new query point $u$ is inserted into $U$, the join table gains a new row. That row cannot be inserted meaningfully before its kNN list is known. We therefore first run forward kNN search over the current reference set $I$, obtain $\knn(u,I)$, and then insert the row $(u,\knn(u,I))$ into the materialized view. Only after this row has been computed can $u$ be inserted into \hdrtree, because the query-side pruning values maintained by \hdrtree depend on the query's current kNN information. Since $I$ is unchanged, no existing row in the view needs repair.
+
+\begin{algorithm}[t]
+\caption{$\knnjoin$\_Insertion\_U($u$)}
+\label{alg:UpdateKNN_insertion_U}
+\KwData{New query point $u$}
+\KwResult{Updated $\knnjoin(U,I)$, \hdrtree}
+$A\leftarrow$ kNN\_\dualtree($u$)\;
+insert $(u,A)$ into $\knnjoin(U,I)$\;
+Update\_HDR\_Insert($u$)\;
+\end{algorithm}
+
+Algorithm~\ref{alg:UpdateKNN_insertion_U} implements this path by first computing the new row through \deltatree-based kNN search and then inserting the new query into \hdrtree so that its stored kNN distance becomes available to later pruning.
+
+\noindent \textbf{Case 2: deletion from $U$.}
+When a query point $u$ is deleted from $U$, the corresponding row is removed from $\knnjoin(U,I)$ and \hdrtree is updated through HDR\_Adjust($u$, delete). Because the reference set remains unchanged, no kNN search, no reverse localization, and no repair of other rows are needed. The update only touches the deleted row and the hosting path of $u$ in \hdrtree.
+
+\noindent \textbf{Case 3: insertion into $I$.}
+When a new reference point $i$ is inserted into $I$, the task is to identify the rows for which $i$ enters the current top-$k$ result. This follows the reverse-localization path. We therefore use RkNN search on \hdrtree to locate the affected queries. For each affected row, the previous $k$-th neighbor is replaced by $i$, after which the stored kNN distance of that query is refreshed through HDR\_Adjust($u$, refresh). The new point $i$ is then inserted into \deltatree so that subsequent kNN searches in forward repair operate on the updated reference space.
+
+
+\begin{algorithm}[t]
+\caption{$\knnjoin$\_Insertion\_I($q$)}
+\label{alg:UpdateKNN_insert_I}
+\KwData{New reference point $q$}
+\KwResult{Updated $\knnjoin(U, I\cup\{q\})$, \hdrtree, and \deltatree}
+$R\leftarrow$ RkNN\_\dualtree($root_{HDR}$, $q$)\;
+\ForEach{$u_a\in R$}{
+  replace the previous $k$-th neighbor of $u_a$ by $q$ in the row of $u_a$\;
+  HDR\_Adjust($u_a$, refresh)\;
+}
+$\Delta$\_Insert($q$)\;
+\end{algorithm}
+
+Algorithm~\ref{alg:UpdateKNN_insert_I} realizes this path by first using \hdrtree to perform reverse localization and then updating only the affected rows. After the stored kNN distance of each affected query is refreshed, the corresponding path in \hdrtree and the reference-side \deltatree are synchronized.
+
+\noindent \textbf{Case 4: deletion from $I$.}
+When a reference point $i$ is deleted from $I$, some stored query answers may become invalid and require fresh forward repair. For this reason, \deltatree must first be updated to reflect the current reference set $I\setminus\{i\}$. Only then can later kNN searches in forward repair return correct results. After updating \deltatree, we use RkNN search on \hdrtree to perform reverse localization on the affected query rows. Each affected row is repaired by recomputing its current exact kNN list over the updated reference set, and the stored kNN distance of that query is then synchronized through HDR\_Adjust($u$, refresh).
+
+\begin{algorithm}[t]
+\caption{$\knnjoin$\_Deletion\_I($q$)}
+\label{alg:UpdateKNN_deletion_I}
+\KwData{Reference point $q$ deleted from $I$}
+\KwResult{Updated $\knnjoin(U, I\setminus\{q\})$, \hdrtree, and \deltatree}
+$\Delta$\_Delete($q$)\;
+$R\leftarrow$ RkNN\_\dualtree($root_{HDR}$, $q$)\;
+\ForEach{$u_a\in R$}{
+  recompute $\knn(u_a, I\setminus\{q\})$ with kNN\_\dualtree($u_a$)\;
+  update the row of $u_a$\;
+  HDR\_Adjust($u_a$, refresh)\;
+}
+\end{algorithm}
+
+Algorithm~\ref{alg:UpdateKNN_deletion_I} first makes the reference-side search structure current, then uses \hdrtree to localize the affected rows, and finally repairs each of them through fresh kNN search over $I\setminus\{q\}$. This keeps the expensive recomputation local to the rows that actually depended on the deleted reference.

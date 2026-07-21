@@ -1,0 +1,121 @@
+% The VLDB Journal two-column submission template.
+% This migration entry is intentionally separate from main.tex.
+\RequirePackage{fix-cm}
+\documentclass[twocolumn]{svjour3}
+
+\smartqed
+
+%%%% Standard packages and project dependencies
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{bm}
+\usepackage{xspace}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage{comment}
+\usepackage{calc}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{makecell}
+\usepackage{array}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[ruled,linesnumbered,noend]{algorithm2e}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric}
+
+\flushbottom
+
+%%%% Compatibility shims for equations imported from the previous draft.
+\providecommand{\IEEEyesnumber}{}
+\providecommand{\IEEEnonumber}{\nonumber}
+\providecommand{\yesnumber}{}
+
+%%%% Local text and algorithm macros
+\newcommand{\stitle}[1]{\vspace{0.5ex}\noindent{\bfseries\MakeUppercase{#1}}}
+\newcommand{\sstitle}[1]{\vspace{0.5ex}\noindent{\bfseries #1}}
+\newcommand{\ssstitle}[1]{\vspace{0.5ex}\noindent{\bfseries #1}}
+\newcommand{\sssstitle}[1]{\vspace{0.5ex}\noindent{\itshape\bfseries #1}}
+\newcommand{\leveltwo}[1]{\vspace{0.8ex}\noindent\textbf{\textsc{#1}}\par}
+
+\newcommand{\conditionsituation}[1]{%
+  \vspace{0.5ex}%
+  \noindent\raisebox{-0.8ex}{#1}%
+  \par\vspace{3.5mm}
+  \noindent\rule{\widthof{\textit{\textbf{#1}}}}{0.5pt}\\[-2.2ex]%
+  \noindent\rule{\widthof{\textit{\textbf{#1}}}}{0.5pt}%
+  \vspace{0.5ex}%
+}
+
+\newcommand{\todo}[1]{\textcolor{red}{$\Rightarrow$ TODO: #1}}
+\newcommand{\kw}[1]{{\ensuremath{\mathsf{#1}}}\xspace}
+\newcommand{\bkw}[1]{{\ensuremath{\mathsf{\textbf{#1}}}}\xspace}
+\newcommand{\kwnospace}[1]{{\ensuremath{\mathsf{#1}}}}
+
+\newcommand{\dualtree}{\kw{Dual}-\kw{Tree}}
+\newcommand{\dualtreeopt}{\kw{Dual}-\kw{Tree}-\kw{opt}}
+\newcommand{\dualtreefast}{\kw{Dual}-\kw{Tree}-\kw{fast}}
+\newcommand{\bdualtree}{\bkw{Dual}-\bkw{Tree}-\bkw{fast}}
+\newcommand{\dualcluster}{\kw{Cluster}-\kw{Dual}-\kw{Tree}}
+\newcommand{\hdrtree}{HDR-Tree\xspace}
+\newcommand{\deltatree}{$\Delta$-Tree\xspace}
+\newcommand{\myline}{\rule[0.5ex]{\linewidth}{0.5pt}}
+\newcommand{\knn}{\operatorname{kNN}}
+\newcommand{\rknn}{\operatorname{RkNN}}
+\newcommand{\knnjoin}{\operatorname{kNN}_{\bowtie}}
+\newcommand{\dknn}{dist_{\operatorname{kNN}}}
+\newcommand{\dmknn}{dist_{\operatorname{MkNN}}}
+
+\journalname{The VLDB Journal}
+
+\begin{document}
+
+\title{Efficient Fully Dynamic High-Dimensional kNN Joins via Dual Indexing and Cost-Aware Pruning}
+\titlerunning{Efficient Fully Dynamic High-Dimensional kNN Joins}
+
+\author{First Author \and Second Author}
+\authorrunning{First Author and Second Author}
+\institute{First Author \at
+  Department, Institution, City, Country \\
+  \email{first.author@example.com}
+  \and
+  Second Author \at
+  Department, Institution, City, Country \\
+  \email{second.author@example.com}}
+
+\date{Received: date / Accepted: date}
+
+\maketitle
+
+\begin{abstract}
+The kNN join is a core operation in high-dimensional analytics, with applications in vector databases, recommendation, anomaly detection, and data mining. Existing dynamic kNN join methods mainly handle one-sided updates, where either the query set or the reference set changes. We study exact fully dynamic kNN join, where both sets evolve through insertions and deletions and the materialized join result must remain correct after each update. This setting is important when neighborhood results are used for auditable analytics, deterministic downstream decisions, or exact maintenance before optional approximate serving layers. We propose \dualtree, a dual-index framework that maintains an \hdrtree on the query set and a \deltatree on the reference set, thereby aligning kNN-based row repair on the reference side and affected-query localization on the query side with the index structure best suited to each task. We further introduce a point-wise low-dimensional pruning stage at leaf nodes and derive a cost-aware model for selecting the pruning dimensionality. This model formalizes the trade-off between projection cost and pruning power, enabling near-optimal pruning without heuristic dimension selection. Experiments on eight real high-dimensional datasets show that \dualtree improves over strong one-sided baselines, and that the proposed cost-aware pruning provides substantial additional gains, reaching up to 2.65$\times$ speedup over the strongest baseline in our evaluation.
+\keywords{kNN join \and fully dynamic data \and high-dimensional data \and RkNN search \and dimensionality reduction \and cost-aware pruning}
+\end{abstract}
+
+\input{Sections_VLDBJ_Working/1. Introduction}
+\input{Sections_VLDBJ_Working/3. Related Works}
+\input{Sections_VLDBJ_Working/2. Background}
+\input{Sections_VLDBJ_Working/4. Proposed Work_rewrite}
+\input{Sections_VLDBJ_Working/5. Fine-gained Pruning_1}
+\input{Sections_VLDBJ_Working/6. Experiments_2}
+\input{Sections_VLDBJ_Working/7. Conclusion_2}
+
+\begin{acknowledgements}
+To be completed before submission.
+\end{acknowledgements}
+
+\section*{Declarations}
+
+\noindent\textbf{Funding} To be completed before submission.
+
+\noindent\textbf{Conflict of interest/Competing interests} The authors declare that they have no competing interests.
+
+\noindent\textbf{Data availability} To be completed before submission.
+
+\noindent\textbf{Code availability} To be completed before submission.
+
+\noindent\textbf{Author contribution} To be completed before submission.
+
+\bibliographystyle{spmpsci}
+\bibliography{Bibliography}
+
+\end{document}
