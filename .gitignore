@@ -30,6 +30,7 @@
 ~$*.docx
 ~$*
 build/
+build_vldbj/
 $outputDir/
 *.synctex
 *.synctex(busy)
