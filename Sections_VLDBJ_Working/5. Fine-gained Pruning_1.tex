@@ -2,7 +2,7 @@
 
 
 
-In this section, we introduce a leaf-level pruning step that improves the efficiency of fully dynamic kNN join maintenance on \dualtree. The new step uses low-dimensional point-to-point distance to prune visited points inside leaf nodes before their full-dimensional distances are computed.
+Here, we introduce a leaf-level pruning step that improves the efficiency of fully dynamic kNN join maintenance on \dualtree. The step uses low-dimensional point-to-point distance to prune visited points inside leaf nodes before their full-dimensional distances are computed.
 
 We further develop a cost-aware analysis for choosing the optimal pruning dimensionality. The goal is to balance the additional cost of low-dimensional distance computation against the extra pruning power it provides, so that the dimensionality is selected systematically rather than heuristically.
 
@@ -128,10 +128,10 @@ P_p(d)&=P(dist_{PC}(q,v)\geq b_p)\nonumber \\
 &=P(\frac{dist^2(q,v)}{b_p^2}\geq \frac{dist^2(q,v)}{dist_{PC}^2(q,v)})  
 \label{equ: ped_basic}
 \end{flalign}
-To formulate $P_p(d)$, we next study the density function $f_{dist^2(q,v)/b_p^2}$ of the random variable $dist^2(q,v)/b_p^2$ together with the relationship between $d$ and $dist^2(q,v)/dist_{PC}^2(q,v)$. For convenient expression, we use the term \emph{global distribution} to refer to the distribution of the random variable $dist^2(q,v)/b_p^2$ in the subsequent discussion.
+To formulate $P_p(d)$, we study the density $f_{dist^2(q,v)/b_p^2}$ of the random variable $dist^2(q,v)/b_p^2$ together with the relationship between $d$ and $dist^2(q,v)/dist_{PC}^2(q,v)$. For convenient expression, we use the term \emph{global distribution} to refer to the distribution of the random variable $dist^2(q,v)/b_p^2$ in the subsequent discussion.
 
 
-\noindent\textbf{\textit{Distance shrinkage.}} To study the relation between the pruning dimensionality and the square rate $dist^2(q,v)/dist^2_{PC}(q,v)$ between the full-dimensional distance and the low-dimensional distance computed on a subset of principal component dimensions, we revisit a basic property of PCA. The eigenvalue $e_i$ of the covariance matrix of the initial state of $U\cup I$ before the updates start, corresponding to the $i$th row vector of the PCA projection matrix $M$, is equal to the variance $\sigma^2_i$ of the data-point coordinates in the initial $U\cup I$ along the $i$th dimension $PC(i)$ of the PC space. Here, $\sigma^2_i$, defined as $\frac{\sum_{p\in U\cup I}(p_{PC(i)}-\overline{p_{PC(i)}})^2}{|U\cup I|}$, represents the degree of dispersion of the data points along that dimension. Consequently, given the pruning dimensionality $d$ and the number of full dimensions $D$, the following approximation can reasonably be made:
+\noindent\textbf{\textit{Distance shrinkage.}} To study the relation between $d$ and the square rate $dist^2(q,v)/dist^2_{PC}(q,v)$ between the full-dimensional distance and the low-dimensional distance computed on a subset of principal component dimensions, we revisit a basic property of PCA. The eigenvalue $e_i$ of the covariance matrix of the initial state of $U\cup I$ before the updates start, corresponding to the $i$th row vector of the PCA projection matrix $M$, is equal to the variance $\sigma^2_i$ of the data-point coordinates in the initial $U\cup I$ along the $i$th dimension $PC(i)$ of the PC space. Here, $\sigma^2_i$, defined as $\frac{\sum_{p\in U\cup I}(p_{PC(i)}-\overline{p_{PC(i)}})^2}{|U\cup I|}$, represents the degree of dispersion of the data points along that dimension. Consequently, given the pruning dimensionality $d$ and the number of full dimensions $D$, the following approximation can reasonably be made:
 \begin{flalign}
     \frac{dist^2(v,q)}{dist_{PC}^2(v,q)}\approx\frac{\sum_{i=1}^{D}\sigma^2_i}{\sum_{i=1}^{d}\sigma^2_i}= \frac{\sum_{i=1}^{D}e_i}{\sum_{i=1}^{d}e_i} 
 \end{flalign}
@@ -141,7 +141,7 @@ Because the row vectors in the PC matrix are sorted in descending order by their
     \frac{dist_{PC}^2(v,q)}{dist^2(v,q)}\approx \frac{\sum_{i=1}^{d}e_i}{\sum_{i=1}^{D}e_i}\approx kln(d)+b 
 \end{flalign}
 
-Given the approximate function of $dist_{PC}^2(q,v)/dist^2(q,v)$, the remaining task is to determine the two parameters $k$ and $b$. Let $\rho_1=e_1/\sum_{i=1}^{D}e_i$. We fit $k\ln(d)+b$ by matching the two endpoints, namely $\rho(1)=\rho_1$ and $\rho(D)=1$. Since $\ln(1)=0$, the parameters are
+Given this function of $dist_{PC}^2(q,v)/dist^2(q,v)$, the remaining task is to determine the two parameters $k$ and $b$. Let $\rho_1=e_1/\sum_{i=1}^{D}e_i$. We fit $k\ln(d)+b$ by matching the two endpoints, namely $\rho(1)=\rho_1$ and $\rho(D)=1$. Since $\ln(1)=0$, the parameters are
 \begin{equation}
 b=\rho_1,\qquad k=\frac{1-\rho_1}{\ln D}.
 \end{equation}
@@ -182,7 +182,7 @@ To complete the global model, it remains to characterize $f_{ij}$ for $1\leq i\l
 
 
 \begin{lemma}{(Local distribution.)}
-The local distribution is approximately a Normal distribution, which can be written in mathematical form as $\frac{dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}})}{b^2_{p}(q_{O^i},j)} \sim \mathcal{N}(\mu, \sigma^2), \, \text{approximately}$. 
+The local distribution is approximately a Normal distribution, which can be written in mathematical form as $\frac{dist^2(q_{\mathcal{O}^i},v^{j}_{q_{\mathcal{O}^i}})}{b^2_{p}(q_{O^i},j)} \sim \mathcal{N}(\mu, \sigma^2)$.
 
 \label{thm:normal_distribution_local}
 \end{lemma}
