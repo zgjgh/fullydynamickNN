@@ -141,7 +141,7 @@ Because the row vectors in the PC matrix are sorted in descending order by their
     \frac{dist_{PC}^2(v,q)}{dist^2(v,q)}\approx \frac{\sum_{i=1}^{d}e_i}{\sum_{i=1}^{D}e_i}\approx kln(d)+b 
 \end{flalign}
 
-Given this function of $dist_{PC}^2(q,v)/dist^2(q,v)$, the remaining task is to determine the two parameters $k$ and $b$. Let $\rho_1=e_1/\sum_{i=1}^{D}e_i$. We fit $k\ln(d)+b$ by matching the two endpoints, namely $\rho(1)=\rho_1$ and $\rho(D)=1$. Since $\ln(1)=0$, the parameters are
+Given this approximation to $dist_{PC}^2(q,v)/dist^2(q,v)$, the remaining task is to determine the two parameters $k$ and $b$. Let $\rho_1=e_1/\sum_{i=1}^{D}e_i$. We fit $k\ln(d)+b$ by matching the two endpoints, namely $\rho(1)=\rho_1$ and $\rho(D)=1$. Since $\ln(1)=0$, the parameters are
 \begin{equation}
 b=\rho_1,\qquad k=\frac{1-\rho_1}{\ln D}.
 \end{equation}
