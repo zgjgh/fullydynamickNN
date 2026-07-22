@@ -8,6 +8,11 @@
 %%%% Standard packages and project dependencies
 \usepackage{graphicx}
 \usepackage{amsmath,amssymb,amsfonts}
+% The two-column SVJour class enables fleqn automatically. Restore the
+% centered display equations used by the manuscript without changing layout.
+\makeatletter
+\@fleqnfalse
+\makeatother
 \usepackage{bm}
 \usepackage{xspace}
 \usepackage{xcolor}
