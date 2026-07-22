@@ -303,8 +303,8 @@ Using the approximate decorrelation in equality \ref{equ:independent}, $\Delta(t
 Jensen's inequality \cite{mcshane1937jensen}, convexity of the norm, and Lemma~\ref{lm:min} give two bounds for the first term:
 \begin{align}
 |\psi_k(t)-E(Q_k(t))|
-&\leq E|e^{itY_k/s_D}-Q_k(t)| \notag\\
-&\leq E\!\left(\frac{|tY_k|^3}{6s_D^3}\right),
+&\leq E|e^{itY_k/s_D}-Q_k(t)|
+\leq E\!\left(\frac{|tY_k|^3}{6s_D^3}\right),
 \label{equ:first_item_bound}\\
 |\psi_k(t)-E(Q_k(t))|
 &\leq E\!\left(\frac{t^2Y_k^2}{2s_D^2}\right).
@@ -386,10 +386,10 @@ For $\epsilon=(5\xi/4)^{1/2}$,
 For any $\delta>0$, $Y_k^2\leq |Y_k|^{2+\delta}/(\epsilon s_D)^\delta$ on the event $|Y_k|>\epsilon s_D$. Lemmas~\ref{lm:Y_K_delta_moment_bound} and \ref{lm:delta_moment} then give
 \begin{align}
 \frac{t^2T_\epsilon}{s_D^2}
-&\leq
+&\leq\!
 \frac{t^2}{\epsilon^\delta s_D^{2+\delta}}
-\sum_{k=1}^{D}E(|Y_k|^{2+\delta}) \notag\\
-&\leq
+\sum_{k=1}^{D}E(|Y_k|^{2+\delta})
+\leq\!
 t^2\frac{\xi^{\delta/2}}{(5\xi/4)^{\delta/2}}
 =t^2\left(\frac{4}{5}\right)^{\delta/2}.
 \label{equ:zero_1}
