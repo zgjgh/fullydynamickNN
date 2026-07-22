@@ -2,7 +2,7 @@
 
 
 
-Here, we introduce a leaf-level pruning step that improves the efficiency of fully dynamic kNN join maintenance on \dualtree. The step uses low-dimensional point-to-point distance to prune visited points inside leaf nodes before their full-dimensional distances are computed.
+Here, we introduce a leaf-level pruning step that improves the efficiency of fully dynamic kNN join maintenance on \dualtree. The new step uses low-dimensional point-to-point distance to prune visited points inside leaf nodes before their full-dimensional distances are computed.
 
 We further develop a cost-aware analysis for choosing the optimal pruning dimensionality. The goal is to balance the additional cost of low-dimensional distance computation against the extra pruning power it provides, so that the dimensionality is selected systematically rather than heuristically.
 
