@@ -18,10 +18,21 @@ This file records paper-revision decisions that should remain stable across turn
 
 ## Current active compile path
 
+- VLDBJ working sections currently compile from:
+  `Sections_VLDBJ_Working/`
 - Framework section currently compiles from:
-  `Sections/4. Proposed Work_rewrite.tex`
+  `Sections_VLDBJ_Working/4. Proposed Work_rewrite_1.tex`
 - Fine-grained pruning section currently compiles from:
-  `Sections/5. Fine-gained Pruning_1.tex`
+  `Sections_VLDBJ_Working/5. Fine-gained Pruning_1.tex`
+
+## 2026-08-05: Align HDR maintenance prose with Algorithms 1--3
+
+- Introduced the proposed direct-link mechanism independently in the Section 4.1 roadmap.
+- Clarified that each query points to its hosting leaf and each non-root HDR-Tree node points to its parent.
+- Replaced the unsupported ``structural repartitioning events'' wording: routine updates retain existing centers, while overflow growth accounts for k-means construction of a new subtree.
+- Rewrote query deletion and pruning-parameter refresh in algorithm order, with line-level hooks to Algorithms 2 and 3.
+- Moved the with/without-link cost comparisons to the deletion and refresh operations that use the links.
+- Corrected the deletion description so cluster summaries, rather than the query point itself, are updated, and treated fanout $f$ as fixed.
 
 ## Current Section 5 priorities
 
