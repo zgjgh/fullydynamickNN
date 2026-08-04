@@ -41,7 +41,9 @@ This file records paper-revision decisions that should remain stable across turn
 - Corrected the deletion description so cluster summaries, rather than the query point itself, are updated, and treated fanout $f$ as fixed.
 - Recast the direct links in active voice, distinguished initialization from update-time maintenance, and removed the link-space analysis.
 - Reordered the deletion explanation into routine path maintenance followed by the exceptional subtree collapse.
-- Refined the deletion and refresh time analyses to emphasize eliminated path localization and PCA-distance work without overstating the asymptotic effect of fixed fanout.
+- Refined the deletion and refresh time analyses to emphasize removal of repeated root-down localization without overstating the asymptotic effect of fixed fanout.
+- Corrected the no-link localization model: it performs child-cluster membership checks rather than PCA-distance tests. Link-specific navigation cost is now separated from the cluster-summary work required by both designs.
+- Made the refresh comparison explicit: without links, every affected query pays an $O(Lf)$ root-to-leaf lookup even when upward propagation stops after only $h\ll L$ levels.
 
 ## Current Section 5 priorities
 
