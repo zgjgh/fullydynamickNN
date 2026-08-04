@@ -1,12 +1,14 @@
 \section{Dual-Index Maintenance Framework}
 \label{sec:framework}
 
-To support efficient kNN and RkNN search in the two directions required by fully dynamic kNN join, \dualtree maintains a \deltatree over the reference set $I$ and an \hdrtree over the query set $U$. The underlying exact search procedures follow the original \deltatree and \hdrtree algorithms~\cite{cui2003contorting,yang2014continuous}. This dual-index system must itself remain current as both inputs evolve. The \deltatree already supports insertions and deletions on its indexed reference set, whereas the original \hdrtree assumes a static indexed query set. We therefore extend \hdrtree with query insertion and deletion, together with local refresh of its query-dependent pruning values when reference updates change maintained kNN rows. We first present this extension and then describe how updates to $U$ and $I$ coordinate the maintenance of both the materialized kNN join table and the dual-index state.
+To support efficient kNN and RkNN search in the two directions required by fully dynamic kNN join, \dualtree maintains a \deltatree over the reference set $I$ and an \hdrtree over the query set $U$. The underlying exact search procedures follow the original \deltatree and \hdrtree algorithms~\cite{cui2003contorting,yang2014continuous}. The \deltatree already supports insertions and deletions on its indexed reference set. The original \hdrtree, however, assumes a static indexed query set and does not provide the query-side update mechanism required when $U$ itself changes. We therefore extend \hdrtree with query insertion and deletion, together with explicit local maintenance of its query-dependent pruning values when reference updates change maintained kNN rows.
+
+We first present this dynamic extension of \hdrtree. With both components of \dualtree made dynamically maintainable, we then describe how each insertion or deletion in $U$ or $I$ coordinates the maintenance of two evolving structures: the materialized kNN join table and the dual-index state supporting its subsequent maintenance.
 
 \subsection{Dynamic Extension of \hdrtree}
 \label{subsec:dynamic-hdr}
 
-The query-side index changes in two ways under a fully dynamic workload. An update to $U$ changes its indexed membership and spatial structure, whereas an update to $I$ may change the stored kNN distances of affected queries and hence the pruning values derived from them. Our extension handles both structural changes and query-dependent pruning-state changes, allowing \hdrtree to remain usable throughout updates to either input.
+The query-side index changes in two ways under a fully dynamic workload. An update to $U$ changes its indexed membership and spatial structure, whereas an update to $I$ may change the stored kNN distances of affected queries and hence the pruning values derived from them. The original \hdrtree notes that these cluster-level maximum distances should be adjusted after affected query rows change, but provides only a recursive-scan sketch rather than concrete routines for directly locating each affected query and propagating the changed values. We make this maintenance explicit and combine it with structural query updates, turning \hdrtree into a dynamically maintainable query-side component.
 
 \noindent\textbf{Query insertion.}
 Later RkNN search on \hdrtree prunes subtrees according to the cluster radius together with the maximum stored kNN distance under that subtree. To keep this pruning region tight, a new query is not inserted into an arbitrary child cluster. For a candidate cluster $C$, let $r_C(u)=radius^{new}_{PC}(C,u)$ be its resulting radius in that level-specific PCA space after inserting $u$, and let $m_C(u)=\max(\dmknn(C),d_u)$ be its resulting maximum stored kNN distance. When descending the tree, we choose the child cluster that minimizes the post-insertion score $\eta(C,u)=r_C(u)+m_C(u)$. This quantity governs the pruning region of later RkNN search on \hdrtree, so the insertion policy is chosen to keep later affected-query search tight.
@@ -18,46 +20,51 @@ Later RkNN search on \hdrtree prunes subtrees according to the cluster radius to
 \KwResult{Updated \hdrtree}
 $d_u \leftarrow \dknn(u,I)$\;
 $node \leftarrow root_{HDR}$\;
-$P \leftarrow [\,]$\;
 \While{$node$ is not a leaf}{
   $C^\star \leftarrow \arg\min_{C \in children(node)} \eta(C,u)$\;
   update $radius_{PC}(C^\star)$ after inserting $u$\;
   update $\dmknn(C^\star)$ after inserting $u$\;
-  append $C^\star$ to $P$\;
   \If{$LeafOverflow(C^\star,u)$}{
       grow subtree below $C^\star$\;
   }
   $node \leftarrow child(C^\star)$\;
 }
 insert $u$ into $node$\;
-store pointers from $u$ to $node$ and path $P$\;
+store a pointer from $u$ to its hosting leaf\;
 \end{algorithm}
 
-Algorithm~\ref{alg:UpdateHDRInsert} inserts the new query along the path that minimizes the future search region used in reverse localization. The radius and $\dmknn$ values are updated immediately on the selected path. If an overflow occurs below the selected cluster, a new lower level is grown; once the dimensionality ceiling is reached, that growth continues in the full-dimensional space.
+Algorithm~\ref{alg:UpdateHDRInsert} inserts the new query along the path that minimizes the future search region used in reverse localization. The radius and $\dmknn$ values are updated immediately on the selected path. If an overflow occurs below the selected cluster, a new lower level is grown; once the dimensionality ceiling is reached, that growth continues in the full-dimensional space. The inserted query stores a direct pointer to its hosting leaf, while each tree node maintains a parent link. These links make the query directly addressable by later updates without storing a complete root-to-leaf path for every query.
 
-\noindent\textbf{Deletion and threshold refresh.}
-Each query maintains a direct pointer to its hosting leaf entry together with its ancestor path in \hdrtree. When a query is deleted or its stored kNN distance changes after a reference update, these pointers locate the affected path without searching unrelated subtrees. The resulting change is then propagated from the hosting leaf toward the root, restoring the maximum kNN-distance value of each ancestor cluster; query deletion may additionally tighten the cluster radius.
+\noindent\textbf{Pointer-guided deletion and threshold refresh.}
+When a query is deleted or its stored kNN distance changes after a reference update, its leaf pointer locates the affected entry directly. At a leaf cluster, $\dmknn$ is recomputed from the resident query entries; at a non-leaf cluster, it is recomputed from the summaries of its immediate children. The change is propagated through parent links from the hosting leaf toward the root. Query deletion may additionally tighten the cluster radius, whereas a threshold refresh leaves the query geometry unchanged.
 
 \begin{algorithm}[t]
 \caption{HDR\_Adjust($u$, mode)}
 \label{alg:UpdateHDRAdjust}
 \KwData{Affected $u$ and the maintenance mode in \{delete, refresh\}}
 \KwResult{Updated \hdrtree}
-locate the leaf and ancestor path $P$ for $u$\;
+$C \leftarrow$ hosting cluster of $u$ via its leaf pointer\;
 \eIf{mode = delete}{
     delete $u$ from the hosting leaf\;
 }{
     refresh $\dknn(u,I)$\;
 }
-\ForEach{$C\in P$ from leaf to root}{
+\While{$C\neq null$}{
+    $old \leftarrow \dmknn(C)$\;
     recompute $\dmknn(C)$\;
     \If{mode = delete}{
         tighten $radius_{PC}(C)$ if needed\;
     }
+    \If{mode = refresh and $\dmknn(C)=old$}{
+        stop propagation\;
+    }
+    $C \leftarrow parent(C)$\;
 }
 \end{algorithm}
 
-Algorithm~\ref{alg:UpdateHDRAdjust} makes query-side maintenance path-local. In particular, when a reference update changes $\dknn(u,I)$, pointer-guided bottom-up propagation restores the exact query-dependent threshold of every affected ancestor cluster without scanning unrelated clusters to rediscover $u$.
+Algorithm~\ref{alg:UpdateHDRAdjust} makes query-side maintenance directly addressable and path-local. Only clusters on the ancestor chain of $u$ can contain a changed summary; all other clusters remain valid. After the leaf summary is restored, recomputing each ancestor from its immediate children restores the summary invariant by bottom-up induction. For a threshold refresh, propagation stops as soon as an ancestor maximum remains unchanged, because no higher-level summary can then change.
+
+Let $L$ be the height of \hdrtree, $f$ its maximum fanout, and $b$ its leaf capacity. Locating the affected leaf takes $O(1)$ time, recomputing its summary takes $O(b)$ time, and recomputing the summaries on its ancestor chain takes at most $O(Lf)$ time. A threshold refresh therefore costs $O(b+Lf)$, or $O(L)$ for fixed node capacities. It does not scan the query set, and its dependence on $|U|$ is confined to the tree height $L$. Moreover, it requires only scalar maximum updates and no additional high-dimensional distance computation. This bound concerns the query-dependent maximum-distance summaries; a structural query deletion may additionally update cluster radii.
 
 \subsection{Dynamic kNN Join Maintenance}
 \label{subsec:dynamic-maintenance}

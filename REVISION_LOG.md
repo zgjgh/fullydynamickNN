@@ -104,3 +104,11 @@ Further framework edits should continue to respect the whole-chapter reading rul
 - In Appendix A.3, the opening lead-in and the two scene-definition sentences for the kNN and RkNN cases were rewritten for grammar and clarity only, while keeping the original roles of `q`, `v`, `b_p`, and `\mathcal{O}` unchanged.
 - In Appendix A.3, the kNN and RkNN scene-definition sentences now explicitly cite the original exact search procedures on \deltatree and \hdrtree, respectively, without changing any local estimation logic.
 - In Appendix A.3, the old-prose phrases `The first work / The second work`, the kNN-case rationale paragraph, and the rough RkNN-case transitions (`Similar to ...`, `the below relationship should hold that`) were rewritten for cleaner journal prose without changing any sampling steps, grouping rules, or formulas.
+
+## 2026-08-04: explicit dynamic HDR-Tree maintenance
+
+- Split the opening of `Sections_VLDBJ_Working/4. Proposed Work_rewrite_1.tex` into two paragraphs: the first establishes the dynamically maintainable dual-index components, and the second states that the chapter coordinates maintenance of the materialized kNN join table and dual-index state under all four update types.
+- Reframed the HDR-Tree extension around two update effects: structural changes caused by updates to $U$, and query-dependent pruning-value changes caused by updates to $I$.
+- Replaced the previously stored per-query ancestor path with a direct query-to-leaf pointer plus per-node parent links.
+- Made `HDR_Adjust` an explicit bottom-up procedure: recompute the leaf maximum from resident queries, recompute each ancestor maximum from immediate child summaries, and stop a threshold refresh once the propagated maximum is unchanged.
+- Added the path-local correctness argument and the $O(b+Lf)$ threshold-refresh bound, while explicitly excluding structural radius maintenance from that bound and avoiding any unsupported complexity comparison with the original HDR-Tree implementation.
