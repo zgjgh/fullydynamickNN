@@ -19,6 +19,9 @@ This file records paper-revision decisions that should remain stable across turn
 5. **Introduce contributions in active voice.**
    At the first mention of a contribution, give it a separate sentence with the authors as the subject (for example, ``We propose ...''). Do not bury its first appearance in a sentence mainly describing other work or procedural order.
 
+6. **State a new mechanism's purpose immediately.**
+   When a proposed structure first appears, state what it connects, which operation uses it, and what cost it removes or reduces. Do not postpone the reason for the mechanism until several paragraphs later.
+
 ## Current active compile path
 
 - VLDBJ working sections currently compile from:
