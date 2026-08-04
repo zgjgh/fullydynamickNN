@@ -8,10 +8,7 @@ We first present how \hdrtree is maintained under updates to either $U$ or $I$. 
 \subsection{Dynamic Extension of \hdrtree}
 \label{subsec:dynamic-hdr}
 
-A fully dynamic workload affects \hdrtree in two ways. An update to $U$ changes its indexed membership and spatial organization, requiring structural insertion or deletion together with maintenance of the cluster radius and maximum kNN distance. An update to $I$ leaves the query geometry unchanged but may change $\dknn(u,I)$ for repaired query rows and hence $\dmknn(C)$ on their ancestor paths. The update routines share a small link augmentation, which we introduce first. We then present query insertion and deletion, followed by the pointer-guided refresh of the pruning parameter after reference updates.
-
-\noindent\textbf{Direct update links.}
-We augment each query entry with a direct pointer to its hosting leaf and each tree node with a parent link. These links are initialized during construction and maintained whenever an insertion, deletion, or node collapse changes the tree. They support both structural updates and pruning-parameter refreshes by locating a query directly and traversing only its ancestor chain. A complete root-to-leaf path therefore need not be stored for every query.
+A fully dynamic workload affects \hdrtree in two ways. An update to $U$ changes its indexed membership and spatial organization, requiring structural insertion or deletion together with maintenance of the cluster radius and maximum kNN distance. An update to $I$ leaves the query geometry unchanged but may change $\dknn(u,I)$ for repaired query rows and hence $\dmknn(C)$ on their ancestor paths. We first present query insertion. We then introduce the persistent links used by deletion and pruning-parameter refresh before describing those two operations. For the complexity analysis, let $L$ be the current tree height, $f$ the maximum fanout, $\theta$ the leaf-size threshold, and $d_l$ the PCA dimensionality at level $l$.
 
 \noindent\textbf{Query insertion.}
 Given a new query $u$ whose current kNN row has been computed, insertion must place it in the query-side hierarchy and update the two data-dependent parameters used by later RkNN pruning: the cluster radius and the maximum stored kNN distance. To keep the resulting pruning region tight, $u$ is not inserted into an arbitrary child cluster. For a candidate cluster $C$, let $r_C(u)=radius^{new}_{PC}(C,u)$ be its resulting radius in that level-specific PCA space after inserting $u$, and let $m_C(u)=\max(\dmknn(C),d_u)$ be its resulting maximum stored kNN distance. When descending the tree, we choose the child cluster that minimizes the post-insertion score $\eta(C,u)=r_C(u)+m_C(u)$. This quantity governs the pruning region of later RkNN search on \hdrtree, so the insertion policy is chosen to keep later affected-query search tight.
@@ -36,7 +33,10 @@ insert $u$ into $node$\;
 $leaf(u)\leftarrow node$\;
 \end{algorithm}
 
-Algorithm~\ref{alg:UpdateHDRInsert} inserts the new query along the path that minimizes the future search region used in reverse localization. The radius and $\dmknn$ values are updated immediately on the selected path. At construction time, the original \hdrtree estimates the height as $\widehat{L}=\lceil\log_f |U|\rceil$ and chooses the PCA dimensionality $d_l$ from the relative position of level $l$ within $\widehat{L}$ using its cumulative-eigenvalue rule~\cite{yang2014continuous}. If an insertion later extends a branch beyond this estimated height, every additional level $l>\widehat{L}$ uses the full dimensionality, i.e., $d_l=D$.
+Algorithm~\ref{alg:UpdateHDRInsert} inserts the new query along the path that minimizes the future search region used in reverse localization. The radius and $\dmknn$ values are updated immediately on the selected path. At construction time, the original \hdrtree estimates the height as $\widehat{L}=\lceil\log_f |U|\rceil$ and chooses the PCA dimensionality $d_l$ from the relative position of level $l$ within $\widehat{L}$ using its cumulative-eigenvalue rule~\cite{yang2014continuous}. If an insertion later extends a branch beyond this estimated height, every additional level $l>\widehat{L}$ uses the full dimensionality, i.e., $d_l=D$. Let $T_{proj}$ be the cost of projecting $u$ into the required PCA spaces and $T_{grow}$ the cost of an optional overflow-induced clustering step. Since at most $f$ candidate clusters are evaluated at each visited level, Algorithm~\ref{alg:UpdateHDRInsert} costs $O(T_{proj}+f\sum_{l=1}^{L}d_l+T_{grow})$; without overflow, the last term is absent.
+
+\noindent\textbf{Direct update links.}
+We augment each query entry with a direct pointer to its hosting leaf and each tree node with a parent link. The last step of Algorithm~\ref{alg:UpdateHDRInsert} initializes the leaf pointer, while construction and subtree growth initialize the parent links. These links are subsequently maintained whenever deletion or node collapse changes the tree. The recursive scan sketched for the original \hdrtree~\cite{yang2014continuous} may inspect the hierarchy broadly to recover the clusters containing a known query. Even if a top-down implementation follows only one path, it may inspect up to $f$ child clusters per level, requiring $O(Lf)$ child-cluster tests and potentially $O(f\sum_{l=1}^{L}d_l)$ reduced-space distance work. By contrast, the leaf pointer locates the query in $O(1)$ time, and the parent links recover its ancestor path in $O(L)$ time without geometric tests. Relative to path-directed traversal, the path-localization component is therefore reduced by a factor of up to $f$. The saving can be larger relative to an unrestricted recursive scan. The links require only $O(|U|+N_H)$ additional space, where $N_H$ is the number of \hdrtree nodes, and avoid storing a complete path for every query.
 
 \noindent\textbf{Query deletion.}
 Let $\theta$ be the size threshold used by the original construction to decide whether a node remains a leaf. The leaf pointer of a deleted query $u$ first locates its stored entry, after which the deletion is propagated upward through the parent links. At each visited cluster, its point count, radius, and $\dmknn$ are restored from the remaining queries or child clusters. If the remaining population of the non-leaf subtree represented by a cluster falls below $\theta$, its recursive partition is no longer required by the construction rule. We therefore collapse that subtree into a leaf, store its remaining queries there in the full-dimensional space, and redirect their leaf pointers to the new hosting leaf.
@@ -60,7 +60,7 @@ delete $u$ from the hosting leaf\;
 }
 \end{algorithm}
 
-Algorithm~\ref{alg:UpdateHDRDelete} restores the same leaf/non-leaf criterion used by the original top-down construction. Outside the ancestor chain of $u$, neither membership nor any pruning parameter changes; a collapse is also confined to a subtree containing fewer than $\theta$ remaining queries.
+Algorithm~\ref{alg:UpdateHDRDelete} restores the same leaf/non-leaf criterion used by the original top-down construction. Only the ancestor chain of $u$ changes, and any collapse is confined to a subtree with fewer than $\theta$ remaining queries. Recomputing the leaf summaries examines at most $\theta$ full-dimensional queries. At a non-leaf cluster, the radius and maximum-distance parameter are restored from at most $f$ immediate-child summaries in the corresponding $d_l$-dimensional space. The cost is therefore $O(\theta D+f\sum_{l=1}^{L}d_l)$ when no collapse occurs. In the worst case, collapsing underfull subtrees along the path adds $O(L\theta D)$ work.
 
 \noindent\textbf{Pruning-parameter refresh.}
 An update to $I$ does not change the query membership or geometry stored in \hdrtree. It can, however, change the maintained $\dknn(u,I)$ of an affected query and thereby change the maximum-distance pruning parameter of every ancestor cluster containing $u$. The direct leaf pointer locates $u$ without a recursive scan. We refresh its stored distance at the leaf and recompute $\dmknn$ bottom up from resident query entries at the leaf and immediate child parameters at each non-leaf cluster.
@@ -85,12 +85,14 @@ refresh $\dknn(u,I)$\;
 \noindent\textbf{Locality and cost.}
 Algorithm~\ref{alg:UpdateHDRRefresh} is directly addressable and path-local. Only clusters on the ancestor chain of $u$ can contain a changed maximum-distance parameter; all other clusters remain valid. After the leaf parameter is restored, recomputing each ancestor from its immediate children restores the invariant by bottom-up induction. Propagation stops as soon as an ancestor maximum remains unchanged, because no higher-level maximum can then change.
 
-Let $L$ be the height of \hdrtree, $f$ its maximum fanout, and $b$ its leaf capacity. Locating the affected leaf takes $O(1)$ time, recomputing its maximum takes $O(b)$ time, and recomputing the ancestor maximums takes at most $O(Lf)$ time. A pruning-parameter refresh therefore costs $O(b+Lf)$, or $O(L)$ for fixed node capacities. It does not scan the query set, and its dependence on $|U|$ is confined to the tree height $L$. Moreover, it requires only scalar maximum updates and no additional high-dimensional distance computation. This bound concerns the query-dependent maximum-distance parameter; a structural query deletion may additionally update cluster radii.
+Locating the affected leaf takes $O(1)$ time, recomputing its maximum takes $O(\theta)$ time, and recomputing the ancestor maximums takes at most $O(Lf)$ time. A pruning-parameter refresh therefore costs $O(\theta+Lf)$, or $O(L)$ for fixed node capacities. If propagation stops after $h\leq L$ levels, the bound tightens to $O(\theta+hf)$. It does not scan the query set, and its dependence on $|U|$ is confined to the tree height. Moreover, it requires only scalar maximum updates and no additional high-dimensional distance computation.
 
 \subsection{Dynamic kNN Join Maintenance}
 \label{subsec:dynamic-maintenance}
 
 With both index components dynamically maintainable, every update coordinates two coupled tasks: maintaining the exact rows of the materialized kNN join table $\knnjoin(U,I)$ and maintaining the dual-index state required by subsequent searches. The \deltatree must reflect the current reference set, while the \hdrtree must reflect the current query set together with its query-dependent pruning parameters. The four update types below restore both states in an order determined by which state must already be current before the next step can execute correctly.
+
+For concise complexity statements, let $T_{\knn}$ and $T_{\rknn}$ denote one exact kNN and RkNN search, respectively; let $T_{\Delta}^{+}$ and $T_{\Delta}^{-}$ denote insertion into and deletion from \deltatree; and let $T_H^{+}$, $T_H^{-}$, and $T_H^{\mathrm{ref}}$ denote the costs of Algorithms~\ref{alg:UpdateHDRInsert}, \ref{alg:UpdateHDRDelete}, and \ref{alg:UpdateHDRRefresh}. We use $T_{\mathrm{row}}$ for updating one materialized row and $r$ for the number of affected queries returned by RkNN search.
 
 \noindent \textbf{Case 1: insertion into $U$.}
 When a new query point $u$ is inserted into $U$, the join table gains a new row. That row cannot be inserted meaningfully before its kNN list is known. We therefore first run forward kNN search over the current reference set $I$, obtain $\knn(u,I)$, and then insert the row $(u,\knn(u,I))$ into the materialized view. Only after this row has been computed can $u$ be inserted into \hdrtree, because the query-side pruning parameters maintained by \hdrtree depend on the query's current kNN information. Since $I$ is unchanged, no existing row in the view needs repair.
@@ -105,10 +107,10 @@ insert $(u,A)$ into $\knnjoin(U,I)$\;
 Update\_HDR\_Insert($u$)\;
 \end{algorithm}
 
-Algorithm~\ref{alg:UpdateKNN_insertion_U} implements this path by first computing the new row through \deltatree-based kNN search and then inserting the new query into \hdrtree so that its stored kNN distance becomes available to later pruning.
+Algorithm~\ref{alg:UpdateKNN_insertion_U} implements this path by first computing the new row through \deltatree-based kNN search and then inserting the new query into \hdrtree so that its stored kNN distance becomes available to later pruning. Its total cost is $O(T_{\knn}+T_{\mathrm{row}}+T_H^{+})$.
 
 \noindent \textbf{Case 2: deletion from $U$.}
-When a query point $u$ is deleted from $U$, the corresponding row is removed from $\knnjoin(U,I)$ and \hdrtree is updated through Update\_HDR\_Delete($u$). Because the reference set remains unchanged, no kNN search, no reverse localization, and no repair of other rows are needed. The update only touches the deleted row and the hosting path of $u$ in \hdrtree.
+When a query point $u$ is deleted from $U$, the corresponding row is removed from $\knnjoin(U,I)$ and \hdrtree is updated through Update\_HDR\_Delete($u$). Because the reference set remains unchanged, no kNN search, no reverse localization, and no repair of other rows are needed. The update only touches the deleted row and the hosting path of $u$ in \hdrtree, with cost $O(T_{\mathrm{row}}+T_H^{-})$.
 
 \noindent \textbf{Case 3: insertion into $I$.}
 When a new reference point $i$ is inserted into $I$, the task is to identify the rows for which $i$ enters the current top-$k$ result. This follows the reverse-localization path. We therefore use RkNN search on \hdrtree to locate the affected queries. For each affected row, the previous $k$-th neighbor is replaced by $i$, after which the stored kNN distance of that query is synchronized through Update\_HDR\_Refresh($u$). The new point $i$ is then inserted into \deltatree so that subsequent kNN searches in forward repair operate on the updated reference space.
@@ -121,13 +123,13 @@ When a new reference point $i$ is inserted into $I$, the task is to identify the
 \KwResult{Updated $\knnjoin(U, I\cup\{q\})$, \hdrtree, and \deltatree}
 $R\leftarrow$ RkNN\_\dualtree($root_{HDR}$, $q$)\;
 \ForEach{$u_a\in R$}{
-  replace the previous $k$-th neighbor of $u_a$ by $q$ in the row of $u_a$\;
+  replace the $k$-th neighbor of $u_a$ by $q$\;
   Update\_HDR\_Refresh($u_a$)\;
 }
 $\Delta$\_Insert($q$)\;
 \end{algorithm}
 
-Algorithm~\ref{alg:UpdateKNN_insert_I} realizes this path by first using \hdrtree to perform reverse localization and then updating only the affected rows. After the stored kNN distance of each affected query is refreshed, the corresponding path in \hdrtree and the reference-side \deltatree are synchronized.
+Algorithm~\ref{alg:UpdateKNN_insert_I} realizes this path by first using \hdrtree to perform reverse localization and then updating only the affected rows. After the stored kNN distance of each affected query is refreshed, the corresponding path in \hdrtree and the reference-side \deltatree are synchronized. Its total cost is $O(T_{\rknn}+r(T_{\mathrm{row}}+T_H^{\mathrm{ref}})+T_{\Delta}^{+})$.
 
 \noindent \textbf{Case 4: deletion from $I$.}
 When a reference point $i$ is deleted from $I$, some stored query answers may become invalid and require fresh forward repair. For this reason, \deltatree must first be updated to reflect the current reference set $I\setminus\{i\}$. Only then can later kNN searches in forward repair return correct results. After updating \deltatree, we use RkNN search on \hdrtree to perform reverse localization on the affected query rows. Each affected row is repaired by recomputing its current exact kNN list over the updated reference set, and the stored kNN distance of that query is then synchronized through Update\_HDR\_Refresh($u$).
@@ -146,4 +148,4 @@ $R\leftarrow$ RkNN\_\dualtree($root_{HDR}$, $q$)\;
 }
 \end{algorithm}
 
-Algorithm~\ref{alg:UpdateKNN_deletion_I} first makes the reference-side search structure current, then uses \hdrtree to localize the affected rows, and finally repairs each of them through fresh kNN search over $I\setminus\{q\}$. This keeps the expensive recomputation local to the rows that actually depended on the deleted reference.
+Algorithm~\ref{alg:UpdateKNN_deletion_I} first makes the reference-side search structure current, then uses \hdrtree to localize the affected rows, and finally repairs each of them through fresh kNN search over $I\setminus\{q\}$. This keeps the expensive recomputation local to the rows that actually depended on the deleted reference. Its total cost is $O(T_{\Delta}^{-}+T_{\rknn}+r(T_{\knn}+T_{\mathrm{row}}+T_H^{\mathrm{ref}}))$.
