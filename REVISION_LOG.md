@@ -43,7 +43,7 @@ This file records paper-revision decisions that should remain stable across turn
 - Reordered the deletion explanation into routine path maintenance followed by the exceptional subtree collapse.
 - Refined the deletion and refresh time analyses to emphasize removal of repeated root-down localization without overstating the asymptotic effect of fixed fanout.
 - Corrected the no-link localization model: it performs child-cluster membership checks rather than PCA-distance tests. Link-specific navigation cost is now separated from the cluster-summary work required by both designs.
-- Made the refresh comparison explicit: without links, every affected query pays an $O(Lf)$ root-to-leaf lookup even when upward propagation stops after only $h\ll L$ levels.
+- Made the refresh comparison explicit without assuming short propagation: $h$ is ordinarily comparable to $L$, and the links remove one complete $O(Lf)$ root-to-leaf membership scan for every affected query.
 
 ## Current Section 5 priorities
 
@@ -133,7 +133,7 @@ Further framework edits should continue to respect the whole-chapter reading rul
 - Reframed the HDR-Tree extension around two update effects: structural changes caused by updates to $U$, and query-dependent pruning-value changes caused by updates to $I$.
 - Replaced the previously stored per-query ancestor path with a direct query-to-leaf pointer plus per-node parent links.
 - Made `HDR_Adjust` an explicit bottom-up procedure: recompute the leaf maximum from resident queries, recompute each ancestor maximum from immediate child summaries, and stop a threshold refresh once the propagated maximum is unchanged.
-- Added the path-local correctness argument and the $O(\theta+Lf)$ threshold-refresh bound, while explicitly excluding structural radius maintenance from that bound and avoiding any unsupported whole-operation comparison with the original HDR-Tree implementation.
+- Added the path-local correctness argument and the $O(\theta+hf)$ threshold-refresh bound, while explicitly excluding structural radius maintenance from that bound and avoiding any unsupported whole-operation comparison with the original HDR-Tree implementation.
 - Reorganized the extension into three corresponding operations: query insertion, query deletion, and pruning-parameter refresh after reference updates. The subsection opening now states this order explicitly before the three run-in modules appear.
 - Clarified both gaps left by the original HDR-Tree setting: it does not define structural updates when the indexed query set changes, and its reference-update treatment only sketches recursive adjustment of cluster maximum kNN distances.
 - Added a separate query-deletion algorithm that follows the query-to-leaf pointer upward, restores the cluster parameters, and collapses a non-leaf subtree into a full-dimensional leaf when its remaining population falls below the construction threshold $\theta$.
@@ -153,6 +153,6 @@ Further framework edits should continue to respect the whole-chapter reading rul
 - Strengthened ownership of the link contribution while keeping its claim bounded: the text now states that our extension adds query-to-leaf pointers and node-to-parent links to replace recursive path recovery, with the factor-$f$ benefit applying specifically to path localization.
 - Rebalanced the subsection lengths after compression: Section 4.1 is now shorter than Section 4.2, while all three HDR update complexities remain attached concisely to their corresponding algorithms.
 - Repositioned the three HDR algorithms at column tops so that Algorithms 1--3 all appear before the Section 4.2 heading without introducing a float-barrier dependency or leaving a large blank region.
-- Refined the direct-link complexity claim: child inspection decreases from $O(Lf)$ to $O(L)$ by up to a factor of $f$, while the $O(f\sum_l d_l)$ geometric path-search work is eliminated rather than folded into the same factor. The text now emphasizes that, without the links, this path lookup is repeated for every affected query during a reference update.
+- Corrected the direct-link complexity claim: no-link localization performs up to $O(Lf)$ child-cluster membership tests, whereas the links provide $O(1)$ leaf access and $O(L)$ parent traversal. The earlier unsupported geometric path-search term was removed.
 - Unified the per-level PCA dimensionality notation from $d(l)$ to $d_l$ between Background and Section 4.
 - Made the radius-maintenance contract explicit so that the insertion and deletion bounds are independently auditable: centers remain fixed between repartitioning events, leaf radii scan at most $\theta$ resident queries, and internal radii are maintained as valid enclosing upper bounds from at most $f$ child summaries.

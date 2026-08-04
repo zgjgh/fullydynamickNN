@@ -86,7 +86,7 @@ refresh $\dknn(u,I)$\;
 
 As shown in Algorithm~\ref{alg:UpdateHDRRefresh}, $leaf(u)$ gives the hosting cluster and $\dknn(u,I)$ is refreshed (Lines~1--2). At each visited cluster, the algorithm stores the old $\dmknn$, recomputes the value from the leaf entries or immediate-child parameters, and moves to the parent only if the maximum changes (Lines~3--8). If it is unchanged, no higher ancestor can change and propagation stops.
 
-Without the links, every affected query first incurs $O(Lf)$ membership tests to recover its root-to-leaf path, even when $\dmknn$ propagation stops after only $h\ll L$ levels. With $O(1)$ leaf access, the links reduce refresh to $O(\theta+hf)=O(\theta+h)$ for fixed $f$, or $O(\theta+L)$ in the worst case. This saving is repeated for every affected query after a reference update. The refresh itself uses only scalar maximum updates and no high-dimensional distance computation.
+Without the links, every affected query first incurs $O(Lf)$ membership tests to recover its root-to-leaf path before bottom-up propagation begins. The total refresh cost is therefore $O(Lf+\theta+hf)$. With $O(1)$ leaf access, the links reduce this cost to $O(\theta+hf)=O(\theta+h)$ for fixed $f$, or $O(\theta+L)$ in the worst case. Since $h$ is ordinarily comparable to $L$, the gain comes from removing one complete top-down membership scan for every affected query. The refresh itself uses only scalar maximum updates and no high-dimensional distance computation.
 
 \subsection{Dynamic kNN Join Maintenance}
 \label{subsec:dynamic-maintenance}
