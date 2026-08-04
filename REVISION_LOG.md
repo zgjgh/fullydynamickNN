@@ -16,6 +16,9 @@ This file records paper-revision decisions that should remain stable across turn
 4. **Avoid obvious “selling” language.**
    Do not write self-conscious contrasts like “this is not X but Y” or explicit authorial signaling that reads as over-packaging.
 
+5. **Introduce contributions in active voice.**
+   At the first mention of a contribution, give it a separate sentence with the authors as the subject (for example, ``We propose ...''). Do not bury its first appearance in a sentence mainly describing other work or procedural order.
+
 ## Current active compile path
 
 - VLDBJ working sections currently compile from:
@@ -33,6 +36,9 @@ This file records paper-revision decisions that should remain stable across turn
 - Rewrote query deletion and pruning-parameter refresh in algorithm order, with line-level hooks to Algorithms 2 and 3.
 - Moved the with/without-link cost comparisons to the deletion and refresh operations that use the links.
 - Corrected the deletion description so cluster summaries, rather than the query point itself, are updated, and treated fanout $f$ as fixed.
+- Recast the direct links in active voice, distinguished initialization from update-time maintenance, and removed the link-space analysis.
+- Reordered the deletion explanation into routine path maintenance followed by the exceptional subtree collapse.
+- Refined the deletion and refresh time analyses to emphasize eliminated path localization and PCA-distance work without overstating the asymptotic effect of fixed fanout.
 
 ## Current Section 5 priorities
 
