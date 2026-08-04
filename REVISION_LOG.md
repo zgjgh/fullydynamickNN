@@ -117,3 +117,8 @@ Further framework edits should continue to respect the whole-chapter reading rul
 - Added a separate query-deletion algorithm that follows the query-to-leaf pointer upward, restores the cluster parameters, and collapses a non-leaf subtree into a full-dimensional leaf when its remaining population falls below the construction threshold $\theta$.
 - Clarified that insertion levels created beyond the anticipated PCA schedule continue with dimensionality $D$ after the schedule reaches the full dimensionality.
 - Replaced the combined mode-based adjustment routine with distinct `Update_HDR_Delete` and `Update_HDR_Refresh` calls and synchronized the four fully dynamic update cases accordingly.
+- Replaced the unexplained phrase `two directions` with the explicit search directions: kNN search from $U$ to $I$, and RkNN search from an updated reference in $I$ back to affected queries in $U$.
+- Split the description of the two original HDR-Tree limitations into short sentences and used `structural updates` for query-side membership and topology changes.
+- Moved the query-to-leaf pointer and node-to-parent link into a separate `Direct update links` module shared by insertion, deletion, and pruning-parameter refresh.
+- Restated the over-depth rule directly from the original HDR-Tree construction: after the estimated height $\widehat{L}=\lceil\log_f|U|\rceil$ is exceeded, each additional level uses $d_l=D$.
+- Placed the three HDR update algorithms as bottom floats so that their shared link definition and operation-specific prose are read before the pseudocode.
