@@ -161,3 +161,7 @@ Further framework edits should continue to respect the whole-chapter reading rul
 - Kept the refresh cost parameterized as $O(\theta+hf)$ for the $h\leq L$ levels actually visited, with worst-case cost $O(\theta+Lf)$; the fixed-fanout simplification was removed to preserve the visible dependence on $f$.
 - Clarified the refresh-state boundary: an affected query's row and $\dknn(u,I)$ are refreshed before Update\_HDR\_Refresh is called, while the HDR-Tree procedure itself updates only cluster-level $\dmknn$ values along the ancestor path.
 - Removed the unnecessary restrictive adverb ``only'' from the prose introducing $\dmknn$ recomputation, while retaining the established query/tree state boundary.
+- Reframed Section 4.2 as coupled maintenance of the exact kNN join table and the dual-index state, explicitly supported by the kNN and RkNN search directions of Dual-Tree.
+- Reorganized the query- and reference-insertion/deletion cases around their data dependencies, including the decoupled reference-insertion order and the mandatory Delta-Tree-first order for reference deletion.
+- Added conservative full-recomputation comparisons for both reference-side updates: reverse localization changes the kNN-recomputation term from all $n_U=|U|$ queries to only the $r$ affected queries, plus one RkNN search.
+- Added a closing invariant stating that after every update the join table is exact, Delta-Tree indexes the current reference set, and HDR-Tree indexes the current query set with current $\dmknn$ values.
