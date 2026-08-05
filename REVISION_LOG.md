@@ -154,5 +154,7 @@ Further framework edits should continue to respect the whole-chapter reading rul
 - Rebalanced the subsection lengths after compression: Section 4.1 is now shorter than Section 4.2, while all three HDR update complexities remain attached concisely to their corresponding algorithms.
 - Repositioned the three HDR algorithms at column tops so that Algorithms 1--3 all appear before the Section 4.2 heading without introducing a float-barrier dependency or leaving a large blank region.
 - Corrected the direct-link complexity claim: no-link localization performs up to $O(Lf)$ child-cluster membership tests, whereas the links provide $O(1)$ leaf access and $O(L)$ parent traversal. The earlier unsupported geometric path-search term was removed.
+- Removed the unsupported $O(f\sum_l d_l)$ term from deletion localization. It came from an unstated radius-recomputation implementation rather than from membership-based path discovery.
+- Modeled the no-link deletion and refresh procedures as top-down updates rather than as localization followed by a separate bottom-up phase.
 - Unified the per-level PCA dimensionality notation from $d(l)$ to $d_l$ between Background and Section 4.
 - Made the radius-maintenance contract explicit so that the insertion and deletion bounds are independently auditable: centers remain fixed between repartitioning events, leaf radii scan at most $\theta$ resident queries, and internal radii are maintained as valid enclosing upper bounds from at most $f$ child summaries.

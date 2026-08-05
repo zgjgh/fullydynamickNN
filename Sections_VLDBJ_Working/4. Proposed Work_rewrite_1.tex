@@ -62,10 +62,10 @@ delete $u$ from the hosting leaf\;
 
 As shown in Algorithm~\ref{alg:UpdateHDRDelete}, the hosting cluster is obtained from $leaf(u)$ and $u$ is deleted from that leaf (Lines~1--2). The algorithm then follows the parent links upward. Along this path, it recomputes the point count, tightens the radius, and recomputes $\dmknn$ (Lines~3--4 and 8--10). If a non-leaf cluster becomes underfull, Lines~5--7 additionally collapse its subtree into a full-dimensional leaf and redirect the query-to-leaf pointers.
 
-Without these links, deletion must recover the hosting path from the root by checking which child cluster contains $u$ at each level. This adds up to $O(Lf)$ membership tests before the required bottom-up updates begin. The links replace this search with $O(1)$ leaf access and $O(L)$ parent traversal, avoiding up to $f$ child-cluster checks per level. The subsequent cluster-summary maintenance is required in either design. With the links, routine deletion costs $O(L+\theta D+f\sum_{l=1}^{L}d_l)$; without them, the additional localization term gives $O(Lf+\theta D+f\sum_{l=1}^{L}d_l)$. A collapse adds at most $O(\theta D)$ at a visited level and $O(L\theta D)$ in the worst case.
+Without these links, deletion proceeds from the root by checking which of the $f$ child clusters contains $u$ at each level, updating that cluster, and descending to its child node. This top-down procedure requires $O(Lf)$ membership tests. The links instead provide $O(1)$ leaf access and $O(L)$ parent traversal, avoiding up to $f$ child-cluster checks per level. Let $T_{\mathrm{state}}$ denote the point-count, radius, $\dmknn$, and optional-collapse work required along the selected path in either design. Algorithm~\ref{alg:UpdateHDRDelete} then costs $O(L+T_{\mathrm{state}})$, compared with $O(Lf+T_{\mathrm{state}})$ without the links.
 
 \noindent\textbf{Pruning-parameter refresh.}
-An update to $I$ leaves the query geometry unchanged. It may nevertheless alter $\dknn(u,I)$ and hence $\dmknn$ on its ancestor path. Because these maxima guide subsequent RkNN pruning, they must be refreshed before later searches.
+An update to $I$ leaves the query geometry unchanged. It may nevertheless alter $\dknn(u,I)$ and hence $\dmknn$ on its ancestor path.
 
 \begin{algorithm}[t]
 \caption{Update\_HDR\_Refresh($u$)}
@@ -86,7 +86,7 @@ refresh $\dknn(u,I)$\;
 
 As shown in Algorithm~\ref{alg:UpdateHDRRefresh}, $leaf(u)$ gives the hosting cluster and $\dknn(u,I)$ is refreshed (Lines~1--2). At each visited cluster, the algorithm stores the old $\dmknn$, recomputes the value from the leaf entries or immediate-child parameters, and moves to the parent only if the maximum changes (Lines~3--8). If it is unchanged, no higher ancestor can change and propagation stops.
 
-Without the links, every affected query first incurs $O(Lf)$ membership tests to recover its root-to-leaf path before bottom-up propagation begins. The total refresh cost is therefore $O(Lf+\theta+hf)$. With $O(1)$ leaf access, the links reduce this cost to $O(\theta+hf)=O(\theta+h)$ for fixed $f$, or $O(\theta+L)$ in the worst case. Since $h$ is ordinarily comparable to $L$, the gain comes from removing one complete top-down membership scan for every affected query. The refresh itself uses only scalar maximum updates and no high-dimensional distance computation.
+Without the links, refresh proceeds from the root and checks up to $f$ child clusters per level to find the branch containing $u$. The links remove this $O(Lf)$ membership scan for every affected query. With $O(1)$ leaf access, refreshing $h\leq L$ levels costs $O(\theta+hf)=O(\theta+h)$ for fixed $f$, or $O(\theta+L)$ in the worst case. Thus, each affected query avoids up to $f$ child-cluster membership checks per level.
 
 \subsection{Dynamic kNN Join Maintenance}
 \label{subsec:dynamic-maintenance}
