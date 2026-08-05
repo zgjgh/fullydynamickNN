@@ -83,7 +83,7 @@ $C \leftarrow cluster(leaf(u))$\;
 }
 \end{algorithm}
 
-As shown in Algorithm~\ref{alg:UpdateHDRRefresh}, $leaf(u)$ gives the hosting cluster after the query's kNN row and $\dknn(u,I)$ have already been refreshed. The algorithm recomputes only $\dmknn$: at the hosting leaf from the current $\dknn$ values of its resident queries, and at each ancestor from its immediate-child parameters. It moves upward only if the maximum changes; otherwise, no higher ancestor can change and propagation stops.
+As shown in Algorithm~\ref{alg:UpdateHDRRefresh}, $leaf(u)$ gives the hosting cluster after the query's kNN row and $\dknn(u,I)$ have already been refreshed. The algorithm recomputes $\dmknn$: at the hosting leaf from the current $\dknn$ values of its resident queries, and at each ancestor from its immediate-child parameters. It moves upward only if the maximum changes; otherwise, no higher ancestor can change and propagation stops.
 
 Without the links, refresh proceeds from the root and checks up to $f$ child clusters per level to find the branch containing $u$. The links remove this $O(Lf)$ membership scan for every affected query. With $O(1)$ leaf access, refreshing $h\leq L$ levels costs $O(\theta+hf)$, or $O(\theta+Lf)$ in the worst case. Thus, each affected query avoids up to $f$ child-cluster membership checks per level.
 
