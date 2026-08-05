@@ -158,3 +158,5 @@ Further framework edits should continue to respect the whole-chapter reading rul
 - Modeled the no-link deletion and refresh procedures as top-down updates rather than as localization followed by a separate bottom-up phase.
 - Unified the per-level PCA dimensionality notation from $d(l)$ to $d_l$ between Background and Section 4.
 - Made the radius-maintenance contract explicit so that the insertion and deletion bounds are independently auditable: existing cluster centers remain fixed during routine updates, and radius tightening uses the distances already stored by HDR-Tree.
+- Kept the refresh cost parameterized as $O(\theta+hf)$ for the $h\leq L$ levels actually visited, with worst-case cost $O(\theta+Lf)$; the fixed-fanout simplification was removed to preserve the visible dependence on $f$.
+- Clarified the refresh-state boundary: an affected query's row and $\dknn(u,I)$ are refreshed before Update\_HDR\_Refresh is called, while the HDR-Tree procedure itself updates only cluster-level $\dmknn$ values along the ancestor path.

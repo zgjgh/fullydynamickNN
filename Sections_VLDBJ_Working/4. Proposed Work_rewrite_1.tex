@@ -70,10 +70,9 @@ An update to $I$ leaves the query geometry unchanged. It may nevertheless alter 
 \begin{algorithm}[t]
 \caption{Update\_HDR\_Refresh($u$)}
 \label{alg:UpdateHDRRefresh}
-\KwData{Query $u$ with a refreshed kNN row}
+\KwData{Query $u$ whose kNN row has been refreshed}
 \KwResult{Updated pruning parameters in \hdrtree}
 $C \leftarrow cluster(leaf(u))$\;
-refresh $\dknn(u,I)$\;
 \While{$C\neq null$}{
     $old \leftarrow \dmknn(C)$\;
     recompute $\dmknn(C)$\;
@@ -84,9 +83,9 @@ refresh $\dknn(u,I)$\;
 }
 \end{algorithm}
 
-As shown in Algorithm~\ref{alg:UpdateHDRRefresh}, $leaf(u)$ gives the hosting cluster and $\dknn(u,I)$ is refreshed (Lines~1--2). At each visited cluster, the algorithm stores the old $\dmknn$, recomputes the value from the leaf entries or immediate-child parameters, and moves to the parent only if the maximum changes (Lines~3--8). If it is unchanged, no higher ancestor can change and propagation stops.
+As shown in Algorithm~\ref{alg:UpdateHDRRefresh}, $leaf(u)$ gives the hosting cluster after the query's kNN row and $\dknn(u,I)$ have already been refreshed. The algorithm recomputes only $\dmknn$: at the hosting leaf from the current $\dknn$ values of its resident queries, and at each ancestor from its immediate-child parameters. It moves upward only if the maximum changes; otherwise, no higher ancestor can change and propagation stops.
 
-Without the links, refresh proceeds from the root and checks up to $f$ child clusters per level to find the branch containing $u$. The links remove this $O(Lf)$ membership scan for every affected query. With $O(1)$ leaf access, refreshing $h\leq L$ levels costs $O(\theta+hf)=O(\theta+h)$ for fixed $f$, or $O(\theta+L)$ in the worst case. Thus, each affected query avoids up to $f$ child-cluster membership checks per level.
+Without the links, refresh proceeds from the root and checks up to $f$ child clusters per level to find the branch containing $u$. The links remove this $O(Lf)$ membership scan for every affected query. With $O(1)$ leaf access, refreshing $h\leq L$ levels costs $O(\theta+hf)$, or $O(\theta+Lf)$ in the worst case. Thus, each affected query avoids up to $f$ child-cluster membership checks per level.
 
 \subsection{Dynamic kNN Join Maintenance}
 \label{subsec:dynamic-maintenance}
@@ -108,13 +107,13 @@ insert $(u,A)$ into $\knnjoin(U,I)$\;
 Update\_HDR\_Insert($u$)\;
 \end{algorithm}
 
-Algorithm~\ref{alg:UpdateKNN_insertion_U} implements this path by first computing the new row through \deltatree-based kNN search and then inserting the new query into \hdrtree so that its stored kNN distance becomes available to later pruning. Its total cost is $O(T_{\knn}+T_{\mathrm{row}}+T_H^{+})$.
+Algorithm~\ref{alg:UpdateKNN_insertion_U} implements this path by first computing the new row through \deltatree-based kNN search and then inserting the new query into \hdrtree so that its $\dknn(u,I)$ contributes to the cluster-level $\dmknn$ used by later pruning. Its total cost is $O(T_{\knn}+T_{\mathrm{row}}+T_H^{+})$.
 
 \noindent \textbf{Case 2: deletion from $U$.}
 When a query point $u$ is deleted from $U$, the corresponding row is removed from $\knnjoin(U,I)$ and \hdrtree is updated through Update\_HDR\_Delete($u$). Because the reference set remains unchanged, no kNN search, no reverse localization, and no repair of other rows are needed. The update only touches the deleted row and the hosting path of $u$ in \hdrtree, with cost $O(T_{\mathrm{row}}+T_H^{-})$.
 
 \noindent \textbf{Case 3: insertion into $I$.}
-When a new reference point $i$ is inserted into $I$, the task is to identify the rows for which $i$ enters the current top-$k$ result. This follows the reverse-localization path. We therefore use RkNN search on \hdrtree to locate the affected queries. For each affected row, the previous $k$-th neighbor is replaced by $i$, after which the stored kNN distance of that query is synchronized through Update\_HDR\_Refresh($u$). The new point $i$ is then inserted into \deltatree so that subsequent kNN searches in forward repair operate on the updated reference space.
+When a new reference point $i$ is inserted into $I$, the task is to identify the rows for which $i$ enters the current top-$k$ result. This follows the reverse-localization path. We therefore use RkNN search on \hdrtree to locate the affected queries. For each affected row, replacing the previous $k$-th neighbor by $i$ updates $\dknn(u,I)$ for that query. Algorithm~\ref{alg:UpdateHDRRefresh} then propagates the resulting change to $\dmknn$ along its ancestor path. The new point $i$ is then inserted into \deltatree so that subsequent kNN searches in forward repair operate on the updated reference space.
 
 
 \begin{algorithm}[t]
@@ -130,10 +129,10 @@ $R\leftarrow$ RkNN\_\dualtree($root_{HDR}$, $q$)\;
 $\Delta$\_Insert($q$)\;
 \end{algorithm}
 
-Algorithm~\ref{alg:UpdateKNN_insert_I} realizes this path by first using \hdrtree to perform reverse localization and then updating only the affected rows. After the stored kNN distance of each affected query is refreshed, the corresponding path in \hdrtree and the reference-side \deltatree are synchronized. Its total cost is $O(T_{\rknn}+r(T_{\mathrm{row}}+T_H^{\mathrm{ref}})+T_{\Delta}^{+})$.
+Algorithm~\ref{alg:UpdateKNN_insert_I} realizes this path by first using \hdrtree to perform reverse localization and then updating only the affected rows. After each affected query's row and $\dknn$ are refreshed, the corresponding $\dmknn$ values in \hdrtree are synchronized; the reference-side \deltatree is then updated. Its total cost is $O(T_{\rknn}+r(T_{\mathrm{row}}+T_H^{\mathrm{ref}})+T_{\Delta}^{+})$.
 
 \noindent \textbf{Case 4: deletion from $I$.}
-When a reference point $i$ is deleted from $I$, some stored query answers may become invalid and require fresh forward repair. For this reason, \deltatree must first be updated to reflect the current reference set $I\setminus\{i\}$. Only then can later kNN searches in forward repair return correct results. After updating \deltatree, we use RkNN search on \hdrtree to perform reverse localization on the affected query rows. Each affected row is repaired by recomputing its current exact kNN list over the updated reference set, and the stored kNN distance of that query is then synchronized through Update\_HDR\_Refresh($u$).
+When a reference point $i$ is deleted from $I$, some stored query answers may become invalid and require fresh forward repair. For this reason, \deltatree must first be updated to reflect the current reference set $I\setminus\{i\}$. Only then can later kNN searches in forward repair return correct results. After updating \deltatree, we use RkNN search on \hdrtree to perform reverse localization on the affected query rows. Recomputing each affected row over the updated reference set also updates the query's $\dknn(u,I)$; Update\_HDR\_Refresh($u$) then propagates the resulting change only to $\dmknn$ along its ancestor path.
 
 \begin{algorithm}[t]
 \caption{$\knnjoin$\_Deletion\_I($q$)}
